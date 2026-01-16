@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Iron Fitness</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      --primary-color: #ffc107;
+      --dark-bg: #121212;
+      --sidebar-bg: #1e1e1e;
+      --text-light: #f8f9fa;
+      --card-bg: #212529;
+      --text-muted-light: #b0b3b8; /* Nuevo color para mejor contraste */
+    }
+
+    body {
+      background-color: var(--dark-bg);
+      color: var(--text-light);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      min-height: 100vh;
+      background-color: var(--sidebar-bg);
+      box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+      padding-top: 20px;
+    }
+
+    .sidebar .nav-link {
+      color: #aaa;
+      font-size: 1.1rem;
+      padding: 15px 20px;
+      transition: all 0.3s;
+      border-left: 4px solid transparent;
+      cursor: pointer; /* Indica que es clicable */
+    }
+
+    /* Estado Activo corregido */
+    .sidebar .nav-link:hover, .sidebar .nav-link.active {
+      color: var(--primary-color);
+      background-color: rgba(255, 193, 7, 0.05);
+      border-left-color: var(--primary-color);
+    }
+
+    .sidebar .nav-link i {
+      margin-right: 10px;
+    }
+
+    .brand-section {
+      padding: 0 20px 20px 20px;
+      border-bottom: 1px solid #333;
+      margin-bottom: 20px;
+    }
+
+    /* Main Content Styling */
+    .main-content {
+      padding: 30px;
+    }
+
+    .stat-card {
+      background-color: var(--card-bg);
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 20px;
+      height: 100%;
+      transition: transform 0.2s;
+    }
+
+    /* Corrección de color para los títulos de las tarjetas */
+    .stat-card h6 {
+      color: var(--text-muted-light) !important;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary-color);
+    }
+
+    .stat-icon {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      opacity: 0.8;
+    }
+
+    /* Tables */
+    .table-custom {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .table-dark {
+      --bs-table-bg: var(--card-bg);
+      margin-bottom: 0;
+    }
+
+    .table-dark th {
+      color: var(--primary-color);
+      font-weight: 600;
+      border-bottom: 2px solid #333;
+    }
+
+    .table-dark td {
+      border-color: #333;
+      vertical-align: middle;
+      color: #e0e0e0;
+    }
+
+    .header-bar {
+      background-color: var(--sidebar-bg);
+      padding: 15px 30px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Placeholder para cuando no hay datos */
+    .data-placeholder {
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <div class="col-md-3 col-lg-2 sidebar d-none d-md-block p-0">
+      <div class="brand-section text-center mt-3">
+        <h4 class="text-warning fw-bold"><i class="bi bi-lightning-fill"></i> IRON ADMIN</h4>
+      </div>
+
+      <nav class="nav flex-column" id="sidebarMenu">
+        <a class="nav-link active" href="#" onclick="cargarModulo('resumen', this)">
+          <i class="bi bi-speedometer2"></i> Resumen
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('usuarios', this)">
+          <i class="bi bi-person-badge"></i> Usuarios Staff
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('clientes', this)">
+          <i class="bi bi-people-fill"></i> Clientes
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('entrenadores', this)">
+          <i class="bi bi-person-video"></i> Entrenadores
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('pagos', this)">
+          <i class="bi bi-currency-dollar"></i> Pagos
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('reportes', this)">
+          <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+        </a>
+      </nav>
+
+      <div class="mt-auto p-4">
+        <button class="btn btn-outline-danger w-100" onclick="cerrarSesion()">
+          <i class="bi bi-box-arrow-left"></i> Salir
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-0">
+
+      <div class="header-bar">
+        <h5 class="m-0 text-white" id="page-title">Panel de Control</h5>
+        <div class="d-flex align-items-center">
+          <span class="me-3 text-muted">Hola, <span class="text-white fw-bold">Administrador</span></span>
+          <div class="rounded-circle bg-warning d-flex justify-content-center align-items-center fw-bold text-dark" style="width: 40px; height: 40px;">
+            AD
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content" id="contenido-dinamico">
+
+        <div id="vista-resumen">
+          <div class="row g-4 mb-4">
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Clientes Activos</h6>
+                    <h2 class="fw-bold mb-0" id="kpi-clientes">--</h2>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-people"></i></div>
+                </div>
+                <small class="text-muted">Cargando datos...</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Ingresos (Mes)</h6>
+                    <h2 class="fw-bold mb-0" id="kpi-ingresos">--</h2>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+                </div>
+                <small class="text-muted">Cargando datos...</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Asistencias Hoy</h6>
+                    <h2 class="fw-bold mb-0" id="kpi-asistencias">--</h2>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-qr-code-scan"></i></div>
+                </div>
+                <small class="text-muted">Esperando lecturas...</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Membresías Vencidas</h6>
+                    <h2 class="fw-bold text-danger mb-0" id="kpi-vencidas">--</h2>
+                  </div>
+                  <div class="stat-icon text-danger"><i class="bi bi-exclamation-circle"></i></div>
+                </div>
+                <small class="text-muted">Verificando estado...</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+              <h5 class="mb-0 text-white">Últimos Accesos al Sistema (RF09)</h5>
+              <button class="btn btn-sm btn-outline-warning" disabled>Ver Todo</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-dark table-hover align-middle mb-0" id="tabla-logs">
+                <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  <th>Fecha/Hora</th>
+                  <th>IP</th>
+                  <th>Estado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                    No hay datos disponibles por el momento
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="vista-dinamica-contenedor"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // 1. Manejo de Sesión (Placeholder)
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('tokenGimnasio');
+    // if (!token) window.location.href = 'login.html';
+    console.log("Dashboard cargado. Token:", token ? "Presente" : "No encontrado");
+  });
+
+  function cerrarSesion() {
+    localStorage.removeItem('tokenGimnasio');
+    window.location.href = 'login.html';
+  }
+
+  // 2. Lógica para cambiar de Módulo y Activar Sidebar
+  function cargarModulo(modulo, elementoHTML) {
+    // A) Actualizar Título
+    const tituloMap = {
+      'resumen': 'Panel de Control',
+      'usuarios': 'Gestión de Usuarios Staff',
+      'clientes': 'Gestión de Clientes',
+      'entrenadores': 'Gestión de Entrenadores',
+      'pagos': 'Control de Pagos y Membresías',
+      'reportes': 'Reportes y Auditoría'
+    };
+    document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
+
+    // B) Visual del Sidebar (Quitar active a todos, poner al clickeado)
+    const links = document.querySelectorAll('#sidebarMenu .nav-link');
+    links.forEach(link => link.classList.remove('active')); // Limpia todos
+    elementoHTML.classList.add('active'); // Activa el actual
+
+    // C) Lógica de Vistas (Mostrar/Ocultar contenido)
+    const vistaResumen = document.getElementById('vista-resumen');
+    const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
+
+    if (modulo === 'resumen') {
+      vistaResumen.style.display = 'block';
+      contenedorDinamico.innerHTML = ''; // Limpia otras vistas
+    } else {
+      vistaResumen.style.display = 'none';
+      // Aquí mostraremos un "Skeleton" o mensaje de carga mientras construimos los otros módulos
+      contenedorDinamico.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-cone-striped fs-1 text-warning mb-3"></i>
+                        <h4 class="text-white">Módulo de ${modulo.charAt(0).toUpperCase() + modulo.slice(1)}</h4>
+                        <p class="text-muted">Conectando con API...</p>
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                `;
+
+      // AQUI AGREGARÍAMOS EL FETCH PARA TRAER DATOS DE ESE MÓDULO
+      // fetch('/api/' + modulo)...
+    }
+  }
+</script>
+</body>
+</html>

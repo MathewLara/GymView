@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Acceso | Iron Fitness</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      --primary-color: #ffc107;
+      --success-color: #198754;
+      --error-color: #dc3545;
+      --dark-bg: #000000; /* Fondo totalmente negro para Kiosco */
+      --card-bg: #1e1e1e;
+    }
+
+    body {
+      background-color: var(--dark-bg);
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      overflow: hidden; /* Evitar scroll en modo kiosco */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Área de la Cámara / Escáner */
+    .scanner-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      aspect-ratio: 1/1;
+      background-color: #111;
+      border: 4px solid #333;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 50px rgba(255, 193, 7, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .camera-feed {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.6; /* Simula la cámara activa */
+      background: url('https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80') center/cover;
+    }
+
+    /* Línea de escaneo animada */
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-color: var(--primary-color);
+      box-shadow: 0 0 15px var(--primary-color);
+      animation: scan 2s infinite linear;
+    }
+
+    @keyframes scan {
+      0% { top: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    /* Estados de Pantalla (Overlay) */
+    .status-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none; /* Se activa con JS */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      text-align: center;
+      animation: fadeIn 0.3s;
+    }
+
+    .status-success { background-color: rgba(25, 135, 84, 0.95); }
+    .status-error { background-color: rgba(220, 53, 69, 0.95); }
+
+    .status-icon {
+      font-size: 8rem;
+      margin-bottom: 20px;
+      color: white;
+    }
+
+    .user-photo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 5px solid white;
+      object-fit: cover;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+
+    /* Footer discreto */
+    .kiosk-footer {
+      position: absolute;
+      bottom: 20px;
+      text-align: center;
+      color: #666;
+      font-size: 0.8rem;
+    }
+
+    .kiosk-mode-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      opacity: 0.3;
+    }
+    .kiosk-mode-btn:hover { opacity: 1; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+  </style>
+</head>
+<body>
+
+<div class="text-center mb-4">
+  <h1 class="fw-bold text-white display-4"><i class="bi bi-lightning-fill text-warning"></i> IRON ACCESS</h1>
+  <p class="text-secondary fs-4">Acerca tu código QR al escáner</p>
+</div>
+
+<div class="scanner-container">
+  <div class="scan-line"></div>
+  <div class="camera-feed"></div>
+
+  <div class="position-absolute bottom-0 w-100 p-3 bg-dark bg-opacity-75 text-center">
+    <small class="text-muted d-block mb-2">[MODO SIMULACIÓN]</small>
+    <button class="btn btn-sm btn-success me-2" onclick="simularAcceso(true)">Simular OK</button>
+    <button class="btn btn-sm btn-danger" onclick="simularAcceso(false)">Simular Error</button>
+  </div>
+</div>
+
+<input type="text" id="lector-input" style="opacity: 0; position: absolute;" autofocus>
+
+<div id="overlay-success" class="status-overlay status-success">
+  <img src="https://ui-avatars.com/api/?name=Juan+Perez&size=200" class="user-photo" alt="Usuario">
+  <div class="status-icon"><i class="bi bi-check-circle-fill"></i></div>
+  <h1 class="display-1 fw-bold">BIENVENIDO</h1>
+  <h3 class="fw-light">Juan Pérez</h3>
+  <p class="fs-4 mt-3">Membresía Activa • Plan Black</p>
+  <div class="mt-4 badge bg-white text-success fs-5 px-4 py-2 rounded-pill">Disfruta tu entrenamiento</div>
+</div>
+
+<div id="overlay-error" class="status-overlay status-error">
+  <div class="status-icon"><i class="bi bi-x-circle-fill"></i></div>
+  <h1 class="display-1 fw-bold">ACCESO DENEGADO</h1>
+  <h3 class="fw-light">Código Inválido o Vencido</h3>
+  <p class="fs-4 mt-3">Por favor, dirígete a recepción</p>
+  <button class="btn btn-outline-light btn-lg mt-4 rounded-pill" onclick="resetKiosk()">Intentar de nuevo</button>
+</div>
+
+<div class="kiosk-footer">
+  <p class="m-0">Iron Fitness System v1.0 • Terminal ID: KIOSK-01</p>
+  <p class="m-0 text-muted"> <i class="bi bi-wifi"></i> Conectado</p>
+</div>
+
+<a href="login.html" class="kiosk-mode-btn btn btn-outline-secondary btn-sm">
+  <i class="bi bi-box-arrow-right"></i> Salir
+</a>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Foco automático en el input "invisible" para capturar lectores USB
+  const inputLector = document.getElementById('lector-input');
+
+  // Mantener el foco siempre (para que si escanean con pistola USB, lo capture)
+  document.addEventListener('click', () => inputLector.focus());
+  setInterval(() => inputLector.focus(), 2000);
+
+  // Escuchar el "Enter" del lector QR
+  inputLector.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      const codigo = this.value;
+      this.value = ''; // Limpiar
+      procesarCodigo(codigo);
+    }
+  });
+
+  // Función simulada de procesamiento
+  function procesarCodigo(codigo) {
+    console.log("Procesando código:", codigo);
+    // AQUÍ IRÁ EL FETCH AL API:
+    // fetch('/api/asistencia', { method: 'POST', body: ... })
+
+    // Por ahora simulamos aleatorio si no viene de los botones
+    const exito = Math.random() < 0.8;
+    simularAcceso(exito);
+  }
+
+  // Lógica visual de Aprobado/Rechazado
+  function simularAcceso(permitido) {
+    const overlay = permitido ? document.getElementById('overlay-success') : document.getElementById('overlay-error');
+
+    // Mostrar overlay
+    overlay.style.display = 'flex';
+
+    // Reproducir sonido (Opcional)
+    // playBeep(permitido);
+
+    // Auto-reset después de 3 segundos para el siguiente usuario
+    setTimeout(() => {
+      resetKiosk();
+    }, 3500);
+  }
+
+  function resetKiosk() {
+    document.querySelectorAll('.status-overlay').forEach(el => el.style.display = 'none');
+    inputLector.value = '';
+    inputLector.focus();
+  }
+</script>
+</body>
+</html>k

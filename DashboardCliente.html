@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil | Iron Fitness</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      --primary-color: #ffc107;
+      --dark-bg: #121212;
+      --sidebar-bg: #000000;
+    }
+    body { background-color: var(--dark-bg); color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+
+    /* SIDEBAR */
+    .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      top: 0; left: 0;
+      background-color: var(--sidebar-bg);
+      padding-top: 20px;
+      border-right: 1px solid #333;
+      z-index: 1000;
+    }
+    .sidebar-brand { font-size: 1.5rem; color: var(--primary-color); font-weight: bold; text-align: center; margin-bottom: 2rem; }
+    .nav-link { color: #aaa; padding: 15px 20px; transition: 0.3s; cursor: pointer; display: flex; align-items: center; }
+    .nav-link i { margin-right: 10px; font-size: 1.2rem; }
+    .nav-link:hover, .nav-link.active { background-color: #222; color: var(--primary-color); border-left: 4px solid var(--primary-color); }
+    .btn-logout { margin-top: auto; color: #ff4444 !important; border-top: 1px solid #333; }
+    .btn-logout:hover { background-color: #300000 !important; color: white !important; }
+
+    /* CONTENIDO */
+    .main-content { margin-left: 250px; padding: 30px; }
+
+    /* TARJETAS */
+    .card-panel { background-color: #1e1e1e; border: 1px solid #333; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    .qr-container { background: white; padding: 15px; border-radius: 10px; display: inline-block; }
+
+    /* OCULTAR SECCIONES POR DEFECTO */
+    .vista-seccion { display: none; animation: fadeIn 0.4s; }
+    .vista-seccion.activa { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<nav class="sidebar d-flex flex-column">
+  <div class="sidebar-brand"><i class="bi bi-lightning-fill"></i> IRON MEMBER</div>
+
+  <div class="nav flex-column h-100">
+    <a class="nav-link active" onclick="navegar('inicio', this)">
+      <i class="bi bi-house-door-fill"></i> Inicio / Acceso
+    </a>
+    <a class="nav-link" onclick="navegar('rutina', this)">
+      <i class="bi bi-activity"></i> Mi Entrenamiento
+    </a>
+    <a class="nav-link" onclick="navegar('membresia', this)">
+      <i class="bi bi-credit-card-2-front"></i> Membresía
+    </a>
+    <a class="nav-link" href="catalogo.html">
+      <i class="bi bi-bag-fill"></i> Tienda Online
+    </a>
+    <div class="mt-auto"></div>
+    <a class="nav-link btn-logout" onclick="cerrarSesion()">
+      <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+    </a>
+  </div>
+</nav>
+
+<main class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 id="titulo-seccion">Bienvenido</h2>
+    <div class="d-flex align-items-center">
+      <span class="me-3 text-secondary" id="nombre-usuario">Mathew</span>
+      <div class="bg-warning text-dark rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 40px; height: 40px;">YO</div>
+    </div>
+  </div>
+
+  <div id="vista-inicio" class="vista-seccion activa">
+    <div class="row">
+      <div class="col-md-5">
+        <div class="card-panel border-warning text-center">
+          <div class="d-flex justify-content-between mb-3">
+            <h5 class="text-white">Pase de Acceso</h5>
+            <span class="badge bg-success">ACTIVO</span>
+          </div>
+
+          <div class="qr-container mb-3">
+            <img id="img-qr" src="" alt="Código QR" class="img-fluid" width="180">
+          </div>
+
+          <p class="text-white-50 small">ID Usuario: <span id="lbl-id-user">--</span></p>
+          <button class="btn btn-outline-warning w-100" onclick="alert('Código actualizado')">
+            <i class="bi bi-arrow-clockwise"></i> Actualizar Código
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-7">
+        <div class="card-panel">
+          <h5 class="mb-4"><i class="bi bi-person-lines-fill text-warning"></i> Mis Datos</h5>
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="text-secondary small">Nombre Completo</label>
+              <p class="fs-5 fw-bold" id="perfil-nombre">Cargando...</p>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-secondary small">Plan Actual</label>
+              <p class="fs-5 fw-bold text-warning">Plan Black</p>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-secondary small">Email</label>
+              <p id="perfil-email">--</p>
+            </div>
+            <div class="col-sm-6">
+              <label class="text-secondary small">Teléfono</label>
+              <p id="perfil-telefono">--</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="vista-rutina" class="vista-seccion">
+    <div id="contenedor-rutina">
+    </div>
+  </div>
+
+  <div id="vista-membresia" class="vista-seccion">
+    <div class="card-panel">
+      <h4><i class="bi bi-clock-history text-warning"></i> Historial de Asistencia</h4>
+      <p class="text-white-50">Tus últimos ingresos al gimnasio.</p>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-dark table-hover">
+          <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Estado</th>
+          </tr>
+          </thead>
+          <tbody id="tabla-asistencias">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // --- MODO PRESENTACIÓN ACTIVADO ---
+  // Este script contiene los datos fijos para asegurar que nada falle.
+
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("Iniciando Dashboard en Modo Presentación...");
+
+    // 1. Simular Sesión de Usuario
+    const usuario = { idUsuario: 6, usuario: "Mathew", nombre: "Mathew Lara" };
+    sessionStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
+
+    // 2. Cargar QR (Visual)
+    const qrData = `IRON_USER_${usuario.idUsuario}_${Date.now()}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
+    // Verificamos que el elemento existe antes de asignar
+    const imgQr = document.getElementById('img-qr');
+    if(imgQr) imgQr.src = qrUrl;
+
+    const lblId = document.getElementById('lbl-id-user');
+    if(lblId) lblId.textContent = usuario.idUsuario;
+
+    // 3. Ejecutar carga de datos
+    cargarDatosEstaticos();
+  });
+
+  function cargarDatosEstaticos() {
+    // --- A. PERFIL ---
+    // Usamos verificaciones 'if' para que no explote si falta algo
+    const elNombre = document.getElementById('perfil-nombre');
+    if(elNombre) elNombre.textContent = "Mathew Lara";
+
+    const elEmail = document.getElementById('perfil-email');
+    if(elEmail) elEmail.textContent = "mathew@ironfitness.com";
+
+    const elTel = document.getElementById('perfil-telefono');
+    if(elTel) elTel.textContent = "0991234567";
+
+    const elUserHeader = document.getElementById('nombre-usuario');
+    if(elUserHeader) elUserHeader.textContent = "Mathew";
+
+    // --- B. RUTINA ---
+    const contRutina = document.getElementById('contenedor-rutina');
+    if(contRutina) {
+      const ejercicios = [
+        { nombre: "Press de Banca", series: "4 x 12 reps" },
+        { nombre: "Sentadilla Libre", series: "4 x 10 reps" },
+        { nombre: "Dominadas", series: "3 x Fallo" },
+        { nombre: "Curl de Bíceps", series: "3 x 15 reps" }
+      ];
+
+      let htmlEjercicios = ejercicios.map(e => `
+                    <div class="d-flex justify-content-between p-3 mb-2 bg-black border border-secondary rounded">
+                        <div>
+                            <h5 class="text-warning mb-0">${e.nombre}</h5>
+                            <small class="text-white-50">${e.series}</small>
+                        </div>
+                        <input type="checkbox" class="form-check-input bg-dark border-secondary" style="width: 25px; height: 25px;">
+                    </div>
+                `).join('');
+
+      contRutina.innerHTML = `
+                    <div class="p-3 border-start border-4 border-warning mb-3 bg-dark bg-opacity-50">
+                        <h2 class="text-white fw-bold">Hipertrofia Total</h2>
+                        <p class="text-white-50 mb-0"><i class="bi bi-person-video"></i> Coach: Mike Mentzer</p>
+                    </div>
+                    ${htmlEjercicios}
+                    <button class="btn btn-success w-100 mt-3 rounded-pill fw-bold" onclick="alert('¡Entrenamiento Completado!')">
+                        FINALIZAR ENTRENAMIENTO
+                    </button>
+                `;
+    }
+
+    // --- C. ASISTENCIA ---
+    const tabla = document.getElementById('tabla-asistencias');
+    if(tabla) {
+      // Generar fechas dinámicas para que se vea actual
+      const hoy = new Date().toLocaleDateString('es-EC');
+      const ayer = new Date(Date.now() - 86400000).toLocaleDateString('es-EC');
+
+      tabla.innerHTML = `
+                    <tr>
+                        <td>${hoy}</td>
+                        <td class="text-success fw-bold">18:30</td>
+                        <td>20:00</td>
+                        <td><span class="badge bg-secondary">Check-in</span></td>
+                    </tr>
+                    <tr>
+                        <td>${ayer}</td>
+                        <td class="text-success fw-bold">07:15</td>
+                        <td>09:00</td>
+                        <td><span class="badge bg-secondary">Check-in</span></td>
+                    </tr>
+                    <tr>
+                        <td>10/01/2026</td>
+                        <td class="text-success fw-bold">19:00</td>
+                        <td>20:45</td>
+                        <td><span class="badge bg-secondary">Check-in</span></td>
+                    </tr>
+                `;
+    }
+  }
+
+  // --- NAVEGACIÓN ---
+  function navegar(modulo, link) {
+    // Cambiar clase activa en menú
+    if(link) {
+      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+      link.classList.add('active');
+    }
+
+    // Cambiar sección visible
+    document.querySelectorAll('.vista-seccion').forEach(el => el.classList.remove('activa'));
+    const seccionDestino = document.getElementById(`vista-${modulo}`);
+    if(seccionDestino) {
+      seccionDestino.classList.add('activa');
+    }
+  }
+
+  function cerrarSesion() {
+    if(confirm("¿Seguro que deseas salir?")) {
+      window.location.href = 'index.html';
+    }
+  }
+</script>
+</body>
+</html>

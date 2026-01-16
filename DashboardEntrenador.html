@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrenador Dashboard | Iron Fitness</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      --primary-color: #ffc107;
+      --dark-bg: #121212;
+      --sidebar-bg: #1e1e1e;
+      --text-light: #f8f9fa;
+      --card-bg: #212529;
+      --text-muted-light: #b0b3b8;
+    }
+
+    body {
+      background-color: var(--dark-bg);
+      color: var(--text-light);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      min-height: 100vh;
+      background-color: var(--sidebar-bg);
+      box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+      padding-top: 20px;
+    }
+
+    .sidebar .nav-link {
+      color: #aaa;
+      font-size: 1.1rem;
+      padding: 15px 20px;
+      transition: all 0.3s;
+      border-left: 4px solid transparent;
+      cursor: pointer;
+    }
+
+    .sidebar .nav-link:hover, .sidebar .nav-link.active {
+      color: var(--primary-color);
+      background-color: rgba(255, 193, 7, 0.05);
+      border-left-color: var(--primary-color);
+    }
+
+    .sidebar .nav-link i {
+      margin-right: 10px;
+    }
+
+    .brand-section {
+      padding: 0 20px 20px 20px;
+      border-bottom: 1px solid #333;
+      margin-bottom: 20px;
+    }
+
+    /* Main Content Styling */
+    .main-content {
+      padding: 30px;
+    }
+
+    .stat-card {
+      background-color: var(--card-bg);
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 20px;
+      height: 100%;
+      transition: transform 0.2s;
+    }
+
+    .stat-card h6 {
+      color: var(--text-muted-light) !important;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-icon {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      opacity: 0.8;
+    }
+
+    /* Botón especial para Crear Rutina (RF05) */
+    .btn-create-routine {
+      background-color: var(--primary-color);
+      color: black;
+      font-weight: bold;
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      transition: all 0.3s;
+    }
+
+    .btn-create-routine:hover {
+      background-color: #e0a800;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+    }
+
+    /* Tables */
+    .table-custom {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .table-dark {
+      --bs-table-bg: var(--card-bg);
+      margin-bottom: 0;
+    }
+
+    .table-dark th {
+      color: var(--primary-color);
+      font-weight: 600;
+      border-bottom: 2px solid #333;
+    }
+
+    .table-dark td {
+      border-color: #333;
+      vertical-align: middle;
+      color: #e0e0e0;
+    }
+
+    .header-bar {
+      background-color: var(--sidebar-bg);
+      padding: 15px 30px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <div class="col-md-3 col-lg-2 sidebar d-none d-md-block p-0">
+      <div class="brand-section text-center mt-3">
+        <h4 class="text-warning fw-bold"><i class="bi bi-lightning-fill"></i> IRON COACH</h4>
+      </div>
+
+      <div class="px-3">
+        <button class="btn-create-routine" onclick="cargarModulo('editor', null)">
+          <i class="bi bi-plus-circle-fill me-2"></i> Nueva Rutina
+        </button>
+      </div>
+
+      <nav class="nav flex-column" id="sidebarMenu">
+        <a class="nav-link active" href="#" onclick="cargarModulo('resumen', this)">
+          <i class="bi bi-speedometer2"></i> Mi Tablero
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('mis-clientes', this)">
+          <i class="bi bi-people-fill"></i> Mis Clientes
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('rutinas', this)">
+          <i class="bi bi-list-check"></i> Biblioteca Rutinas
+        </a>
+
+        <a class="nav-link" href="#" onclick="cargarModulo('horario', this)">
+          <i class="bi bi-calendar-week"></i> Mi Horario
+        </a>
+      </nav>
+
+      <div class="mt-auto p-4">
+        <button class="btn btn-outline-danger w-100" onclick="cerrarSesion()">
+          <i class="bi bi-box-arrow-left"></i> Salir
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-0">
+
+      <div class="header-bar">
+        <h5 class="m-0 text-white" id="page-title">Mi Tablero</h5>
+        <div class="d-flex align-items-center">
+          <span class="me-3 text-muted">Entrenador: <span class="text-white fw-bold">Coach Mike</span></span>
+          <div class="rounded-circle bg-primary d-flex justify-content-center align-items-center fw-bold text-white" style="width: 40px; height: 40px;">
+            TR
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content" id="contenido-dinamico">
+
+        <div id="vista-resumen">
+          <div class="row g-4 mb-4">
+            <div class="col-md-4">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Mis Alumnos Activos</h6>
+                    <h2 class="fw-bold mb-0" id="kpi-clientes">--</h2>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-person-walking"></i></div>
+                </div>
+                <small class="text-muted">Personas asignadas a tu cargo</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Rutinas Diseñadas</h6>
+                    <h2 class="fw-bold mb-0" id="kpi-rutinas">--</h2>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
+                </div>
+                <small class="text-muted">Total en biblioteca</small>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Próxima Sesión</h6>
+                    <h2 class="fw-bold mb-0 text-white">--:--</h2>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-clock"></i></div>
+                </div>
+                <small class="text-warning">Ver agenda completa</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+              <h5 class="mb-0 text-white">Alumnos sin Rutina o por Vencer</h5>
+              <button class="btn btn-sm btn-outline-warning" disabled>Ver Todos</button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Plan</th>
+                  <th>Rutina Actual</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+                </thead>
+                <tbody id="tabla-pendientes">
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                    <i class="bi bi-check-circle fs-4 d-block mb-2"></i>
+                    No hay alertas pendientes por cargar
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="vista-dinamica-contenedor"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Simulación de Sesión
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('tokenGimnasio');
+    console.log("Panel Entrenador. Token:", token ? "OK" : "Faltante");
+  });
+
+  function cerrarSesion() {
+    localStorage.removeItem('tokenGimnasio');
+    window.location.href = 'login.html';
+  }
+
+  function cargarModulo(modulo, elementoHTML) {
+    // 1. Títulos
+    const tituloMap = {
+      'resumen': 'Mi Tablero',
+      'mis-clientes': 'Mis Alumnos Asignados',
+      'rutinas': 'Biblioteca de Rutinas',
+      'horario': 'Mi Horario Semanal',
+      'editor': 'Editor de Nueva Rutina'
+    };
+    document.getElementById('page-title').innerText = tituloMap[modulo] || 'Entrenador';
+
+    // 2. Sidebar Active
+    if (elementoHTML) {
+      const links = document.querySelectorAll('#sidebarMenu .nav-link');
+      links.forEach(link => link.classList.remove('active'));
+      elementoHTML.classList.add('active');
+    } else if (modulo === 'editor') {
+      // Si viene del botón grande, quitamos el active de los links
+      document.querySelectorAll('#sidebarMenu .nav-link').forEach(l => l.classList.remove('active'));
+    }
+
+    // 3. Gestión de Vistas
+    const vistaResumen = document.getElementById('vista-resumen');
+    const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
+
+    if (modulo === 'resumen') {
+      vistaResumen.style.display = 'block';
+      contenedorDinamico.innerHTML = '';
+    } else if (modulo === 'editor') {
+      // VISTA PREVIA DEL EDITOR DE RUTINAS (RF05)
+      vistaResumen.style.display = 'none';
+      contenedorDinamico.innerHTML = `
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-body">
+                            <h5 class="text-warning mb-4">Diseñador de Rutina</h5>
+                            <form>
+                                <div class="mb-3">
+                                    <label class="text-muted">Nombre de la Rutina</label>
+                                    <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Ej: Hipertrofia Pierna Nivel 1">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="text-muted">Ejercicio</label>
+                                        <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Ej: Sentadilla Libre">
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label class="text-muted">Series</label>
+                                        <input type="number" class="form-control bg-black text-white border-secondary">
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label class="text-muted">Reps</label>
+                                        <input type="text" class="form-control bg-black text-white border-secondary">
+                                    </div>
+                                    <div class="col-md-2 mb-3 d-flex align-items-end">
+                                        <button type="button" class="btn btn-outline-warning w-100">+ Agregar</button>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-4">
+                                    <button type="button" class="btn btn-secondary me-2" onclick="cargarModulo('resumen', null)">Cancelar</button>
+                                    <button type="button" class="btn btn-warning">Guardar Rutina</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+    } else {
+      vistaResumen.style.display = 'none';
+      contenedorDinamico.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-cone-striped fs-1 text-secondary mb-3"></i>
+                        <h4 class="text-white">Sección: ${tituloMap[modulo]}</h4>
+                        <p class="text-muted">Cargando datos del servidor...</p>
+                    </div>
+                `;
+    }
+  }
+</script>
+</body>
+</html>
