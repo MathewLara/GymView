@@ -2,359 +2,306 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Entrenador Dashboard | Iron Fitness</title>
+  <title>Panel Entrenador | Iron Fitness</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
   <style>
-    :root {
-      --primary-color: #ffc107;
-      --dark-bg: #121212;
-      --sidebar-bg: #1e1e1e;
-      --text-light: #f8f9fa;
-      --card-bg: #212529;
-      --text-muted-light: #b0b3b8;
-    }
+    :root { --primary: #ffc107; --bg: #121212; --card: #1e1e1e; }
+    body { background-color: var(--bg); color: white; font-family: sans-serif; overflow-x: hidden; }
 
-    body {
-      background-color: var(--dark-bg);
-      color: var(--text-light);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow-x: hidden;
-    }
+    .sidebar { width: 260px; position: fixed; height: 100vh; background: black; border-right: 1px solid #333; padding-top: 20px; z-index: 1000; }
+    .sidebar-brand { color: var(--primary); font-weight: bold; font-size: 1.5rem; text-align: center; margin-bottom: 2rem; }
 
-    /* Sidebar Styling */
-    .sidebar {
-      min-height: 100vh;
-      background-color: var(--sidebar-bg);
-      box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-      padding-top: 20px;
-    }
+    .main { margin-left: 260px; padding: 30px; }
+    .card-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: 100%; margin-bottom: 20px; }
 
-    .sidebar .nav-link {
-      color: #aaa;
-      font-size: 1.1rem;
-      padding: 15px 20px;
-      transition: all 0.3s;
-      border-left: 4px solid transparent;
-      cursor: pointer;
-    }
+    .nav-link { color: #aaa; padding: 15px 20px; cursor: pointer; display: flex; align-items: center; transition: 0.3s;}
+    .nav-link i { margin-right: 12px; font-size: 1.2rem; }
+    .nav-link.active, .nav-link:hover { color: var(--primary); background: #222; border-left: 4px solid var(--primary); }
 
-    .sidebar .nav-link:hover, .sidebar .nav-link.active {
-      color: var(--primary-color);
-      background-color: rgba(255, 193, 7, 0.05);
-      border-left-color: var(--primary-color);
-    }
-
-    .sidebar .nav-link i {
-      margin-right: 10px;
-    }
-
-    .brand-section {
-      padding: 0 20px 20px 20px;
-      border-bottom: 1px solid #333;
-      margin-bottom: 20px;
-    }
-
-    /* Main Content Styling */
-    .main-content {
-      padding: 30px;
-    }
-
-    .stat-card {
-      background-color: var(--card-bg);
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 20px;
-      height: 100%;
-      transition: transform 0.2s;
-    }
-
-    .stat-card h6 {
-      color: var(--text-muted-light) !important;
-      font-size: 0.9rem;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-icon {
-      font-size: 2.5rem;
-      color: var(--primary-color);
-      opacity: 0.8;
-    }
-
-    /* Botón especial para Crear Rutina (RF05) */
-    .btn-create-routine {
-      background-color: var(--primary-color);
-      color: black;
-      font-weight: bold;
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      transition: all 0.3s;
-    }
-
-    .btn-create-routine:hover {
-      background-color: #e0a800;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-    }
-
-    /* Tables */
-    .table-custom {
-      background-color: var(--card-bg);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .table-dark {
-      --bs-table-bg: var(--card-bg);
-      margin-bottom: 0;
-    }
-
-    .table-dark th {
-      color: var(--primary-color);
-      font-weight: 600;
-      border-bottom: 2px solid #333;
-    }
-
-    .table-dark td {
-      border-color: #333;
-      vertical-align: middle;
-      color: #e0e0e0;
-    }
-
-    .header-bar {
-      background-color: var(--sidebar-bg);
-      padding: 15px 30px;
-      border-bottom: 1px solid #333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .vista { display: none; animation: fadeIn 0.4s; }
+    .vista.activa { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
-<div class="container-fluid">
-  <div class="row">
+<nav class="sidebar d-flex flex-column">
+  <div class="sidebar-brand"><i class="bi bi-lightning-fill"></i> IRON COACH</div>
+  <div class="px-3 mb-4">
+    <button class="btn btn-warning w-100 fw-bold" onclick="abrirModal()">
+      <i class="bi bi-plus-circle"></i> Nueva Rutina
+    </button>
+  </div>
 
-    <div class="col-md-3 col-lg-2 sidebar d-none d-md-block p-0">
-      <div class="brand-section text-center mt-3">
-        <h4 class="text-warning fw-bold"><i class="bi bi-lightning-fill"></i> IRON COACH</h4>
+  <a class="nav-link active" onclick="ver('tablero', this)"><i class="bi bi-speedometer2"></i> Mi Tablero</a>
+  <a class="nav-link" onclick="ver('clientes', this)"><i class="bi bi-people-fill"></i> Mis Alumnos</a>
+  <a class="nav-link" onclick="ver('rutinas', this)"><i class="bi bi-collection-play-fill"></i> Biblioteca</a>
+
+  <div class="mt-auto">
+    <a class="nav-link text-danger border-top border-secondary" onclick="salir()"><i class="bi bi-box-arrow-left"></i> Salir</a>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="d-flex justify-content-between align-items-center mb-5">
+    <h2 id="titulo-seccion">Mi Tablero</h2>
+    <div class="d-flex align-items-center">
+      <div class="text-end me-3">
+        <p class="mb-0 fw-bold text-warning" id="lbl-nombre">Cargando...</p>
+        <small class="text-muted" id="lbl-especialidad">--</small>
       </div>
+      <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 45px; height: 45px;">CO</div>
+    </div>
+  </div>
 
-      <div class="px-3">
-        <button class="btn-create-routine" onclick="cargarModulo('editor', null)">
-          <i class="bi bi-plus-circle-fill me-2"></i> Nueva Rutina
-        </button>
+  <div id="vista-tablero" class="vista activa">
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="card-panel d-flex justify-content-between align-items-center border-start border-4 border-primary">
+          <div><h6 class="text-secondary">ALUMNOS ACTIVOS</h6><h1 class="fw-bold mb-0" id="num-alumnos">0</h1></div>
+          <i class="bi bi-people fs-1 text-primary"></i>
+        </div>
       </div>
-
-      <nav class="nav flex-column" id="sidebarMenu">
-        <a class="nav-link active" href="#" onclick="cargarModulo('resumen', this)">
-          <i class="bi bi-speedometer2"></i> Mi Tablero
-        </a>
-
-        <a class="nav-link" href="#" onclick="cargarModulo('mis-clientes', this)">
-          <i class="bi bi-people-fill"></i> Mis Clientes
-        </a>
-
-        <a class="nav-link" href="#" onclick="cargarModulo('rutinas', this)">
-          <i class="bi bi-list-check"></i> Biblioteca Rutinas
-        </a>
-
-        <a class="nav-link" href="#" onclick="cargarModulo('horario', this)">
-          <i class="bi bi-calendar-week"></i> Mi Horario
-        </a>
-      </nav>
-
-      <div class="mt-auto p-4">
-        <button class="btn btn-outline-danger w-100" onclick="cerrarSesion()">
-          <i class="bi bi-box-arrow-left"></i> Salir
-        </button>
+      <div class="col-md-6">
+        <div class="card-panel d-flex justify-content-between align-items-center border-start border-4 border-warning">
+          <div><h6 class="text-secondary">RUTINAS CREADAS</h6><h1 class="fw-bold mb-0" id="num-rutinas">0</h1></div>
+          <i class="bi bi-journal-text fs-1 text-warning"></i>
+        </div>
       </div>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-0">
+    <div class="card-panel">
+      <h5 class="mb-3">🔥 Últimas Rutinas Creadas</h5>
+      <ul class="list-group list-group-flush" id="lista-rutinas-dash"></ul>
+    </div>
+  </div>
 
-      <div class="header-bar">
-        <h5 class="m-0 text-white" id="page-title">Mi Tablero</h5>
-        <div class="d-flex align-items-center">
-          <span class="me-3 text-muted">Entrenador: <span class="text-white fw-bold">Coach Mike</span></span>
-          <div class="rounded-circle bg-primary d-flex justify-content-center align-items-center fw-bold text-white" style="width: 40px; height: 40px;">
-            TR
-          </div>
-        </div>
+  <div id="vista-clientes" class="vista">
+    <div class="card-panel">
+      <h5 class="mb-4">Gestión de Alumnos</h5>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead><tr><th>Alumno</th><th>Membresía</th><th>Rutina Actual</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-clientes"></tbody>
+        </table>
       </div>
+    </div>
+  </div>
 
-      <div class="main-content" id="contenido-dinamico">
+  <div id="vista-rutinas" class="vista">
+    <div class="card-panel">
+      <h5 class="mb-4">Biblioteca Completa</h5>
+      <div class="list-group" id="lista-rutinas-full"></div>
+    </div>
+  </div>
+</main>
 
-        <div id="vista-resumen">
-          <div class="row g-4 mb-4">
-            <div class="col-md-4">
-              <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 class="text-uppercase">Mis Alumnos Activos</h6>
-                    <h2 class="fw-bold mb-0" id="kpi-clientes">--</h2>
-                  </div>
-                  <div class="stat-icon"><i class="bi bi-person-walking"></i></div>
-                </div>
-                <small class="text-muted">Personas asignadas a tu cargo</small>
+<div class="modal fade" id="modalRutina" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark border border-secondary text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning">Diseñar Nueva Rutina</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formRutina">
+          <div class="mb-3">
+            <label class="form-label">Nombre de la Rutina</label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="txtNombreRutina" placeholder="Ej: Hipertrofia Pecho" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Asignar al Alumno:</label>
+            <select class="form-select bg-black text-white border-secondary" id="selAlumno">
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-warning">Seleccionar Ejercicios:</label>
+            <div class="border border-secondary rounded p-2" style="max-height: 150px; overflow-y: auto;">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="ej1">
+                <label class="form-check-label" for="ej1">Press de Banca Plano</label>
               </div>
-            </div>
-            <div class="col-md-4">
-              <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 class="text-uppercase">Rutinas Diseñadas</h6>
-                    <h2 class="fw-bold mb-0" id="kpi-rutinas">--</h2>
-                  </div>
-                  <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
-                </div>
-                <small class="text-muted">Total en biblioteca</small>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="2" id="ej2">
+                <label class="form-check-label" for="ej2">Sentadilla con Barra</label>
               </div>
-            </div>
-            <div class="col-md-4">
-              <div class="stat-card">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 class="text-uppercase">Próxima Sesión</h6>
-                    <h2 class="fw-bold mb-0 text-white">--:--</h2>
-                  </div>
-                  <div class="stat-icon"><i class="bi bi-clock"></i></div>
-                </div>
-                <small class="text-warning">Ver agenda completa</small>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="3" id="ej3">
+                <label class="form-check-label" for="ej3">Jalón al Pecho</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="4" id="ej4">
+                <label class="form-check-label" for="ej4">Curl con Mancuernas</label>
               </div>
             </div>
           </div>
-
-          <div class="card bg-dark border-secondary">
-            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-              <h5 class="mb-0 text-white">Alumnos sin Rutina o por Vencer</h5>
-              <button class="btn btn-sm btn-outline-warning" disabled>Ver Todos</button>
-            </div>
-            <div class="table-responsive">
-              <table class="table table-dark table-hover align-middle mb-0">
-                <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Plan</th>
-                  <th>Rutina Actual</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
-                </tr>
-                </thead>
-                <tbody id="tabla-pendientes">
-                <tr>
-                  <td colspan="5" class="text-center py-4 text-muted">
-                    <i class="bi bi-check-circle fs-4 d-block mb-2"></i>
-                    No hay alertas pendientes por cargar
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div id="vista-dinamica-contenedor"></div>
-
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold" onclick="guardarRutina()">Guardar y Asignar</button>
       </div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-  // Simulación de Sesión
+  // Variable global para guardar la lista de alumnos y poder usarla en el Modal
+  let listaAlumnosCache = [];
+
   document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('tokenGimnasio');
-    console.log("Panel Entrenador. Token:", token ? "OK" : "Faltante");
+    const sesion = sessionStorage.getItem('usuarioLogueado');
+    if(!sesion) { window.location.href = 'index.html'; return; }
+    const usuario = JSON.parse(sesion);
+    cargarDashboard(usuario.idUsuario);
   });
 
-  function cerrarSesion() {
-    localStorage.removeItem('tokenGimnasio');
-    window.location.href = 'login.html';
+  async function cargarDashboard(idUsuario) {
+    try {
+      const API_URL = `http://localhost:8080/Gimnasio/api/entrenadores/${idUsuario}/dashboard`;
+      const res = await fetch(API_URL);
+
+      if(res.ok) {
+        const data = await res.json();
+
+        // Guardamos los alumnos en la variable global para usarla luego en el Modal
+        listaAlumnosCache = data.listaAlumnos;
+
+        // A. Cabecera
+        document.getElementById('lbl-nombre').textContent = data.nombre;
+        document.getElementById('lbl-especialidad').textContent = data.especialidad;
+        document.getElementById('num-alumnos').textContent = data.totalAlumnos;
+        document.getElementById('num-rutinas').textContent = data.rutinasCreadas;
+
+        // B. Tabla Clientes (CON EL CHECK VERDE QUE YA TENÍAS)
+        const tablaC = document.getElementById('tabla-clientes');
+        if (data.listaAlumnos && data.listaAlumnos.length > 0) {
+          tablaC.innerHTML = data.listaAlumnos.map(al => `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle me-2 d-flex justify-content-center align-items-center text-white fw-bold"
+                                         style="width:35px;height:35px; background-color: ${al.terminoHoy ? '#198754' : '#6c757d'};">
+                                         ${al.terminoHoy ? '<i class="bi bi-check-lg"></i>' : al.nombre.charAt(0)}
+                                    </div>
+                                    <div>
+                                        ${al.nombre}
+                                        ${al.terminoHoy ? '<span class="badge bg-success ms-2" style="font-size:0.7em">¡TERMINÓ HOY!</span>' : ''}
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge ${al.plan?.includes('Black') ? 'bg-warning text-dark' : 'bg-info'}">${al.plan}</span></td>
+                            <td><small class="text-white-50">${al.rutina}</small></td>
+                            <td><button class="btn btn-sm btn-outline-light"><i class="bi bi-eye"></i></button></td>
+                        </tr>
+                    `).join('');
+        } else {
+          tablaC.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No tienes alumnos asignados.</td></tr>';
+        }
+
+        // C. Listas de Rutinas
+        const htmlRutinas = data.listaRutinas.map(r =>
+          `<li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between">
+                        <span>${r}</span> <i class="bi bi-chevron-right text-muted"></i>
+                    </li>`
+        ).join('');
+        document.getElementById('lista-rutinas-dash').innerHTML = htmlRutinas;
+
+        document.getElementById('lista-rutinas-full').innerHTML = data.listaRutinas.map(r =>
+          `<a href="#" class="list-group-item list-group-item-action bg-black text-white border-secondary mb-2 rounded">
+                        <h6 class="mb-1 text-warning">${r}</h6>
+                        <small class="text-muted">Rutina personalizada</small>
+                    </a>`
+        ).join('');
+
+      }
+    } catch(e) { console.error(e); }
   }
 
-  function cargarModulo(modulo, elementoHTML) {
-    // 1. Títulos
-    const tituloMap = {
-      'resumen': 'Mi Tablero',
-      'mis-clientes': 'Mis Alumnos Asignados',
-      'rutinas': 'Biblioteca de Rutinas',
-      'horario': 'Mi Horario Semanal',
-      'editor': 'Editor de Nueva Rutina'
-    };
-    document.getElementById('page-title').innerText = tituloMap[modulo] || 'Entrenador';
+  // ==========================================
+  // NUEVAS FUNCIONES PARA EL MODAL DE RUTINA
+  // ==========================================
 
-    // 2. Sidebar Active
-    if (elementoHTML) {
-      const links = document.querySelectorAll('#sidebarMenu .nav-link');
-      links.forEach(link => link.classList.remove('active'));
-      elementoHTML.classList.add('active');
-    } else if (modulo === 'editor') {
-      // Si viene del botón grande, quitamos el active de los links
-      document.querySelectorAll('#sidebarMenu .nav-link').forEach(l => l.classList.remove('active'));
+  // REEMPLAZAR TU FUNCIÓN abrirModal POR ESTA:
+  function abrirModal() {
+    const select = document.getElementById('selAlumno');
+    select.innerHTML = ''; // Limpiar opciones viejas
+
+    // USAMOS LA LISTA REAL QUE VINO DE JAVA (Ya no inventamos IDs)
+    if(listaAlumnosCache.length > 0) {
+      listaAlumnosCache.forEach(alumno => {
+        // Creamos una opción con el ID y Nombre REALES
+        const opcion = document.createElement('option');
+        opcion.value = alumno.idCliente; // Aquí usa el ID correcto (sea 5, 6 o 100)
+        opcion.text = alumno.nombre;
+        select.appendChild(opcion);
+      });
+    } else {
+      select.innerHTML = '<option disabled>No tienes alumnos asignados</option>';
     }
 
-    // 3. Gestión de Vistas
-    const vistaResumen = document.getElementById('vista-resumen');
-    const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
+    const modal = new bootstrap.Modal(document.getElementById('modalRutina'));
+    modal.show();
+  }
 
-    if (modulo === 'resumen') {
-      vistaResumen.style.display = 'block';
-      contenedorDinamico.innerHTML = '';
-    } else if (modulo === 'editor') {
-      // VISTA PREVIA DEL EDITOR DE RUTINAS (RF05)
-      vistaResumen.style.display = 'none';
-      contenedorDinamico.innerHTML = `
-                    <div class="card bg-dark border-secondary">
-                        <div class="card-body">
-                            <h5 class="text-warning mb-4">Diseñador de Rutina</h5>
-                            <form>
-                                <div class="mb-3">
-                                    <label class="text-muted">Nombre de la Rutina</label>
-                                    <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Ej: Hipertrofia Pierna Nivel 1">
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="text-muted">Ejercicio</label>
-                                        <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Ej: Sentadilla Libre">
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label class="text-muted">Series</label>
-                                        <input type="number" class="form-control bg-black text-white border-secondary">
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label class="text-muted">Reps</label>
-                                        <input type="text" class="form-control bg-black text-white border-secondary">
-                                    </div>
-                                    <div class="col-md-2 mb-3 d-flex align-items-end">
-                                        <button type="button" class="btn btn-outline-warning w-100">+ Agregar</button>
-                                    </div>
-                                </div>
-                                <div class="text-end mt-4">
-                                    <button type="button" class="btn btn-secondary me-2" onclick="cargarModulo('resumen', null)">Cancelar</button>
-                                    <button type="button" class="btn btn-warning">Guardar Rutina</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                `;
-    } else {
-      vistaResumen.style.display = 'none';
-      contenedorDinamico.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="bi bi-cone-striped fs-1 text-secondary mb-3"></i>
-                        <h4 class="text-white">Sección: ${tituloMap[modulo]}</h4>
-                        <p class="text-muted">Cargando datos del servidor...</p>
-                    </div>
-                `;
+  async function guardarRutina() {
+    const sesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+
+    const nombreRutina = document.getElementById('txtNombreRutina').value;
+    const idCliente = document.getElementById('selAlumno').value;
+
+    // Recopilar IDs de ejercicios marcados
+    let idsEjercicios = [];
+    if(document.getElementById('ej1').checked) idsEjercicios.push(1);
+    if(document.getElementById('ej2').checked) idsEjercicios.push(2);
+    if(document.getElementById('ej3').checked) idsEjercicios.push(3);
+    if(document.getElementById('ej4').checked) idsEjercicios.push(4);
+
+    if(nombreRutina === "") { alert("Por favor escribe un nombre para la rutina."); return; }
+    if(idsEjercicios.length === 0) { alert("Selecciona al menos un ejercicio."); return; }
+
+    const datos = {
+      idCliente: parseInt(idCliente),
+      nombreRutina: nombreRutina,
+      idsEjercicios: idsEjercicios
+    };
+
+    try {
+      const res = await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/${sesion.idUsuario}/crearRutina`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(datos)
+      });
+
+      if(res.ok) {
+        alert("✅ ¡Rutina creada y asignada exitosamente!");
+        location.reload(); // Recargar página para ver cambios
+      } else {
+        alert("Hubo un error al guardar la rutina.");
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  // Navegación
+  function ver(vista, link) {
+    document.getElementById('titulo-seccion').textContent = link ? link.innerText : 'Panel';
+    document.querySelectorAll('.vista').forEach(e => e.classList.remove('activa'));
+    document.getElementById('vista-'+vista).classList.add('activa');
+    if(link) {
+      document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
+      link.classList.add('active');
+    }
+  }
+
+  function salir() {
+    if(confirm("¿Cerrar sesión?")) {
+      sessionStorage.removeItem('usuarioLogueado');
+      window.location.href = 'index.html';
     }
   }
 </script>

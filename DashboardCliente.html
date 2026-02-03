@@ -2,284 +2,331 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Perfil | Iron Fitness</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
   <style>
-    :root {
-      --primary-color: #ffc107;
-      --dark-bg: #121212;
-      --sidebar-bg: #000000;
-    }
-    body { background-color: var(--dark-bg); color: white; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+    :root { --primary: #ffc107; --bg: #121212; --card: #1e1e1e; }
+    body { background-color: var(--bg); color: white; font-family: sans-serif; overflow-x: hidden; }
 
     /* SIDEBAR */
-    .sidebar {
-      height: 100vh;
-      width: 250px;
-      position: fixed;
-      top: 0; left: 0;
-      background-color: var(--sidebar-bg);
-      padding-top: 20px;
-      border-right: 1px solid #333;
-      z-index: 1000;
-    }
-    .sidebar-brand { font-size: 1.5rem; color: var(--primary-color); font-weight: bold; text-align: center; margin-bottom: 2rem; }
-    .nav-link { color: #aaa; padding: 15px 20px; transition: 0.3s; cursor: pointer; display: flex; align-items: center; }
-    .nav-link i { margin-right: 10px; font-size: 1.2rem; }
-    .nav-link:hover, .nav-link.active { background-color: #222; color: var(--primary-color); border-left: 4px solid var(--primary-color); }
-    .btn-logout { margin-top: auto; color: #ff4444 !important; border-top: 1px solid #333; }
-    .btn-logout:hover { background-color: #300000 !important; color: white !important; }
+    .sidebar { width: 250px; position: fixed; height: 100vh; background: black; border-right: 1px solid #333; padding-top: 20px; z-index: 1000; }
+    .main { margin-left: 250px; padding: 30px; }
+    .card-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
 
-    /* CONTENIDO */
-    .main-content { margin-left: 250px; padding: 30px; }
+    /* NAV LINKS */
+    .nav-link { color: #aaa; padding: 15px; cursor: pointer; display: flex; align-items: center; transition: 0.3s; }
+    .nav-link:hover, .nav-link.active { color: var(--primary); background: #222; border-left: 4px solid var(--primary); }
+    .nav-link i { margin-right: 12px; font-size: 1.2rem; }
 
-    /* TARJETAS */
-    .card-panel { background-color: #1e1e1e; border: 1px solid #333; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-    .qr-container { background: white; padding: 15px; border-radius: 10px; display: inline-block; }
-
-    /* OCULTAR SECCIONES POR DEFECTO */
-    .vista-seccion { display: none; animation: fadeIn 0.4s; }
-    .vista-seccion.activa { display: block; }
+    /* VISTAS */
+    .vista { display: none; animation: fadeIn 0.5s; }
+    .vista.activa { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ESTILOS PARA EJERCICIOS COMPLETADOS */
+    .ejercicio-completado {
+      border-color: #198754 !important; /* Borde Verde */
+      background-color: rgba(25, 135, 84, 0.1) !important; /* Fondo verdecito suave */
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+
+    .ejercicio-completado h5 {
+      color: #198754 !important; /* Texto título verde */
+      text-decoration: line-through;
+    }
+
+    .ejercicio-completado small {
+      color: #aebfb5 !important;
+    }
   </style>
 </head>
 <body>
 
 <nav class="sidebar d-flex flex-column">
-  <div class="sidebar-brand"><i class="bi bi-lightning-fill"></i> IRON MEMBER</div>
-
-  <div class="nav flex-column h-100">
-    <a class="nav-link active" onclick="navegar('inicio', this)">
-      <i class="bi bi-house-door-fill"></i> Inicio / Acceso
-    </a>
-    <a class="nav-link" onclick="navegar('rutina', this)">
-      <i class="bi bi-activity"></i> Mi Entrenamiento
-    </a>
-    <a class="nav-link" onclick="navegar('membresia', this)">
-      <i class="bi bi-credit-card-2-front"></i> Membresía
-    </a>
-    <a class="nav-link" href="catalogo.html">
-      <i class="bi bi-bag-fill"></i> Tienda Online
-    </a>
-    <div class="mt-auto"></div>
-    <a class="nav-link btn-logout" onclick="cerrarSesion()">
-      <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
-    </a>
+  <h3 class="text-center text-warning mb-4 fw-bold">IRON MEMBER</h3>
+  <a class="nav-link active" onclick="ver('inicio', this)"><i class="bi bi-house-door"></i> Inicio</a>
+  <a class="nav-link" onclick="ver('rutina', this)"><i class="bi bi-activity"></i> Mi Entrenamiento</a>
+  <a class="nav-link" onclick="ver('membresia', this)"><i class="bi bi-credit-card-2-front"></i> Membresía</a>
+  <a class="nav-link" href="catalogo.html"><i class="bi bi-bag-fill"></i> Tienda Online</a>
+  <div class="mt-auto">
+    <a class="nav-link text-danger border-top border-secondary" onclick="salir()"><i class="bi bi-box-arrow-left"></i> Salir</a>
   </div>
 </nav>
 
-<main class="main-content">
+<main class="main">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 id="titulo-seccion">Bienvenido</h2>
+    <h2 id="titulo-pag">Bienvenido</h2>
     <div class="d-flex align-items-center">
-      <span class="me-3 text-secondary" id="nombre-usuario">Mathew</span>
-      <div class="bg-warning text-dark rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 40px; height: 40px;">YO</div>
+      <div class="text-end me-3">
+        <span class="d-block fw-bold text-warning" id="header-user">--</span>
+        <small class="text-muted" id="header-plan">Cargando...</small>
+      </div>
+      <div class="bg-secondary rounded-circle d-flex justify-content-center align-items-center fw-bold text-white" style="width: 45px; height: 45px;">YO</div>
     </div>
   </div>
 
-  <div id="vista-inicio" class="vista-seccion activa">
-    <div class="row">
-      <div class="col-md-5">
-        <div class="card-panel border-warning text-center">
-          <div class="d-flex justify-content-between mb-3">
-            <h5 class="text-white">Pase de Acceso</h5>
-            <span class="badge bg-success">ACTIVO</span>
+  <div id="vista-inicio" class="vista activa">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card-panel text-center border-top border-4 border-warning h-100">
+          <h5 class="mb-3">Pase de Acceso</h5>
+          <div class="bg-white p-2 d-inline-block rounded mb-3">
+            <img id="img-qr" src="" width="160" alt="QR">
           </div>
+          <p class="text-white-50 small mb-0">ID: <span id="lbl-id" class="text-white fw-bold">--</span></p>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card-panel h-100">
+          <h5 class="text-warning mb-4">Mis Datos</h5>
+          <p><strong>Nombre:</strong> <span id="p-nombre">--</span></p>
+          <p><strong>Email:</strong> <span id="p-email">--</span></p>
+          <p><strong>Teléfono:</strong> <span id="p-telefono">--</span></p>
+          <hr class="border-secondary">
+          <h5 class="text-warning mb-3">Últimos Ingresos</h5>
+          <table class="table table-dark table-sm"><tbody id="tabla-asistencias"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          <div class="qr-container mb-3">
-            <img id="img-qr" src="" alt="Código QR" class="img-fluid" width="180">
+  <div id="vista-rutina" class="vista">
+    <div id="rutina-container"></div>
+  </div>
+
+  <div id="vista-membresia" class="vista">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card-panel text-center">
+          <h3 class="text-warning mb-4">Estado de tu Plan</h3>
+          <div class="display-1 mb-3">
+            <i class="bi bi-shield-check text-success" id="icono-estado"></i>
           </div>
+          <h2 class="fw-bold mb-1" id="m-plan">--</h2>
+          <span class="badge bg-success fs-6 mb-4" id="m-estado">--</span>
 
-          <p class="text-white-50 small">ID Usuario: <span id="lbl-id-user">--</span></p>
-          <button class="btn btn-outline-warning w-100" onclick="alert('Código actualizado')">
-            <i class="bi bi-arrow-clockwise"></i> Actualizar Código
+          <div class="row mt-4 text-start">
+            <div class="col-md-6 mb-3">
+              <div class="p-3 bg-black rounded border border-secondary">
+                <small class="text-muted">Fecha de Vencimiento</small>
+                <h5 class="text-white mb-0" id="m-fecha">--</h5>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="p-3 bg-black rounded border border-secondary">
+                <small class="text-muted">Costo Mensual</small>
+                <h5 class="text-white mb-0" id="m-precio">--</h5>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-outline-warning w-100 mt-3" onclick="alert('Redirigiendo a pasarela de pagos...')">
+            <i class="bi bi-credit-card"></i> Renovar Plan
           </button>
         </div>
       </div>
-
-      <div class="col-md-7">
-        <div class="card-panel">
-          <h5 class="mb-4"><i class="bi bi-person-lines-fill text-warning"></i> Mis Datos</h5>
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <label class="text-secondary small">Nombre Completo</label>
-              <p class="fs-5 fw-bold" id="perfil-nombre">Cargando...</p>
-            </div>
-            <div class="col-sm-6">
-              <label class="text-secondary small">Plan Actual</label>
-              <p class="fs-5 fw-bold text-warning">Plan Black</p>
-            </div>
-            <div class="col-sm-6">
-              <label class="text-secondary small">Email</label>
-              <p id="perfil-email">--</p>
-            </div>
-            <div class="col-sm-6">
-              <label class="text-secondary small">Teléfono</label>
-              <p id="perfil-telefono">--</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
-
-  <div id="vista-rutina" class="vista-seccion">
-    <div id="contenedor-rutina">
-    </div>
-  </div>
-
-  <div id="vista-membresia" class="vista-seccion">
-    <div class="card-panel">
-      <h4><i class="bi bi-clock-history text-warning"></i> Historial de Asistencia</h4>
-      <p class="text-white-50">Tus últimos ingresos al gimnasio.</p>
-
-      <div class="table-responsive mt-3">
-        <table class="table table-dark table-hover">
-          <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Entrada</th>
-            <th>Salida</th>
-            <th>Estado</th>
-          </tr>
-          </thead>
-          <tbody id="tabla-asistencias">
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-  // --- MODO PRESENTACIÓN ACTIVADO ---
-  // Este script contiene los datos fijos para asegurar que nada falle.
-
   document.addEventListener('DOMContentLoaded', () => {
-    console.log("Iniciando Dashboard en Modo Presentación...");
+    // 1. Validar Sesión
+    const sesion = sessionStorage.getItem('usuarioLogueado');
+    if(!sesion) { window.location.href = 'index.html'; return; }
 
-    // 1. Simular Sesión de Usuario
-    const usuario = { idUsuario: 6, usuario: "Mathew", nombre: "Mathew Lara" };
-    sessionStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
+    const usuario = JSON.parse(sesion);
 
-    // 2. Cargar QR (Visual)
-    const qrData = `IRON_USER_${usuario.idUsuario}_${Date.now()}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrData}`;
-    // Verificamos que el elemento existe antes de asignar
-    const imgQr = document.getElementById('img-qr');
-    if(imgQr) imgQr.src = qrUrl;
+    // Llenar datos básicos del header
+    document.getElementById('header-user').textContent = usuario.usuario;
+    document.getElementById('lbl-id').textContent = usuario.idUsuario;
+    document.getElementById('img-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=IRON_${usuario.idUsuario}`;
 
-    const lblId = document.getElementById('lbl-id-user');
-    if(lblId) lblId.textContent = usuario.idUsuario;
-
-    // 3. Ejecutar carga de datos
-    cargarDatosEstaticos();
+    // 2. Cargar Datos del Servidor
+    cargarDatos(usuario.idUsuario);
   });
 
-  function cargarDatosEstaticos() {
-    // --- A. PERFIL ---
-    // Usamos verificaciones 'if' para que no explote si falta algo
-    const elNombre = document.getElementById('perfil-nombre');
-    if(elNombre) elNombre.textContent = "Mathew Lara";
+  async function cargarDatos(id) {
+    try {
+      const res = await fetch(`http://localhost:8080/Gimnasio/api/clientes/${id}/dashboard`);
 
-    const elEmail = document.getElementById('perfil-email');
-    if(elEmail) elEmail.textContent = "mathew@ironfitness.com";
+      if(res.ok) {
+        const data = await res.json();
 
-    const elTel = document.getElementById('perfil-telefono');
-    if(elTel) elTel.textContent = "0991234567";
+        // A. Perfil
+        document.getElementById('p-nombre').textContent = data.nombreCompleto;
+        document.getElementById('p-email').textContent = data.email;
+        document.getElementById('p-telefono').textContent = data.telefono;
 
-    const elUserHeader = document.getElementById('nombre-usuario');
-    if(elUserHeader) elUserHeader.textContent = "Mathew";
+        // B. Membresía
+        document.getElementById('header-plan').textContent = data.nombrePlan || "Sin Plan";
+        document.getElementById('m-plan').textContent = data.nombrePlan || "Sin Plan";
+        document.getElementById('m-precio').textContent = data.precioPlan ? "$" + data.precioPlan : "$0.00";
+        document.getElementById('m-fecha').textContent = data.fechaVencimiento || "N/A";
 
-    // --- B. RUTINA ---
-    const contRutina = document.getElementById('contenedor-rutina');
-    if(contRutina) {
-      const ejercicios = [
-        { nombre: "Press de Banca", series: "4 x 12 reps" },
-        { nombre: "Sentadilla Libre", series: "4 x 10 reps" },
-        { nombre: "Dominadas", series: "3 x Fallo" },
-        { nombre: "Curl de Bíceps", series: "3 x 15 reps" }
-      ];
+        const badge = document.getElementById('m-estado');
+        badge.textContent = data.estadoMembresia || "Inactivo";
 
-      let htmlEjercicios = ejercicios.map(e => `
-                    <div class="d-flex justify-content-between p-3 mb-2 bg-black border border-secondary rounded">
-                        <div>
-                            <h5 class="text-warning mb-0">${e.nombre}</h5>
-                            <small class="text-white-50">${e.series}</small>
-                        </div>
-                        <input type="checkbox" class="form-check-input bg-dark border-secondary" style="width: 25px; height: 25px;">
-                    </div>
-                `).join('');
+        // Estilo del estado de membresía
+        if(data.estadoMembresia === 'Vencido' || !data.estadoMembresia) {
+          badge.className = 'badge bg-danger fs-6 mb-4';
+          document.getElementById('icono-estado').className = 'bi bi-x-circle text-danger';
+        } else {
+          badge.className = 'badge bg-success fs-6 mb-4';
+          document.getElementById('icono-estado').className = 'bi bi-shield-check text-success';
+        }
 
-      contRutina.innerHTML = `
-                    <div class="p-3 border-start border-4 border-warning mb-3 bg-dark bg-opacity-50">
-                        <h2 class="text-white fw-bold">Hipertrofia Total</h2>
-                        <p class="text-white-50 mb-0"><i class="bi bi-person-video"></i> Coach: Mike Mentzer</p>
-                    </div>
-                    ${htmlEjercicios}
-                    <button class="btn btn-success w-100 mt-3 rounded-pill fw-bold" onclick="alert('¡Entrenamiento Completado!')">
-                        FINALIZAR ENTRENAMIENTO
-                    </button>
-                `;
+        // C. Asistencias
+        const tabla = document.getElementById('tabla-asistencias');
+        tabla.innerHTML = data.historialAsistencias.length ?
+          data.historialAsistencias.map(a => `<tr><td>${a.fecha}</td><td class="text-success">${a.hora}</td></tr>`).join('') :
+          '<tr><td colspan="2" class="text-center text-muted">Sin registros</td></tr>';
+
+        // D. RUTINA INTERACTIVA
+        const divRutina = document.getElementById('rutina-container');
+        if(data.nombreRutina) {
+          // Recuperar checkboxes guardados hoy
+          const hoy = new Date().toISOString().split('T')[0];
+          const keyStorage = `rutina_${id}_${hoy}`;
+          const completados = JSON.parse(localStorage.getItem(keyStorage)) || [];
+
+          const lista = data.ejercicios.map((e, index) => {
+            const estaHecho = completados.includes(index);
+
+            return `
+              <div id="card-ej-${index}" class="d-flex justify-content-between p-3 mb-2 bg-black border border-secondary rounded align-items-center ${estaHecho ? 'ejercicio-completado' : ''}">
+                  <div>
+                      <h5 class="text-warning mb-0">${e.nombre}</h5>
+                      <small class="text-white-50">${e.seriesReps}</small>
+                  </div>
+                  <input type="checkbox"
+                         class="form-check-input bg-dark border-secondary"
+                         style="width:25px;height:25px;cursor:pointer;"
+                         onclick="toggleEjercicio(${index}, ${id})"
+                         ${estaHecho ? 'checked' : ''}>
+              </div>`;
+          }).join('');
+
+
+          if(data.nombreRutina) {
+
+            divRutina.innerHTML = `
+            <div class="card-panel border-start border-4 border-warning mb-3">
+              <h2>${data.nombreRutina}</h2>
+              <p class="text-white-50">Coach: ${data.entrenador||'Staff'}</p>
+            </div>
+            ${lista}
+            <button id="btnFinalizar" class="btn btn-success w-100 mt-4 py-3 rounded-pill fw-bold shadow" onclick="finalizarRutina()">
+                <i class="bi bi-check-lg"></i> TERMINAR ENTRENAMIENTO
+            </button>
+          `;
+
+            // NUEVO: Si el servidor dice que ya terminó, bloqueamos el botón de inmediato
+            if (data.rutinaTerminadaHoy) {
+              const btn = document.getElementById('btnFinalizar');
+              btn.disabled = true;
+              btn.textContent = "¡YA ENTRENASTE HOY!";
+              btn.classList.replace('btn-success', 'btn-secondary');
+
+              // Opcional: marcar los checks visualmente
+              document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = true);
+
+              // Opcional: Marcar todos los checkboxes visualmente
+              document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+                chk.checked = true;
+                chk.parentElement.classList.add('ejercicio-completado');
+              });
+            }
+          }
+
+        } else {
+          divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
+        }
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  // --- LÓGICA DE CHECKBOXES (LocalStorage) ---
+  function toggleEjercicio(index, userId) {
+    // Si ya terminó hoy, no dejar desmarcar
+    const btn = document.getElementById('btnTerminar');
+    if (btn && btn.disabled) return;
+
+    const hoy = new Date().toISOString().split('T')[0];
+    const key = `rutina_${userId}_${hoy}`;
+    const card = document.getElementById(`card-ej-${index}`);
+
+    let guardados = JSON.parse(localStorage.getItem(key)) || [];
+
+    if (guardados.includes(index)) {
+      // Desmarcar
+      guardados = guardados.filter(i => i !== index);
+      card.classList.remove('ejercicio-completado');
+    } else {
+      // Marcar
+      guardados.push(index);
+      card.classList.add('ejercicio-completado');
     }
 
-    // --- C. ASISTENCIA ---
-    const tabla = document.getElementById('tabla-asistencias');
-    if(tabla) {
-      // Generar fechas dinámicas para que se vea actual
-      const hoy = new Date().toLocaleDateString('es-EC');
-      const ayer = new Date(Date.now() - 86400000).toLocaleDateString('es-EC');
+    localStorage.setItem(key, JSON.stringify(guardados));
+  }
 
-      tabla.innerHTML = `
-                    <tr>
-                        <td>${hoy}</td>
-                        <td class="text-success fw-bold">18:30</td>
-                        <td>20:00</td>
-                        <td><span class="badge bg-secondary">Check-in</span></td>
-                    </tr>
-                    <tr>
-                        <td>${ayer}</td>
-                        <td class="text-success fw-bold">07:15</td>
-                        <td>09:00</td>
-                        <td><span class="badge bg-secondary">Check-in</span></td>
-                    </tr>
-                    <tr>
-                        <td>10/01/2026</td>
-                        <td class="text-success fw-bold">19:00</td>
-                        <td>20:45</td>
-                        <td><span class="badge bg-secondary">Check-in</span></td>
-                    </tr>
-                `;
+  // --- LÓGICA DE BOTÓN FINALIZAR (Backend) ---
+  async function finalizarRutina() {
+    const sesion = sessionStorage.getItem('usuarioLogueado');
+    if (!sesion) return;
+    const usuario = JSON.parse(sesion);
+
+    if(confirm("¿Estás seguro de que terminaste tu rutina por hoy?")) {
+      try {
+        const url = `http://localhost:8080/Gimnasio/api/clientes/${usuario.idUsuario}/completar`;
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'}
+        });
+
+        if(res.ok) {
+          alert("✅ ¡Excelente! Tu entrenador ha sido notificado.");
+
+          // Deshabilitar botón visualmente
+          const btn = document.getElementById('btnTerminar');
+          if(btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ¡YA ENTRENASTE HOY!';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-secondary');
+          }
+        } else {
+          alert("Error al conectar con el servidor.");
+        }
+      } catch(e) {
+        console.error(e);
+        alert("❌ Error de conexión. Revisa que el servidor WildFly esté activo.");
+      }
     }
   }
 
-  // --- NAVEGACIÓN ---
-  function navegar(modulo, link) {
-    // Cambiar clase activa en menú
+  // Navegación entre vistas
+  function ver(v, link) {
+    document.querySelectorAll('.vista').forEach(e => e.classList.remove('activa'));
+    document.getElementById('vista-'+v).classList.add('activa');
     if(link) {
-      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
       link.classList.add('active');
     }
-
-    // Cambiar sección visible
-    document.querySelectorAll('.vista-seccion').forEach(el => el.classList.remove('activa'));
-    const seccionDestino = document.getElementById(`vista-${modulo}`);
-    if(seccionDestino) {
-      seccionDestino.classList.add('activa');
-    }
   }
 
-  function cerrarSesion() {
-    if(confirm("¿Seguro que deseas salir?")) {
+  // Cerrar sesión
+  function salir() {
+    if(confirm("¿Cerrar sesión?")) {
+      sessionStorage.removeItem('usuarioLogueado');
       window.location.href = 'index.html';
     }
   }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
