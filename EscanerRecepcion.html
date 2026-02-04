@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanner Acceso | Iron Fitness</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #000; color: white; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+    .scanner-box { background: #1a1a1a; padding: 40px; border-radius: 20px; border: 2px solid #333; text-align: center; width: 400px; }
+    .status-circle { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; transition: 0.3s; background: #333; }
+    .entrada { background: #198754; box-shadow: 0 0 20px #198754; }
+    .salida { background: #dc3545; box-shadow: 0 0 20px #dc3545; }
+  </style>
+</head>
+<body>
+
+<div class="scanner-box">
+  <h3 class="text-warning mb-4">SIMULADOR TORNIQUETE</h3>
+
+  <div id="luz-estado" class="status-circle">
+    <span id="icono">🔒</span>
+  </div>
+
+  <h5 id="mensaje" class="mb-4 text-white-50">Esperando QR...</h5>
+
+  <div class="input-group mb-3">
+    <span class="input-group-text bg-secondary border-secondary text-white">ID</span>
+    <input type="number" id="txtIdCliente" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 7">
+  </div>
+
+  <button class="btn btn-warning w-100 py-3 fw-bold" onclick="simularEscaneo()">
+    💥 SIMULAR ESCANEO
+  </button>
+</div>
+
+<script>
+  async function simularEscaneo() {
+    const id = document.getElementById('txtIdCliente').value;
+    const luz = document.getElementById('luz-estado');
+    const msg = document.getElementById('mensaje');
+    const icono = document.getElementById('icono');
+
+    if(!id) { alert("Ingresa un ID"); return; }
+
+    try {
+      // Llamamos al Backend
+      const res = await fetch(`http://localhost:8080/Gimnasio/api/accesos/escanear/${id}`, { method: 'POST' });
+
+      if(res.ok) {
+        const data = await res.json();
+        msg.textContent = data.mensaje;
+
+        // Efectos visuales
+        if(data.tipo === "ENTRADA") {
+          luz.className = "status-circle entrada";
+          icono.textContent = "👋";
+        } else {
+          luz.className = "status-circle salida";
+          icono.textContent = "🚪";
+        }
+
+        // Resetear luz después de 3 segundos
+        setTimeout(() => {
+          luz.className = "status-circle";
+          icono.textContent = "🔒";
+          msg.textContent = "Esperando QR...";
+        }, 3000);
+
+      } else {
+        alert("Error en el sistema. ¿Reiniciaste el servidor?");
+      }
+    } catch(e) { console.error(e); }
+  }
+</script>
+
+</body>
+</html>
