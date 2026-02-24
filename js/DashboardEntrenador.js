@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function cargarDashboard(id) {
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/dashboard`);
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/$%7Bid%7D/dashboard`);
     if(res.ok) {
       globalData = await res.json();
 
@@ -143,11 +143,11 @@ async function guardarRutina() {
 
   if(!payload.nombreRutina || payload.idsEjercicios.length === 0) { alert("Completa los datos"); return; }
 
-  let url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina`;
+  let url = `http://localhost:8080/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina`;
   let metodo = 'POST';
 
   if(idRutina) {
-    url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${idRutina}`;
+    url = `http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${idRutina}`;
     metodo = 'PUT';
   }
 
@@ -161,7 +161,7 @@ async function guardarRutina() {
 async function desactivar(id) {
   if(confirm("¿Mover a papelera?")) {
     try {
-      await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
+      await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
       location.reload();
     } catch(e) { console.error("Error al eliminar:", e); }
   }
@@ -170,7 +170,7 @@ async function desactivar(id) {
 async function reactivar(id) {
   if(confirm("¿Restaurar rutina?")) {
     try {
-      await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
+      await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
       location.reload();
     } catch(e) { console.error("Error al restaurar:", e); }
   }
@@ -204,7 +204,7 @@ function actualizarFecha() {
 
 async function cargarAgenda(id) {
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/agenda`);
+    const res = await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/${id}/agenda`);
     if(res.ok) {
       const agenda = await res.json();
       const cont = document.getElementById('lista-agenda-hoy');
