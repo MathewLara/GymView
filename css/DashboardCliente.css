@@ -1,0 +1,105 @@
+/* Variables globales de colores para el panel del cliente */
+:root {
+  --primary: #ffc107;
+  --bg: #121212;
+  --card: #1e1e1e;
+}
+
+/* Configuración general del cuerpo */
+body {
+  background-color: var(--bg);
+  color: white;
+  font-family: sans-serif;
+  overflow-x: hidden;
+}
+
+/* =========================================
+   SIDEBAR (MENÚ LATERAL)
+   ========================================= */
+.sidebar {
+  width: 250px;
+  position: fixed;
+  height: 100vh;
+  background: black;
+  border-right: 1px solid #333;
+  padding-top: 20px;
+  z-index: 1000;
+}
+
+/* Ajuste del contenido principal para no quedar debajo del sidebar */
+.main {
+  margin-left: 250px;
+  padding: 30px;
+}
+
+/* Estilo base para las tarjetas contenedoras de información */
+.card-panel {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  margin-bottom: 20px;
+}
+
+/* =========================================
+   ENLACES DE NAVEGACIÓN (NAV LINKS)
+   ========================================= */
+.nav-link {
+  color: #aaa;
+  padding: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: 0.3s;
+}
+
+/* Estilo para el enlace activo o al pasar el ratón */
+.nav-link:hover, .nav-link.active {
+  color: var(--primary);
+  background: #222;
+  border-left: 4px solid var(--primary);
+}
+
+.nav-link i {
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+/* =========================================
+   SISTEMA DE VISTAS (SPA) Y ANIMACIONES
+   ========================================= */
+.vista {
+  display: none;
+  animation: fadeIn 0.5s;
+}
+
+/* La clase activa vuelve visible la sección */
+.vista.activa {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   ESTILOS PARA EJERCICIOS COMPLETADOS
+   ========================================= */
+/* Cambia el aspecto visual de la tarjeta del ejercicio al marcar el checkbox */
+.ejercicio-completado {
+  border-color: #198754 !important; /* Borde Verde */
+  background-color: rgba(25, 135, 84, 0.1) !important; /* Fondo verdecito suave */
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+/* Tacha el título del ejercicio completado */
+.ejercicio-completado h5 {
+  color: #198754 !important; /* Texto título verde */
+  text-decoration: line-through;
+}
+
+.ejercicio-completado small {
+  color: #aebfb5 !important;
+}

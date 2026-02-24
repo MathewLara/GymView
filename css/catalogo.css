@@ -1,0 +1,132 @@
+/* Variables globales de colores para la página de catálogo */
+:root {
+  --primary-color: #ffc107;
+  --dark-bg: #121212;
+  --card-bg: #1e1e1e;
+  --text-gray: #b0b3b8;
+}
+
+/* Configuración general del cuerpo de la página */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--dark-bg);
+  color: white;
+  min-height: 100vh;
+  padding-bottom: 80px; /* Espacio reservado para que el botón flotante no tape el contenido */
+}
+
+/* =========================================
+   BARRA DE NAVEGACIÓN
+   ========================================= */
+.navbar {
+  background-color: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(10px); /* Efecto vidrio esmerilado */
+  border-bottom: 1px solid #333;
+}
+
+.brand-logo {
+  color: var(--primary-color);
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 1.5rem;
+  text-decoration: none;
+  margin-right: 2rem;
+}
+
+.nav-link {
+  color: #fff !important;
+  font-weight: 500;
+  margin-left: 1rem;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: var(--primary-color) !important;
+}
+
+/* Botón de "Zona Socios" en la navegación */
+.btn-socios {
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  font-weight: bold;
+  border-radius: 30px;
+  padding: 0.4rem 1.5rem;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.btn-socios:hover {
+  background-color: var(--primary-color);
+  color: black;
+}
+
+/* =========================================
+   FILTROS Y PESTAÑAS (TABS)
+   ========================================= */
+.nav-pills .nav-link {
+  color: var(--text-gray);
+  background-color: #2c2c2c;
+  margin-right: 10px;
+  border: 1px solid #444;
+  transition: all 0.3s;
+}
+
+/* Estilo para la pestaña que está seleccionada actualmente */
+.nav-pills .nav-link.active {
+  background-color: var(--primary-color);
+  color: black !important;
+  font-weight: bold;
+  border-color: var(--primary-color);
+}
+
+/* =========================================
+   TARJETAS DE PRODUCTOS
+   ========================================= */
+.product-card {
+  background-color: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Efecto de elevación al pasar el ratón */
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(255, 193, 7, 0.15);
+  border-color: var(--primary-color);
+}
+
+.card-img-top {
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 1px solid #333;
+}
+
+.card-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.price-tag {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+/* Animación de aparición suave para los productos */
+.animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

@@ -1,0 +1,64 @@
+:root {
+  --primary: #ffc107;
+  --bg: #121212;
+  --card: #1e1e1e;
+}
+body {
+  background-color: var(--bg);
+  color: white;
+  font-family: sans-serif;
+  overflow-x: hidden;
+}
+.sidebar {
+  width: 260px;
+  position: fixed;
+  height: 100vh;
+  background: black;
+  border-right: 1px solid #333;
+  padding-top: 20px;
+  z-index: 1000;
+}
+.sidebar-brand {
+  color: var(--primary);
+  font-weight: bold;
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.main {
+  margin-left: 260px;
+  padding: 30px;
+}
+.card-panel {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  height: 100%;
+  margin-bottom: 20px;
+}
+.nav-link {
+  color: #aaa;
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: 0.3s;
+}
+.nav-link.active, .nav-link:hover {
+  color: var(--primary);
+  background: #222;
+  border-left: 4px solid var(--primary);
+}
+.vista {
+  display: none;
+  animation: fadeIn 0.4s;
+}
+.vista.activa {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

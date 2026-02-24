@@ -5,19 +5,7 @@
   <title>Panel Entrenador | Iron Fitness</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <style>
-    :root { --primary: #ffc107; --bg: #121212; --card: #1e1e1e; }
-    body { background-color: var(--bg); color: white; font-family: sans-serif; overflow-x: hidden; }
-    .sidebar { width: 260px; position: fixed; height: 100vh; background: black; border-right: 1px solid #333; padding-top: 20px; z-index: 1000; }
-    .sidebar-brand { color: var(--primary); font-weight: bold; font-size: 1.5rem; text-align: center; margin-bottom: 2rem; }
-    .main { margin-left: 260px; padding: 30px; }
-    .card-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: 100%; margin-bottom: 20px; }
-    .nav-link { color: #aaa; padding: 15px 20px; cursor: pointer; display: flex; align-items: center; transition: 0.3s;}
-    .nav-link.active, .nav-link:hover { color: var(--primary); background: #222; border-left: 4px solid var(--primary); }
-    .vista { display: none; animation: fadeIn 0.4s; }
-    .vista.activa { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  </style>
+  <link rel="stylesheet" href="css/DashboardEntrenador.css">
 </head>
 <body>
 
@@ -25,14 +13,14 @@
   <div class="sidebar-brand"><i class="bi bi-lightning-fill"></i> IRON COACH</div>
   <div class="px-3 mb-4">
     <button class="btn btn-warning w-100 fw-bold" onclick="abrirModalCrear()">
-      <i class="bi bi-plus-circle"></i> Nueva Rutina
+      <i class="bi bi-plus-circle me-2"></i> Nueva Rutina
     </button>
   </div>
-  <a class="nav-link active" onclick="ver('tablero', this)"><i class="bi bi-speedometer2"></i> Mi Tablero</a>
-  <a class="nav-link" onclick="ver('clientes', this)"><i class="bi bi-people-fill"></i> Mis Alumnos</a>
-  <a class="nav-link" onclick="ver('rutinas', this)"><i class="bi bi-collection-play-fill"></i> Biblioteca</a>
-  <a class="nav-link" onclick="ver('agenda', this)"><i class="bi bi-calendar3"></i> Agenda</a>
-  <div class="mt-auto"><a class="nav-link text-danger border-top border-secondary" onclick="salir()">Salir</a></div>
+  <a class="nav-link active" onclick="ver('tablero', this)"><i class="bi bi-speedometer2 me-3"></i> Mi Tablero</a>
+  <a class="nav-link" onclick="ver('clientes', this)"><i class="bi bi-people-fill me-3"></i> Mis Alumnos</a>
+  <a class="nav-link" onclick="ver('rutinas', this)"><i class="bi bi-collection-play-fill me-3"></i> Biblioteca</a>
+  <a class="nav-link" onclick="ver('agenda', this)"><i class="bi bi-calendar3 me-3"></i> Agenda</a>
+  <div class="mt-auto"><a class="nav-link text-danger border-top border-secondary" onclick="salir()"><i class="bi bi-box-arrow-left me-3"></i> Salir</a></div>
 </nav>
 
 <main class="main">
@@ -41,7 +29,7 @@
     <div class="d-flex align-items-center">
       <div class="text-end me-3">
         <p class="mb-0 fw-bold text-warning" id="lbl-nombre">Cargando...</p>
-        <small class="text-muted" id="lbl-especialidad">--</small>
+        <small class="text-light" id="lbl-especialidad">--</small>
       </div>
       <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 45px; height: 45px;">CO</div>
     </div>
@@ -71,7 +59,7 @@
         <h5 class="text-warning">Biblioteca Completa</h5>
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" id="switchPapelera" onchange="renderizarRutinas()">
-          <label class="form-check-label text-white-50">Ver Papelera</label>
+          <label class="form-check-label text-light">Ver Papelera</label>
         </div>
       </div>
       <div class="list-group" id="lista-rutinas-full"></div>
@@ -84,18 +72,18 @@
         <div class="card-panel text-center">
           <h6 class="text-warning">FECHA DE HOY</h6>
           <h1 id="agenda-dia" class="display-1 fw-bold mb-0">--</h1>
-          <h4 id="agenda-mes-ano" class="text-white-50">---</h4>
+          <h4 id="agenda-mes-ano" class="text-light">---</h4>
           <hr class="border-secondary">
           <div class="d-flex justify-content-around">
-            <div><small class="d-block text-muted">Pendientes</small><span id="count-pend" class="badge bg-secondary">0</span></div>
-            <div><small class="d-block text-muted">Completados</small><span id="count-comp" class="badge bg-success">0</span></div>
+            <div><small class="d-block text-light mb-1">Pendientes</small><span id="count-pend" class="badge bg-secondary fs-6">0</span></div>
+            <div><small class="d-block text-light mb-1">Completados</small><span id="count-comp" class="badge bg-success fs-6">0</span></div>
           </div>
         </div>
       </div>
       <div class="col-md-8">
         <div class="card-panel">
-          <h5 class="mb-4"><i class="bi bi-clock-history text-warning"></i> Programación del Día</h5>
-          <div id="lista-agenda-hoy"><div class="text-center text-muted mt-5">Cargando agenda...</div></div>
+          <h5 class="mb-4"><i class="bi bi-clock-history text-warning me-2"></i> Programación del Día</h5>
+          <div id="lista-agenda-hoy"><div class="text-center text-light mt-5">Cargando agenda...</div></div>
         </div>
       </div>
     </div>
@@ -111,21 +99,22 @@
       </div>
       <div class="modal-body">
         <form id="formRutina">
-          <input type="hidden" id="hdnIdRutina"> <div class="mb-3">
-          <label>Nombre de la Rutina</label>
-          <input type="text" class="form-control bg-black text-white border-secondary" id="txtNombreRutina" required>
-        </div>
+          <input type="hidden" id="hdnIdRutina">
           <div class="mb-3">
-            <label>Asignar al Alumno</label>
+            <label class="text-light mb-1">Nombre de la Rutina</label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="txtNombreRutina" required>
+          </div>
+          <div class="mb-3">
+            <label class="text-light mb-1">Asignar al Alumno</label>
             <select class="form-select bg-black text-white border-secondary" id="selAlumno"></select>
           </div>
           <div class="mb-3">
-            <label class="text-warning">Seleccionar Ejercicios</label>
-            <div class="border border-secondary rounded p-2">
-              <div class="form-check"><input class="form-check-input" type="checkbox" value="1" id="ej1"><label for="ej1">Press de Banca Plano</label></div>
-              <div class="form-check"><input class="form-check-input" type="checkbox" value="2" id="ej2"><label for="ej2">Sentadilla con Barra</label></div>
-              <div class="form-check"><input class="form-check-input" type="checkbox" value="3" id="ej3"><label for="ej3">Jalón al Pecho</label></div>
-              <div class="form-check"><input class="form-check-input" type="checkbox" value="4" id="ej4"><label for="ej4">Curl con Mancuernas</label></div>
+            <label class="text-warning mb-2">Seleccionar Ejercicios</label>
+            <div class="border border-secondary rounded p-3 bg-black">
+              <div class="form-check mb-2"><input class="form-check-input" type="checkbox" value="1" id="ej1"><label class="form-check-label text-light" for="ej1">Press de Banca Plano</label></div>
+              <div class="form-check mb-2"><input class="form-check-input" type="checkbox" value="2" id="ej2"><label class="form-check-label text-light" for="ej2">Sentadilla con Barra</label></div>
+              <div class="form-check mb-2"><input class="form-check-input" type="checkbox" value="3" id="ej3"><label class="form-check-label text-light" for="ej3">Jalón al Pecho</label></div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" value="4" id="ej4"><label class="form-check-label text-light" for="ej4">Curl con Mancuernas</label></div>
             </div>
           </div>
         </form>
@@ -139,229 +128,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  let globalData = null; // Guardamos todo aquí para usarlo en filtros y edición
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const sesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
-    if(!sesion) { window.location.href = 'index.html'; return; }
-    cargarDashboard(sesion.idUsuario);
-  });
-
-  async function cargarDashboard(id) {
-    try {
-      const res = await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/${id}/dashboard`);
-      if(res.ok) {
-        globalData = await res.json();
-
-        // A. Cabecera y Contadores
-        document.getElementById('lbl-nombre').textContent = globalData.nombre;
-        document.getElementById('lbl-especialidad').textContent = globalData.especialidad;
-        document.getElementById('num-alumnos').textContent = globalData.totalAlumnos;
-        document.getElementById('num-rutinas').textContent = globalData.rutinasCreadas;
-
-        // B. Tabla Clientes
-        document.getElementById('tabla-clientes').innerHTML = globalData.listaAlumnos.map(al => `
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle me-2 d-flex justify-content-center align-items-center text-white fw-bold"
-                                     style="width:35px;height:35px; background-color: ${al.terminoHoy ? '#198754' : '#6c757d'};">
-                                     ${al.terminoHoy ? '<i class="bi bi-check-lg"></i>' : al.nombre.charAt(0)}
-                                </div>
-                                <div>${al.nombre} ${al.terminoHoy ? '<span class="badge bg-success ms-2">¡TERMINÓ!</span>' : ''}</div>
-                            </div>
-                        </td>
-                        <td><span class="badge ${al.plan?.includes('Black') ? 'bg-warning text-dark' : 'bg-info'}">${al.plan}</span></td>
-                        <td><small class="text-white-50">${al.rutina}</small></td>
-                    </tr>`).join('');
-
-        // C. Listas
-        document.getElementById('lista-rutinas-dash').innerHTML = globalData.listaRutinas.slice(0,5).map(r =>
-          `<li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between"><span>${r.nombre}</span> <i class="bi bi-chevron-right text-muted"></i></li>`).join('');
-
-        renderizarRutinas(); // Renderizar biblioteca completa
-      }
-    } catch(e) { console.error(e); }
-  }
-
-  // --- 1. LÓGICA DE BIBLIOTECA (ACTIVOS / PAPELERA) ---
-  function renderizarRutinas() {
-    if(!globalData) return;
-    const verPapelera = document.getElementById('switchPapelera').checked;
-    const lista = document.getElementById('lista-rutinas-full');
-
-    // Filtramos: Si Switch ON -> Ver Inactivas. Si Switch OFF -> Ver Activas
-    const filtradas = globalData.listaRutinas.filter(r => verPapelera ? !r.activa : r.activa);
-
-    if(filtradas.length === 0) {
-      lista.innerHTML = '<div class="text-center text-muted p-3">No hay rutinas aquí</div>';
-      return;
-    }
-
-    lista.innerHTML = filtradas.map(r => `
-            <div class="list-group-item bg-black text-white border-secondary mb-2 d-flex justify-content-between align-items-center rounded">
-                <div>
-                    <h6 class="mb-0 text-warning">${r.nombre}</h6>
-                    <small class="text-white-50">${verPapelera ? 'ELIMINADA' : 'ACTIVA'}</small>
-                </div>
-                <div>
-                    ${verPapelera
-      ? `<button class="btn btn-sm btn-outline-success" onclick="reactivar(${r.id})"><i class="bi bi-arrow-counterclockwise"></i> Restaurar</button>`
-      : `<button class="btn btn-sm btn-outline-info me-2" onclick="prepararEdicion(${r.id})"><i class="bi bi-pencil"></i></button>
-                         <button class="btn btn-sm btn-outline-danger" onclick="desactivar(${r.id})"><i class="bi bi-trash"></i></button>`
-    }
-                </div>
-            </div>
-        `).join('');
-  }
-
-  // --- 2. FUNCIONES CRUD ---
-
-  // ABRIR MODAL LIMPIO (CREAR)
-  function abrirModalCrear() {
-    document.getElementById('modalTitulo').textContent = "Nueva Rutina";
-    document.getElementById('hdnIdRutina').value = "";
-    document.getElementById('formRutina').reset();
-    llenarSelectAlumnos();
-    new bootstrap.Modal(document.getElementById('modalRutina')).show();
-  }
-
-  // ABRIR MODAL CON DATOS (EDITAR)
-  function prepararEdicion(idRutina) {
-    const rutina = globalData.listaRutinas.find(r => r.id === idRutina);
-    if(!rutina) return;
-
-    document.getElementById('modalTitulo').textContent = "Editar Rutina";
-    document.getElementById('hdnIdRutina').value = idRutina;
-    document.getElementById('txtNombreRutina').value = rutina.nombre;
-
-    llenarSelectAlumnos(rutina.idCliente);
-
-    // Marcar ejercicios
-    [1,2,3,4].forEach(id => {
-      document.getElementById('ej'+id).checked = rutina.idsEjercicios.includes(id);
-    });
-
-    new bootstrap.Modal(document.getElementById('modalRutina')).show();
-  }
-
-  function llenarSelectAlumnos(seleccionado = null) {
-    const sel = document.getElementById('selAlumno');
-    sel.innerHTML = '';
-    if(globalData.listaAlumnos.length > 0) {
-      globalData.listaAlumnos.forEach(a => {
-        const opt = document.createElement('option');
-        opt.value = a.idCliente;
-        opt.text = a.nombre;
-        if(seleccionado === a.idCliente) opt.selected = true;
-        sel.appendChild(opt);
-      });
-    } else { sel.innerHTML = '<option disabled>Sin alumnos</option>'; }
-  }
-
-  // GUARDAR (CREAR O EDITAR)
-  async function guardarRutina() {
-    const idRutina = document.getElementById('hdnIdRutina').value;
-    const sesion = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
-
-    const payload = {
-      idCliente: parseInt(document.getElementById('selAlumno').value),
-      nombreRutina: document.getElementById('txtNombreRutina').value,
-      idsEjercicios: []
-    };
-    if(document.getElementById('ej1').checked) payload.idsEjercicios.push(1);
-    if(document.getElementById('ej2').checked) payload.idsEjercicios.push(2);
-    if(document.getElementById('ej3').checked) payload.idsEjercicios.push(3);
-    if(document.getElementById('ej4').checked) payload.idsEjercicios.push(4);
-
-    if(!payload.nombreRutina || payload.idsEjercicios.length === 0) { alert("Completa los datos"); return; }
-
-    let url = `http://localhost:8080/Gimnasio/api/entrenadores/${sesion.idUsuario}/crearRutina`;
-    let metodo = 'POST';
-
-    // Si hay ID, cambiamos a modo EDICIÓN (PUT)
-    if(idRutina) {
-      url = `http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${idRutina}`;
-      metodo = 'PUT';
-    }
-
-    try {
-      const res = await fetch(url, { method: metodo, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      if(res.ok) { alert("✅ Guardado!"); location.reload(); }
-      else alert("Error al guardar");
-    } catch(e) { console.error(e); }
-  }
-
-  // DESACTIVAR
-  async function desactivar(id) {
-    if(confirm("¿Mover a papelera?")) {
-      await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
-      location.reload();
-    }
-  }
-
-  // REACTIVAR
-  async function reactivar(id) {
-    if(confirm("¿Restaurar rutina?")) {
-      await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
-      location.reload();
-    }
-  }
-
-  // --- 3. AGENDA Y NAVEGACIÓN ---
-  function ver(vista, btn) {
-    document.getElementById('titulo-seccion').textContent =
-      vista === 'agenda' ? 'Mi Agenda' : (vista === 'rutinas' ? 'Biblioteca' : 'Mi Tablero');
-
-    document.querySelectorAll('.vista').forEach(x => x.classList.remove('activa'));
-    document.getElementById('vista-'+vista)?.classList.add('activa');
-
-    if(btn) {
-      document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
-      btn.classList.add('active');
-    }
-
-    if(vista === 'agenda') {
-      actualizarFecha();
-      const usuario = JSON.parse(sessionStorage.getItem('usuarioLogueado'));
-      cargarAgenda(usuario.idUsuario);
-    }
-  }
-
-  function actualizarFecha() {
-    const f = new Date();
-    const m = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    document.getElementById('agenda-dia').textContent = f.getDate();
-    document.getElementById('agenda-mes-ano').textContent = `${m[f.getMonth()]} ${f.getFullYear()}`;
-  }
-
-  async function cargarAgenda(id) {
-    try {
-      const res = await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/${id}/agenda`);
-      if(res.ok) {
-        const agenda = await res.json();
-        const cont = document.getElementById('lista-agenda-hoy');
-        let c = 0, p = 0;
-
-        if(agenda.length === 0) cont.innerHTML = '<div class="alert alert-dark text-center">No hay rutinas hoy</div>';
-        else {
-          cont.innerHTML = agenda.map(item => {
-            if(item.terminoHoy) c++; else p++;
-            return `
-                        <div class="d-flex justify-content-between align-items-center p-3 mb-3 bg-black border-start border-4 ${item.terminoHoy?'border-success':'border-secondary'} rounded">
-                            <div><h6 class="mb-0 ${item.terminoHoy?'text-success':'text-white'}">${item.nombre}</h6><small class="text-white-50">${item.rutina}</small></div>
-                            <span class="badge ${item.terminoHoy?'bg-success':'bg-dark border border-secondary text-muted'}">${item.terminoHoy?'COMPLETADO':'PENDIENTE'}</span>
-                        </div>`;
-          }).join('');
-        }
-        document.getElementById('count-comp').textContent = c;
-        document.getElementById('count-pend').textContent = p;
-      }
-    } catch(e) { console.error(e); }
-  }
-
-  function salir() { if(confirm("¿Cerrar sesión?")) { sessionStorage.removeItem('usuarioLogueado'); window.location.href='index.html'; } }
-</script>
+<script src="js/DashboardEntrenador.js"></script>
 </body>
 </html>

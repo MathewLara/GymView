@@ -4,143 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recepción Dashboard | Iron Fitness</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-  <style>
-    :root {
-      --primary-color: #ffc107;
-      --dark-bg: #121212;
-      --sidebar-bg: #1e1e1e;
-      --text-light: #f8f9fa;
-      --card-bg: #212529;
-      --text-muted-light: #b0b3b8;
-    }
-
-    body {
-      background-color: var(--dark-bg);
-      color: var(--text-light);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* Sidebar Styling */
-    .sidebar {
-      min-height: 100vh;
-      background-color: var(--sidebar-bg);
-      box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-      padding-top: 20px;
-    }
-
-    .sidebar .nav-link {
-      color: #aaa;
-      font-size: 1.1rem;
-      padding: 15px 20px;
-      transition: all 0.3s;
-      border-left: 4px solid transparent;
-      cursor: pointer;
-    }
-
-    .sidebar .nav-link:hover, .sidebar .nav-link.active {
-      color: var(--primary-color);
-      background-color: rgba(255, 193, 7, 0.05);
-      border-left-color: var(--primary-color);
-    }
-
-    .sidebar .nav-link i {
-      margin-right: 10px;
-    }
-
-    .brand-section {
-      padding: 0 20px 20px 20px;
-      border-bottom: 1px solid #333;
-      margin-bottom: 20px;
-    }
-
-    /* Main Content Styling */
-    .main-content {
-      padding: 30px;
-    }
-
-    .stat-card {
-      background-color: var(--card-bg);
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 20px;
-      height: 100%;
-      transition: transform 0.2s;
-    }
-
-    .stat-card h6 {
-      color: var(--text-muted-light) !important;
-      font-size: 0.9rem;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-icon {
-      font-size: 2.5rem;
-      color: var(--primary-color);
-      opacity: 0.8;
-    }
-
-    /* Botones de Acción Rápida (Exclusivo Recepción) */
-    .action-btn {
-      background-color: var(--card-bg);
-      border: 1px solid var(--primary-color);
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      transition: all 0.3s;
-      cursor: pointer;
-      height: 100%;
-    }
-
-    .action-btn:hover {
-      background-color: var(--primary-color);
-      color: black;
-      transform: translateY(-3px);
-    }
-
-    .action-btn i {
-      font-size: 2rem;
-      display: block;
-      margin-bottom: 10px;
-    }
-
-    /* Tables */
-    .table-custom {
-      background-color: var(--card-bg);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .table-dark {
-      --bs-table-bg: var(--card-bg);
-      margin-bottom: 0;
-    }
-
-    .table-dark th {
-      color: var(--primary-color);
-      font-weight: 600;
-      border-bottom: 2px solid #333;
-    }
-
-    .table-dark td {
-      border-color: #333;
-      vertical-align: middle;
-      color: #e0e0e0;
-    }
-
-    .header-bar {
-      background-color: var(--sidebar-bg);
-      padding: 15px 30px;
-      border-bottom: 1px solid #333;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-  </style>
+  <link rel="stylesheet" href="css/DashboardRecep.css">
 </head>
 <body>
 
@@ -148,6 +16,7 @@
   <div class="row">
 
     <div class="col-md-3 col-lg-2 sidebar d-none d-md-block p-0">
+
       <div class="brand-section text-center mt-3">
         <h4 class="text-warning fw-bold"><i class="bi bi-lightning-fill"></i> IRON DESK</h4>
       </div>
@@ -285,76 +154,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-  // Simulación de Sesión
-  document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('tokenGimnasio');
-    console.log("Recepción lista. Token:", token ? "OK" : "Faltante");
-  });
+<script src="js/DashboardRecep.js"></script>
 
-  function cerrarSesion() {
-    localStorage.removeItem('tokenGimnasio');
-    window.location.href = 'login.html';
-  }
-
-  function cargarModulo(modulo, elementoHTML) {
-    // 1. Títulos
-    const tituloMap = {
-      'resumen': 'Recepción - Panel Operativo',
-      'acceso': 'Control de Acceso (Escáner QR)',
-      'clientes': 'Directorio de Socios',
-      'pagos': 'Gestión de Caja y Pagos',
-      'entrenadores': 'Horarios de Entrenadores'
-    };
-    document.getElementById('page-title').innerText = tituloMap[modulo] || 'Recepción';
-
-    // 2. Sidebar Active
-    if (elementoHTML) {
-      const links = document.querySelectorAll('#sidebarMenu .nav-link');
-      links.forEach(link => link.classList.remove('active'));
-      elementoHTML.classList.add('active');
-    }
-
-    // 3. Vistas
-    const vistaResumen = document.getElementById('vista-resumen');
-    const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
-
-    if (modulo === 'resumen') {
-      vistaResumen.style.display = 'block';
-      contenedorDinamico.innerHTML = '';
-    } else if (modulo === 'acceso') {
-      // Simulación visual de la vista de escaneo QR (RF06)
-      vistaResumen.style.display = 'none';
-      contenedorDinamico.innerHTML = `
-                    <div class="row justify-content-center text-center">
-                        <div class="col-md-6">
-                            <div class="card bg-black border-warning mb-4">
-                                <div class="card-body py-5">
-                                    <i class="bi bi-qr-code-scan display-1 text-warning mb-3"></i>
-                                    <h4 class="text-white">Escáner Activo</h4>
-                                    <p class="text-muted">Esperando lectura de código QR...</p>
-                                    <div class="spinner-grow text-warning" role="status"></div>
-                                </div>
-                            </div>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="O ingrese código manual (DNI/ID)">
-                                <button class="btn btn-warning" type="button">Validar</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-    } else {
-      // Skeleton genérico para otros módulos
-      vistaResumen.style.display = 'none';
-      contenedorDinamico.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="bi bi-folder2-open fs-1 text-secondary mb-3"></i>
-                        <h4 class="text-white">Módulo ${modulo}</h4>
-                        <p class="text-muted">Conectando con API...</p>
-                    </div>
-                `;
-    }
-  }
-</script>
 </body>
 </html>

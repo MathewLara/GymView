@@ -1,0 +1,122 @@
+/* Variables de colores principales */
+:root {
+  --primary-color: #ffc107;
+  --dark-bg: #121212;
+  --card-bg: #1e1e1e;
+}
+
+/* Fondo con imagen oscurecida y centrado del formulario */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--dark-bg);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+  url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+/* Tarjeta principal del formulario */
+.register-card {
+  background-color: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  color: white;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-logo {
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+/* Estilos de los campos de texto (Inputs) */
+.form-control {
+  background-color: #2c2c2c;
+  border: 1px solid #444;
+  color: white;
+  padding: 0.75rem;
+}
+
+.form-control:focus {
+  background-color: #2c2c2c;
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+/* =========================================
+   SISTEMA DE ERRORES VISUALES
+   ========================================= */
+
+/* Estilo para inputs con error (Borde Rojo) */
+.form-control.is-invalid {
+  border-color: #dc3545;
+  background-image: none;
+}
+
+/* Pequeñas letras rojas debajo del campo de error */
+.invalid-feedback {
+  font-size: 0.85rem;
+  color: #ff6b6b;
+  display: none; /* Oculto por defecto */
+}
+
+/* Mostrar las letras rojas cuando el input tiene la clase .is-invalid */
+.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* Icono calendario invertido para que se vea en fondo oscuro */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* Botones principales */
+.btn-brand {
+  background-color: var(--primary-color);
+  color: black;
+  font-weight: bold;
+  padding: 0.75rem;
+  width: 100%;
+  border: none;
+  margin-top: 1rem;
+  transition: all 0.3s;
+}
+
+.btn-brand:hover {
+  background-color: #e0a800;
+  transform: translateY(-2px);
+}
+
+/* Clases de utilidad y animaciones */
+.hidden { display: none !important; }
+
+.code-input {
+  letter-spacing: 5px;
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: bold;
+}
+
+.step-section { animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.form-label { font-size: 0.9rem; color: #aaa; margin-bottom: 0.3rem; }
+
+/* Mensaje global (para errores de red) oculto por defecto */
+#statusMessage { display: none; }

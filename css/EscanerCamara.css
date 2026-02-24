@@ -1,0 +1,59 @@
+/* Estilos generales para el fondo y tipografía de la terminal */
+body {
+  background-color: #000;
+  color: white;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding-top: 20px;
+}
+
+/* Diseño del visor de la cámara */
+#reader {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid #333;
+  margin-bottom: 20px;
+  background: #111;
+}
+
+/* Caja de información de estado inferior */
+.status-box {
+  text-align: center;
+  padding: 20px;
+  background: #1a1a1a;
+  border-radius: 15px;
+  border: 1px solid #333;
+  width: 90%;
+  max-width: 500px;
+}
+
+/* Indicador circular central */
+.circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #333;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: 0.3s;
+}
+
+/* Estado de ÉXITO (Entrada): Color verde con resplandor */
+.entrada {
+  background: #198754;
+  box-shadow: 0 0 15px #198754;
+}
+
+/* Estado de SALIDA: Color rojo con resplandor */
+.salida {
+  background: #dc3545;
+  box-shadow: 0 0 15px #dc3545;
+}

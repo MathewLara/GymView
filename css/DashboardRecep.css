@@ -1,0 +1,149 @@
+/* Variables de la paleta de colores para el panel de recepción */
+:root {
+  --primary-color: #ffc107;
+  --dark-bg: #121212;
+  --sidebar-bg: #1e1e1e;
+  --text-light: #f8f9fa;
+  --card-bg: #212529;
+  --text-muted-light: #b0b3b8;
+}
+
+/* Configuración general del cuerpo */
+body {
+  background-color: var(--dark-bg);
+  color: var(--text-light);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+/* =========================================
+   BARRA LATERAL (SIDEBAR)
+   ========================================= */
+.sidebar {
+  min-height: 100vh;
+  background-color: var(--sidebar-bg);
+  box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+  padding-top: 20px;
+}
+
+/* Diseño de los enlaces del menú lateral */
+.sidebar .nav-link {
+  color: #aaa;
+  font-size: 1.1rem;
+  padding: 15px 20px;
+  transition: all 0.3s;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+}
+
+/* Estilo para el enlace activo o al pasar el ratón */
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+  color: var(--primary-color);
+  background-color: rgba(255, 193, 7, 0.05);
+  border-left-color: var(--primary-color);
+}
+
+.sidebar .nav-link i {
+  margin-right: 10px;
+}
+
+/* Contenedor del logo en el sidebar */
+.brand-section {
+  padding: 0 20px 20px 20px;
+  border-bottom: 1px solid #333;
+  margin-bottom: 20px;
+}
+
+/* =========================================
+   CONTENIDO PRINCIPAL Y COMPONENTES
+   ========================================= */
+.main-content {
+  padding: 30px;
+}
+
+/* Tarjetas de Estadísticas (KPIs) */
+.stat-card {
+  background-color: var(--card-bg);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  height: 100%;
+  transition: transform 0.2s;
+}
+
+.stat-card h6 {
+  color: var(--text-muted-light) !important;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  opacity: 0.8;
+}
+
+/* =========================================
+   BOTONES DE ACCIÓN RÁPIDA (Exclusivo Recepción)
+   ========================================= */
+/* Estilo para los botones cuadrados de escaneo, cobro y nuevo socio */
+.action-btn {
+  background-color: var(--card-bg);
+  border: 1px solid var(--primary-color);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+  height: 100%;
+}
+
+/* Efecto hover: el botón se vuelve amarillo y se eleva */
+.action-btn:hover {
+  background-color: var(--primary-color);
+  color: black;
+  transform: translateY(-3px);
+}
+
+.action-btn i {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* =========================================
+   ESTILOS PARA TABLAS OSCURAS
+   ========================================= */
+.table-custom {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table-dark {
+  --bs-table-bg: var(--card-bg);
+  margin-bottom: 0;
+}
+
+.table-dark th {
+  color: var(--primary-color);
+  font-weight: 600;
+  border-bottom: 2px solid #333;
+}
+
+.table-dark td {
+  border-color: #333;
+  vertical-align: middle;
+  color: #e0e0e0;
+}
+
+/* Barra superior horizontal (Header del panel) */
+.header-bar {
+  background-color: var(--sidebar-bg);
+  padding: 15px 30px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

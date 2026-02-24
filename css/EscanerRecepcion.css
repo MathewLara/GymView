@@ -1,0 +1,46 @@
+/* Configuración general de la página para centrar el simulador */
+body {
+  background-color: #000;
+  color: white;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+}
+
+/* Caja contenedora del simulador con diseño oscuro */
+.scanner-box {
+  background: #1a1a1a;
+  padding: 40px;
+  border-radius: 20px;
+  border: 2px solid #333;
+  text-align: center;
+  width: 400px;
+}
+
+/* Estilo base del círculo de estado (cerrado por defecto) */
+.status-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  transition: 0.3s;
+  background: #333;
+}
+
+/* Estado de ENTRADA: Color verde con resplandor intenso */
+.entrada {
+  background: #198754;
+  box-shadow: 0 0 20px #198754;
+}
+
+/* Estado de SALIDA: Color rojo con resplandor intenso */
+.salida {
+  background: #dc3545;
+  box-shadow: 0 0 20px #dc3545;
+}

@@ -3,65 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Iron Fitness | Tu Mejor Versión</title>
+  <link rel="stylesheet" href="css/styles.css">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-  <style>
-    /* Estilos personalizados para dar el look "Smart Fit" */
-    :root {
-      --primary-color: #ffc107; /* Amarillo tipo Smart Fit/Gold's Gym */
-      --dark-bg: #121212;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .hero-section {
-      background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-      url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
-      background-size: cover;
-      background-position: center;
-      height: 90vh; /* Ocupa casi toda la pantalla */
-      display: flex;
-      align-items: center;
-      color: white;
-    }
-
-    .section-padding {
-      padding: 80px 0;
-    }
-
-    .card-custom {
-      border: none;
-      transition: transform 0.3s;
-      height: 100%;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .card-custom:hover {
-      transform: translateY(-10px);
-    }
-
-    .btn-brand {
-      background-color: var(--primary-color);
-      color: black;
-      font-weight: bold;
-      padding: 12px 30px;
-      border: none;
-    }
-
-    .btn-brand:hover {
-      background-color: #e0a800;
-      color: black;
-    }
-
-    .bg-dark-custom {
-      background-color: var(--dark-bg);
-      color: white;
-    }
-  </style>
 </head>
 <body>
 
@@ -78,9 +26,7 @@
         <li class="nav-item"><a class="nav-link" href="#">Inicio</a></li>
         <li class="nav-item"><a class="nav-link" href="#instalaciones">Instalaciones</a></li>
         <li class="nav-item"><a class="nav-link" href="#planes">Planes</a></li>
-
         <li class="nav-item"><a class="nav-link text-warning fw-bold" href="catalogo.html">TIENDA</a></li>
-
         <li class="nav-item ps-3">
           <a href="login.html" class="btn btn-outline-warning btn-sm">
             <i class="bi bi-person-circle"></i> Zona de Socios
@@ -122,7 +68,7 @@
       </div>
       <div class="col-md-4">
         <div class="card card-custom p-4 text-center">
-          <div class="display-4 text-warning mb-3"><i class="bi bi-person-arms-up"></i></div>
+          <div class="display-4 text-warning mb-3"><i class="bi bi-activity"></i></div>
           <h3>Área Funcional</h3>
           <p class="text-muted">Espacio dedicado para HIIT, calistenia, estiramientos y entrenamiento con TRX.</p>
         </div>
@@ -130,34 +76,30 @@
     </div>
   </div>
 </section>
+
 <section id="tienda" class="section-padding bg-black text-white position-relative">
   <div class="position-absolute top-0 start-0 w-100 h-100"
        style="background: radial-gradient(circle at center, rgba(255,193,7,0.1) 0%, rgba(0,0,0,0) 70%); pointer-events: none;">
   </div>
-
   <div class="container position-relative">
-    <div class="row align-items-center">
-
+    <div class="row align-items-center g-5">
       <div class="col-lg-5 mb-5 mb-lg-0">
         <h6 class="text-warning text-uppercase fw-bold ls-2">Iron Store</h6>
-        <h2 class="display-4 fw-bold mb-4">SUPLEMENTACIÓN & EQUIPO</h2>
+        <h2 class="display-4 fw-bold mb-4">Suplementación & Equipo</h2>
         <p class="lead text-white-50 mb-4">
           Potencia tus resultados con nuestra selección premium de proteínas, creatina y accesorios de entrenamiento. Calidad garantizada.
         </p>
-
         <ul class="list-unstyled mb-4">
           <li class="mb-2"><i class="bi bi-check2-circle text-warning me-2"></i> Proteínas Whey & Isolatadas</li>
           <li class="mb-2"><i class="bi bi-check2-circle text-warning me-2"></i> Creatina Monohidratada</li>
           <li class="mb-2"><i class="bi bi-check2-circle text-warning me-2"></i> Accesorios de levantamiento</li>
         </ul>
-
         <a href="catalogo.html" class="btn btn-brand btn-lg rounded-pill px-5">
           IR A LA TIENDA <i class="bi bi-arrow-right-short"></i>
         </a>
       </div>
-
       <div class="col-lg-7">
-        <div class="row g-3">
+        <div class="row g-4">
           <div class="col-md-6">
             <div class="card bg-dark border-secondary text-white h-100 card-custom">
               <img src="https://images.unsplash.com/photo-1593095948071-474c5cc2989d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="card-img-top opacity-75" alt="Suplementos" style="height: 250px; object-fit: cover;">
@@ -167,8 +109,7 @@
               </div>
             </div>
           </div>
-
-          <div class="col-md-6 mt-md-5">
+          <div class="col-md-6">
             <div class="card bg-dark border-secondary text-white h-100 card-custom">
               <img src="https://images.unsplash.com/photo-1620188467120-5042ed1eb5da?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="card-img-top opacity-75" alt="Equipo" style="height: 250px; object-fit: cover;">
               <div class="card-body text-center">
@@ -179,7 +120,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </section>
@@ -192,28 +132,29 @@
     </div>
     <div class="row justify-content-center">
       <div class="col-md-4 mb-4">
-        <div class="card h-100 border-0">
-          <div class="card-header bg-white text-center py-4">
-            <h4 class="fw-bold">PLAN SMART</h4>
+        <div class="card h-100 border-0 d-flex flex-column">
+          <div class="card-header bg-white text-center py-4 d-flex flex-column justify-content-center" style="min-height: 104px;">
+            <h4 class="fw-bold mb-2">PLAN SMART</h4>
+            <div><span class="badge bg-secondary">Semicompleto</span></div>
           </div>
-          <div class="card-body text-center py-5">
+          <div class="card-body text-center py-5 d-flex flex-column">
             <h2 class="display-4 fw-bold">$24.99<span class="fs-6 text-muted">/mes</span></h2>
             <ul class="list-unstyled mt-4 mb-4 text-start mx-auto" style="max-width: 200px;">
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Acceso ilimitado</li>
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Área de pesas</li>
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Vestidores y duchas</li>
             </ul>
-            <button class="btn btn-outline-dark w-100 rounded-pill">Seleccionar</button>
+            <button class="btn btn-dark w-100 rounded-pill mt-auto">Seleccionar</button>
           </div>
         </div>
       </div>
       <div class="col-md-4 mb-4">
-        <div class="card h-100 border-0 border-warning border-3">
-          <div class="card-header bg-warning text-center py-4">
-            <h4 class="fw-bold text-dark">PLAN BLACK</h4>
-            <span class="badge bg-dark">Más Popular</span>
+        <div class="card h-100 border-0 border-warning border-3 d-flex flex-column">
+          <div class="card-header bg-warning text-center py-4 d-flex flex-column justify-content-center" style="min-height: 104px;">
+            <h4 class="fw-bold text-dark mb-2">PLAN BLACK</h4>
+            <div><span class="badge bg-dark">Más Popular</span></div>
           </div>
-          <div class="card-body text-center py-5">
+          <div class="card-body text-center py-5 d-flex flex-column">
             <h2 class="display-4 fw-bold">$34.99<span class="fs-6 text-muted">/mes</span></h2>
             <ul class="list-unstyled mt-4 mb-4 text-start mx-auto" style="max-width: 200px;">
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Todo el Plan Smart</li>
@@ -221,7 +162,7 @@
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Acceso a todas las sedes</li>
               <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Camiseta de regalo</li>
             </ul>
-            <button class="btn btn-dark w-100 rounded-pill">Seleccionar</button>
+            <button class="btn btn-dark w-100 rounded-pill mt-auto">Seleccionar</button>
           </div>
         </div>
       </div>
@@ -231,7 +172,7 @@
 
 <footer class="bg-black text-white py-4 text-center">
   <div class="container">
-    <p class="mb-0">&copy; 2025 Iron Fitness. Todos los derechos reservados.</p>
+    <p class="mb-0">&copy; 2026 Iron Fitness. Todos los derechos reservados.</p>
     <small class="text-white-50">Av. Principal 123, Quito, Ecuador</small>
   </div>
 </footer>

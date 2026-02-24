@@ -4,125 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crear Cuenta | Iron Fitness</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-  <style>
-    :root {
-      --primary-color: #ffc107;
-      --dark-bg: #121212;
-      --card-bg: #1e1e1e;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--dark-bg);
-      background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
-      url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
-      background-size: cover;
-      background-position: center;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 0;
-    }
-
-    .register-card {
-      background-color: var(--card-bg);
-      border: 1px solid #333;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      color: white;
-      padding: 2rem;
-      width: 100%;
-      max-width: 500px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .brand-logo {
-      color: var(--primary-color);
-      font-size: 1.8rem;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 1rem;
-      text-transform: uppercase;
-    }
-
-    .form-control {
-      background-color: #2c2c2c;
-      border: 1px solid #444;
-      color: white;
-      padding: 0.75rem;
-    }
-
-    .form-control:focus {
-      background-color: #2c2c2c;
-      color: white;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
-    }
-
-    /* Estilo para errores en inputs */
-    .form-control.is-invalid {
-      border-color: #dc3545; /* Rojo */
-      background-image: none;
-    }
-
-    .invalid-feedback {
-      font-size: 0.85rem;
-      color: #ff6b6b;
-      display: none; /* Oculto por defecto */
-    }
-
-    /* Mostrar feedback cuando el input es inválido */
-    .is-invalid ~ .invalid-feedback {
-      display: block;
-    }
-
-    /* Icono calendario invertido para fondo oscuro */
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(1);
-      cursor: pointer;
-    }
-
-    .btn-brand {
-      background-color: var(--primary-color);
-      color: black;
-      font-weight: bold;
-      padding: 0.75rem;
-      width: 100%;
-      border: none;
-      margin-top: 1rem;
-      transition: all 0.3s;
-    }
-
-    .btn-brand:hover {
-      background-color: #e0a800;
-      transform: translateY(-2px);
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .code-input {
-      letter-spacing: 5px;
-      font-size: 1.5rem;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .step-section { animation: fadeIn 0.5s; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .form-label { font-size: 0.9rem; color: #aaa; margin-bottom: 0.3rem; }
-
-    /* Mensaje global (solo para errores de conexión) */
-    #statusMessage { display: none; }
-
-  </style>
+  <link rel="stylesheet" href="css/LoginRegistro.css">
 </head>
 <body>
 
@@ -154,6 +40,15 @@
             <input type="text" class="form-control" id="apellido">
             <div id="apellidoError" class="invalid-feedback"></div>
           </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Cédula de Identidad</label>
+        <div class="input-group has-validation">
+          <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person-badge"></i></span>
+          <input type="text" class="form-control" id="cedula" placeholder="10 dígitos">
+          <div id="cedulaError" class="invalid-feedback"></div>
         </div>
       </div>
 
@@ -239,187 +134,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-  // CONFIGURACIÓN DE ENDPOINTS
-  const BASE_URL = "http://localhost:8080";
+<script src="js/LoginRegistro.js"></script>
 
-  const API_URLS = {
-    registro: `${BASE_URL}/Gimnasio/api/auth/registro`,
-    verificacion: `${BASE_URL}/Gimnasio/api/auth/verificar`,
-    login: `${BASE_URL}/Gimnasio/api/auth/login`
-  };
-
-  // Referencias DOM
-  const step1 = document.getElementById('step1-datos');
-  const step2 = document.getElementById('step2-codigo');
-  const msgBox = document.getElementById('statusMessage');
-  const btnStep1 = document.getElementById('btn-submit-step1');
-  let tempEmail = "";
-
-  // Elementos de Inputs y Errores (Paso 1)
-  const inputs = {
-    nombre: document.getElementById('nombre'),
-    apellido: document.getElementById('apellido'),
-    email: document.getElementById('email'),
-    telefono: document.getElementById('telefono'),
-    fecha: document.getElementById('fechaNacimiento'),
-    usuario: document.getElementById('username'),
-    pass: document.getElementById('password'),
-    codigo: document.getElementById('verificationCode')
-  };
-
-  const errors = {
-    nombre: document.getElementById('nombreError'),
-    apellido: document.getElementById('apellidoError'),
-    email: document.getElementById('emailError'),
-    telefono: document.getElementById('telefonoError'),
-    fecha: document.getElementById('fechaError'),
-    usuario: document.getElementById('usuarioError'),
-    pass: document.getElementById('passwordError'),
-    codigo: document.getElementById('codeError')
-  };
-
-  // --- FUNCIONES DE UTILIDAD PARA ERRORES ---
-
-  function clearAllErrors() {
-    msgBox.style.display = 'none';
-
-    // Limpiar clases y textos de todos los inputs
-    Object.keys(inputs).forEach(key => {
-      if(inputs[key]) inputs[key].classList.remove('is-invalid');
-    });
-    Object.keys(errors).forEach(key => {
-      if(errors[key]) errors[key].textContent = '';
-    });
-  }
-
-  function showGlobalStatus(msg, type = 'error') {
-    msgBox.textContent = msg;
-    msgBox.style.display = 'block';
-    msgBox.className = type === 'error' ? 'alert alert-danger' : 'alert alert-success';
-  }
-
-  function showInputError(key, msg) {
-    if(inputs[key] && errors[key]) {
-      inputs[key].classList.add('is-invalid');
-      errors[key].textContent = msg;
-    }
-  }
-
-  // PASO 1: REGISTRO
-  document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearAllErrors();
-    btnStep1.disabled = true;
-    btnStep1.innerText = "Enviando...";
-
-    const userData = {
-      nombre: inputs.nombre.value,
-      apellido: inputs.apellido.value,
-      email: inputs.email.value,
-      telefono: inputs.telefono.value,
-      fechaNacimiento: inputs.fecha.value,
-      usuario: inputs.usuario.value,
-      contrasena: inputs.pass.value,
-      rol: "CLIENTE"
-    };
-
-    try {
-      console.log("Enviando al Backend:", userData);
-
-      const response = await fetch(API_URLS.registro, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok) {
-        // ÉXITO
-        tempEmail = userData.email;
-        document.getElementById('display-email').textContent = tempEmail;
-        step1.classList.add('hidden');
-        step2.classList.remove('hidden');
-        showGlobalStatus(data.mensaje || "Código enviado. Revisa tu correo.", "success");
-      } else {
-        // ERROR DEL BACKEND (Validación)
-        console.warn("Backend rechazó:", data);
-        const errorMsg = data.mensaje || "Error en el registro";
-        const msgLower = errorMsg.toLowerCase();
-
-        // Lógica de mapeo de errores a inputs
-        let mapped = false;
-
-        if (msgLower.includes('nombre')) { showInputError('nombre', errorMsg); mapped = true; }
-        if (msgLower.includes('apellido')) { showInputError('apellido', errorMsg); mapped = true; }
-        // Prioridad: si dice "correo" o "email"
-        if (msgLower.includes('correo') || msgLower.includes('email')) { showInputError('email', errorMsg); mapped = true; }
-        if (msgLower.includes('teléfono') || msgLower.includes('telefono')) { showInputError('telefono', errorMsg); mapped = true; }
-        if (msgLower.includes('fecha') || msgLower.includes('nacimiento')) { showInputError('fecha', errorMsg); mapped = true; }
-        if (msgLower.includes('usuario') || msgLower.includes('user')) { showInputError('usuario', errorMsg); mapped = true; }
-        if (msgLower.includes('contraseña') || msgLower.includes('password')) { showInputError('pass', errorMsg); mapped = true; }
-
-        // Si no logramos identificar a qué campo pertenece, lo mostramos arriba
-        if (!mapped) {
-          showGlobalStatus(errorMsg);
-        }
-      }
-    } catch (error) {
-      // ERROR DE RED
-      console.error(error);
-      showGlobalStatus("No se pudo conectar con el servidor. Verifica tu conexión.");
-    } finally {
-      btnStep1.disabled = false;
-      btnStep1.innerText = "REGISTRARME";
-    }
-  });
-
-  // PASO 2: VERIFICACIÓN
-  document.getElementById('verifyForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearAllErrors(); // Limpiamos errores previos (incluido el del código)
-
-    const btnVerify = e.target.querySelector('button');
-    btnVerify.disabled = true;
-    btnVerify.innerText = "Verificando...";
-
-    const codigoInputVal = inputs.codigo.value;
-
-    try {
-      const response = await fetch(API_URLS.verificacion, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: tempEmail,
-          codigo: codigoInputVal
-        })
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok) {
-        showGlobalStatus(data.mensaje || "¡Cuenta verificada! Redirigiendo...", "success");
-        if (data.token) localStorage.setItem('tokenGimnasio', data.token);
-        setTimeout(() => { window.location.href = 'DashboardCliente.html'; }, 2000);
-      } else {
-        // Error de código incorrecto (abajo del input código)
-        const errorMsg = data.mensaje || "Código incorrecto";
-        showInputError('codigo', errorMsg);
-      }
-    } catch (error) {
-      showGlobalStatus("Error de conexión al verificar.");
-    } finally {
-      btnVerify.disabled = false;
-      btnVerify.innerText = "VERIFICAR CUENTA";
-    }
-  });
-
-  function regresarPaso1() {
-    step2.classList.add('hidden');
-    step1.classList.remove('hidden');
-    clearAllErrors();
-  }
-</script>
 </body>
 </html>
