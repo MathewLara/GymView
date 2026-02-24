@@ -39,7 +39,6 @@ async function procesarAcceso(id) {
     // Petición POST a la API de accesos
     // La ruta relativa ayuda a que funcione tanto en localhost como en servidores desplegados
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/accesos/escanear/${id}`, { method: 'POST' });
-
     if(res.ok) {
       const data = await res.json();
       lblMsg.textContent = data.mensaje;

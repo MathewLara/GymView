@@ -4,21 +4,23 @@ let globalData = null;
 const idEntrenador = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. RESTRICCIÓN DE SESIÓN
+  // --- RESTRICCIÓN DE SESIÓN DESACTIVADA TEMPORALMENTE ---
+  /*
   const token = localStorage.getItem('tokenGimnasio');
 
   if (!token) {
     window.location.href = 'index.html';
     return; // Detiene la ejecución si no hay token
   }
+  */
 
-  // Si hay token, procede a cargar el dashboard
+  // Procede a cargar el dashboard directamente
   cargarDashboard(idEntrenador);
 });
 
 async function cargarDashboard(id) {
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/$%7Bid%7D/dashboard`);
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/dashboard`);
     if(res.ok) {
       globalData = await res.json();
 
