@@ -67,17 +67,37 @@ async function cargarModulo(modulo, elementoHTML) {
     } catch (e) {
       vistaResumen.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con la base de datos.</h5>';
     }
-  } else if (modulo === 'usuarios') {
+  } else if (modulo === 'usuarios' || modulo === 'clientes' || modulo === 'entrenadores') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando personal...</p></div>';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
       if (res.ok) {
-        const usuarios = await res.json();
+        const todosLosUsuarios = await res.json();
 
-        // Generamos las filas de la tabla
-        let filas = usuarios.map(u => `
+        // ==========================================
+        // FILTRADO INTELIGENTE SEGÚN LA PESTAÑA
+        // ==========================================
+        let usuariosFiltrados = [];
+        let tituloTabla = "";
+
+        if (modulo === 'usuarios') {
+          // Staff: Solo Admin y Recepcionista
+          usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Administrador' || u.rol === 'Recepcionista');
+          tituloTabla = "Directorio de Staff";
+        } else if (modulo === 'clientes') {
+          // Solo Clientes
+          usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Cliente');
+          tituloTabla = "Directorio de Clientes";
+        } else if (modulo === 'entrenadores') {
+          // Solo Entrenadores
+          usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Entrenador');
+          tituloTabla = "Directorio de Entrenadores";
+        }
+
+        // Generamos las filas usando la lista ya filtrada
+        let filas = usuariosFiltrados.map(u => `
           <tr>
             <td class="text-muted">#${u.id}</td>
             <td class="fw-bold text-white">${u.usuario}</td>
@@ -85,7 +105,7 @@ async function cargarModulo(modulo, elementoHTML) {
             <td><span class="badge bg-secondary">${u.rol}</span></td>
             <td>${u.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
             <td>
-              <button class="btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'} me-2" onclick="cambiarEstadoUsuario(${u.id}, ${!u.activo})">
+              <button class="btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'} me-2" onclick="cambiarEstadoUsuario(${u.id}, ${!u.activo}, '${modulo}')">
                 <i class="bi ${u.activo ? 'bi-trash' : 'bi-check-circle'}"></i> ${u.activo ? 'Desactivar' : 'Activar'}
               </button>
               <button class="btn btn-sm btn-outline-info" onclick="alert('Próximo paso: Abrir modal de edición')"><i class="bi bi-pencil"></i></button>
@@ -93,11 +113,16 @@ async function cargarModulo(modulo, elementoHTML) {
           </tr>
         `).join('');
 
+        // Si no hay nadie en esa categoría, mostramos un mensaje bonito
+        if (filas === '') {
+          filas = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay registros en esta categoría.</td></tr>`;
+        }
+
         // Inyectamos la tabla en el HTML
         contenedorDinamico.innerHTML = `
           <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="text-white m-0">Directorio de Usuarios</h4>
-            <button class="btn btn-warning fw-bold" onclick="alert('Próximo paso: Modal nuevo usuario')"><i class="bi bi-plus-lg"></i> Agregar Usuario</button>
+            <h4 class="text-white m-0">${tituloTabla}</h4>
+            <button class="btn btn-warning fw-bold" onclick="alert('Próximo paso: Modal nuevo')"><i class="bi bi-plus-lg"></i> Agregar</button>
           </div>
           <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
             <div class="table-responsive">
@@ -134,7 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Función para el Eliminado Lógico / Reactivación
-async function cambiarEstadoUsuario(id, nuevoEstado) {
+// Función para el Eliminado Lógico / Reactivación
+async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
   if(!confirm(`¿Estás seguro de que deseas ${nuevoEstado ? 'activar' : 'desactivar'} este usuario?`)) return;
 
   try {
@@ -143,8 +169,8 @@ async function cambiarEstadoUsuario(id, nuevoEstado) {
     });
 
     if(res.ok) {
-      // Recargamos el módulo para ver los cambios instantáneamente
-      cargarModulo('usuarios');
+      // Recargamos el módulo EXACTO en el que estábamos
+      cargarModulo(moduloActual);
     } else {
       alert('Hubo un error al actualizar el estado.');
     }
