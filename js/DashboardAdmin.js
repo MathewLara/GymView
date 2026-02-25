@@ -67,6 +67,53 @@ async function cargarModulo(modulo, elementoHTML) {
     } catch (e) {
       vistaResumen.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con la base de datos.</h5>';
     }
+  } else if (modulo === 'usuarios') {
+    vistaResumen.style.display = 'none';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando personal...</p></div>';
+
+    try {
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+      if (res.ok) {
+        const usuarios = await res.json();
+
+        // Generamos las filas de la tabla
+        let filas = usuarios.map(u => `
+          <tr>
+            <td class="text-muted">#${u.id}</td>
+            <td class="fw-bold text-white">${u.usuario}</td>
+            <td>${u.nombre} ${u.apellido}</td>
+            <td><span class="badge bg-secondary">${u.rol}</span></td>
+            <td>${u.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
+            <td>
+              <button class="btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'} me-2" onclick="cambiarEstadoUsuario(${u.id}, ${!u.activo})">
+                <i class="bi ${u.activo ? 'bi-trash' : 'bi-check-circle'}"></i> ${u.activo ? 'Desactivar' : 'Activar'}
+              </button>
+              <button class="btn btn-sm btn-outline-info" onclick="alert('Próximo paso: Abrir modal de edición')"><i class="bi bi-pencil"></i></button>
+            </td>
+          </tr>
+        `).join('');
+
+        // Inyectamos la tabla en el HTML
+        contenedorDinamico.innerHTML = `
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="text-white m-0">Directorio de Usuarios</h4>
+            <button class="btn btn-warning fw-bold" onclick="alert('Próximo paso: Modal nuevo usuario')"><i class="bi bi-plus-lg"></i> Agregar Usuario</button>
+          </div>
+          <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="text-muted">
+                  <tr><th>ID</th><th>USUARIO</th><th>NOMBRE COMPLETO</th><th>ROL</th><th>ESTADO</th><th>ACCIONES</th></tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+    } catch (e) {
+      contenedorDinamico.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al cargar la base de datos.</h5>';
+    }
 
   } else {
     vistaResumen.style.display = 'none';
@@ -85,3 +132,24 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard cargado (Restricción desactivada).");
   cargarModulo('resumen');
 });
+
+// Función para el Eliminado Lógico / Reactivación
+async function cambiarEstadoUsuario(id, nuevoEstado) {
+  if(!confirm(`¿Estás seguro de que deseas ${nuevoEstado ? 'activar' : 'desactivar'} este usuario?`)) return;
+
+  try {
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}/estado?activo=${nuevoEstado}`, {
+      method: 'PUT'
+    });
+
+    if(res.ok) {
+      // Recargamos el módulo para ver los cambios instantáneamente
+      cargarModulo('usuarios');
+    } else {
+      alert('Hubo un error al actualizar el estado.');
+    }
+  } catch(e) {
+    console.error(e);
+    alert('Error de conexión al servidor.');
+  }
+}
