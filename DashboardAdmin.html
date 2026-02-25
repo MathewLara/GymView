@@ -159,9 +159,53 @@
     </div>
   </div>
 </div>
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white border-warning">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning fw-bold" id="modalTitulo">Nuevo Usuario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formUsuario">
+          <input type="hidden" id="userId"> <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label text-muted">Nombre(s)</label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="userNombre" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Apellido(s)</label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="userApellido" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Nombre de Usuario</label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="userUsername" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted">Rol en el Sistema</label>
+            <select class="form-select bg-black text-white border-secondary" id="userRol">
+              <option value="1">Administrador</option>
+              <option value="2">Recepcionista</option>
+              <option value="3">Entrenador</option>
+              <option value="4">Cliente</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label text-muted">Contraseña <small id="passHint" class="text-info"></small></label>
+            <input type="password" class="form-control bg-black text-white border-secondary" id="userPass" placeholder="Ingrese contraseña">
+          </div>
+        </div>
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold" onclick="guardarUsuario()">Guardar Datos</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="js/DashboardAdmin.js"></script>
 
 </body>

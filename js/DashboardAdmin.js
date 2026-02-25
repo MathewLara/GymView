@@ -97,6 +97,7 @@ async function cargarModulo(modulo, elementoHTML) {
         }
 
         // Generamos las filas usando la lista ya filtrada
+        // Generamos las filas usando la lista ya filtrada
         let filas = usuariosFiltrados.map(u => `
           <tr>
             <td class="text-muted">#${u.id}</td>
@@ -108,7 +109,7 @@ async function cargarModulo(modulo, elementoHTML) {
               <button class="btn btn-sm ${u.activo ? 'btn-outline-danger' : 'btn-outline-success'} me-2" onclick="cambiarEstadoUsuario(${u.id}, ${!u.activo}, '${modulo}')">
                 <i class="bi ${u.activo ? 'bi-trash' : 'bi-check-circle'}"></i> ${u.activo ? 'Desactivar' : 'Activar'}
               </button>
-              <button class="btn btn-sm btn-outline-info" onclick="alert('Próximo paso: Abrir modal de edición')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-info" onclick="abrirModalEditar(${u.id}, '${u.usuario}', '${u.nombre}', '${u.apellido}', '${u.rol}')"><i class="bi bi-pencil"></i></button>
             </td>
           </tr>
         `).join('');
@@ -122,7 +123,7 @@ async function cargarModulo(modulo, elementoHTML) {
         contenedorDinamico.innerHTML = `
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="text-white m-0">${tituloTabla}</h4>
-            <button class="btn btn-warning fw-bold" onclick="alert('Próximo paso: Modal nuevo')"><i class="bi bi-plus-lg"></i> Agregar</button>
+            <button class="btn btn-warning fw-bold" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i> Agregar</button>
           </div>
           <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
             <div class="table-responsive">
@@ -177,5 +178,78 @@ async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
   } catch(e) {
     console.error(e);
     alert('Error de conexión al servidor.');
+  }
+}
+// ==========================================
+// MODAL DE CREACIÓN Y EDICIÓN
+// ==========================================
+const myModal = new bootstrap.Modal(document.getElementById('modalUsuario'));
+
+function abrirModalNuevo() {
+  document.getElementById('formUsuario').reset();
+  document.getElementById('userId').value = '';
+  document.getElementById('modalTitulo').innerText = 'Nuevo Usuario';
+  document.getElementById('passHint').innerText = '(Obligatoria)';
+  myModal.show();
+}
+
+function abrirModalEditar(id, usuario, nombre, apellido, rolTexto) {
+  document.getElementById('formUsuario').reset();
+  document.getElementById('userId').value = id;
+  document.getElementById('userUsername').value = usuario;
+  document.getElementById('userNombre').value = nombre !== 'null' ? nombre : '';
+  document.getElementById('userApellido').value = apellido !== 'null' ? apellido : '';
+
+  // Mapeo del texto del rol al ID numérico
+  const rolesMap = { 'Administrador': 1, 'Recepcionista': 2, 'Entrenador': 3, 'Cliente': 4 };
+  document.getElementById('userRol').value = rolesMap[rolTexto] || 4;
+
+  document.getElementById('modalTitulo').innerText = 'Editar Usuario #' + id;
+  document.getElementById('passHint').innerText = '(Déjela en blanco para no cambiarla)';
+  myModal.show();
+}
+
+async function guardarUsuario() {
+  const id = document.getElementById('userId').value;
+  const isEdit = id !== '';
+
+  const uData = {
+    nombre: document.getElementById('userNombre').value,
+    apellido: document.getElementById('userApellido').value,
+    usuario: document.getElementById('userUsername').value,
+    idRol: parseInt(document.getElementById('userRol').value),
+    contrasena: document.getElementById('userPass').value
+  };
+
+  if (!isEdit && uData.contrasena.length < 5) {
+    alert("La contraseña es obligatoria para usuarios nuevos (min 5 caracteres).");
+    return;
+  }
+
+  const url = isEdit
+    ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}`
+    : `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios`;
+
+  const metodo = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(uData)
+    });
+
+    if (res.ok) {
+      myModal.hide();
+      // Refresca la tabla buscando en qué menú estamos activos
+      const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
+      if(moduloActivo.includes('staff')) cargarModulo('usuarios');
+      else if(moduloActivo.includes('cliente')) cargarModulo('clientes');
+      else if(moduloActivo.includes('entrenador')) cargarModulo('entrenadores');
+    } else {
+      alert('Error al guardar. Verifique que el usuario no esté repetido.');
+    }
+  } catch (e) {
+    alert('Error conectando al servidor.');
   }
 }
