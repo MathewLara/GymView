@@ -31,46 +31,74 @@ function cerrarSesion() {
 // ==========================================
 
 // Función que cambia el contenido visible según la opción clickeada en el menú lateral
-function cargarModulo(modulo, elementoHTML) {
-
-  // A) Actualizar el título en la barra superior basado en el módulo seleccionado
-  const tituloMap = {
-    'resumen': 'Panel de Control',
-    'usuarios': 'Gestión de Usuarios Staff',
-    'clientes': 'Gestión de Clientes',
-    'entrenadores': 'Gestión de Entrenadores',
-    'pagos': 'Control de Pagos y Membresías',
-    'reportes': 'Reportes y Auditoría'
-  };
+async function cargarModulo(modulo, elementoHTML) {
+  const tituloMap = { 'resumen': 'Panel de Control Gerencial', 'usuarios': 'Gestión de Staff' };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
 
-  // B) Efecto visual en el Sidebar: quita la clase 'active' de todos y la añade al clickeado
-  const links = document.querySelectorAll('#sidebarMenu .nav-link');
-  links.forEach(link => link.classList.remove('active')); // Limpia todos
-  elementoHTML.classList.add('active'); // Activa el actual
+  if (elementoHTML) {
+    const links = document.querySelectorAll('#sidebarMenu .nav-link');
+    links.forEach(link => link.classList.remove('active'));
+    elementoHTML.classList.add('active');
+  }
 
-  // C) Lógica de Vistas: Muestra/Oculta los contenedores HTML
   const vistaResumen = document.getElementById('vista-resumen');
   const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
 
-  // Si se elige "resumen", se muestra el bloque inicial y se vacía el dinámico
   if (modulo === 'resumen') {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
-  } else {
-    // Si se elige otra opción, se oculta el resumen y se muestra un Skeleton/Loader
-    vistaResumen.style.display = 'none';
 
-    // Inyección de HTML dinámico simulando la carga del módulo
-    contenedorDinamico.innerHTML = `
-      <div class="text-center py-5">
-          <i class="bi bi-cone-striped fs-1 text-warning mb-3"></i>
-          <h4 class="text-white">Módulo de ${modulo.charAt(0).toUpperCase() + modulo.slice(1)}</h4>
-          <p class="text-muted">Conectando con API...</p>
-          <div class="spinner-border text-warning" role="status">
-              <span class="visually-hidden">Cargando...</span>
+    // Mostramos un spinner mientras la base de datos responde
+    vistaResumen.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><h5 class="text-white mt-3">Calculando métricas reales...</h5></div>';
+
+    try {
+      // AQUÍ OCURRE LA MAGIA: Petición real a tu base de datos en Render
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/dashboard');
+
+      if(res.ok) {
+        const data = await res.json();
+
+        // Inyectamos las tarjetas con los números devueltos por tu Java
+        vistaResumen.innerHTML = `
+          <div class="row g-4 mb-4">
+              <div class="col-md-4">
+                  <div class="card bg-dark border-warning p-4 shadow-sm" style="border-radius: 15px;">
+                      <h6 class="text-muted fw-bold">INGRESOS TOTALES (BDD)</h6>
+                      <h2 class="text-white fw-bold">$ ${data.ingresos.toFixed(2)}</h2>
+                  </div>
+              </div>
+              <div class="col-md-4">
+                  <div class="card bg-dark border-info p-4 shadow-sm" style="border-radius: 15px;">
+                      <h6 class="text-muted fw-bold">CLIENTES REGISTRADOS</h6>
+                      <h2 class="text-white fw-bold">${data.totalClientes} <i class="bi bi-people-fill text-info fs-4 float-end"></i></h2>
+                  </div>
+              </div>
+              <div class="col-md-4">
+                  <div class="card bg-dark border-danger p-4 shadow-sm" style="border-radius: 15px;">
+                      <h6 class="text-muted fw-bold">ENTRENADORES EN NÓMINA</h6>
+                      <h2 class="text-white fw-bold">${data.totalEntrenadores} <i class="bi bi-person-badge text-danger fs-4 float-end"></i></h2>
+                  </div>
+              </div>
           </div>
+        `;
+      }
+    } catch (e) {
+      vistaResumen.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con la base de datos.</h5>';
+    }
+
+  } else {
+    vistaResumen.style.display = 'none';
+    contenedorDinamico.innerHTML = `
+      <div class="text-center py-5 mt-5">
+          <i class="bi bi-tools fs-1 text-secondary mb-3"></i>
+          <h3 class="text-white fw-bold">Módulo de ${modulo.toUpperCase()}</h3>
+          <p class="text-muted">Conectado a BDD. Interfaz en construcción.</p>
       </div>
     `;
   }
 }
+
+// Para que cargue automáticamente al entrar
+document.addEventListener('DOMContentLoaded', () => {
+  cargarModulo('resumen');
+});
