@@ -1,33 +1,15 @@
-// ==========================================
-// 1. MANEJO DE SESIÓN (Validación inicial)
-// ==========================================
-
-// Se ejecuta automáticamente en cuanto el HTML termina de cargar
-document.addEventListener('DOMContentLoaded', () => {
-  // Busca el token de acceso guardado en el navegador durante el Login
-  const token = localStorage.getItem('tokenGimnasio');
-
-  // RESTRICCIÓN: Si no hay token, expulsa directamente a index.html
-  if (!token) {
-    window.location.href = 'index.html';
-    return; // Detiene la ejecución del código para mayor seguridad
-  }
-
-  console.log("Recepción lista. Token:", token ? "OK" : "Faltante");
-});
-
 // Función enlazada al botón "Salir" en el menú lateral
 function cerrarSesion() {
   // Elimina las credenciales del almacenamiento
   localStorage.removeItem('tokenGimnasio');
   // Opcional: limpiar también los datos del usuario
   sessionStorage.removeItem('usuarioLogueado');
-  // Redirige al inicio de sesión (actualizado a index.html)
+  // Redirige al inicio de sesión
   window.location.href = 'index.html';
 }
 
 // ==========================================
-// 2. NAVEGACIÓN DINÁMICA DEL DASHBOARD (SPA)
+// NAVEGACIÓN DINÁMICA DEL DASHBOARD (SPA)
 // ==========================================
 
 // Función que cambia el contenido visible según la opción clickeada
@@ -94,3 +76,8 @@ function cargarModulo(modulo, elementoHTML) {
     `;
   }
 }
+
+// Se ejecuta automáticamente en cuanto el HTML termina de cargar
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("Recepción lista (Restricción desactivada).");
+});
