@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago Seguro | Iron Fitness</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <link rel="stylesheet" href="css/checkout.css">
+</head>
+<body>
+
+<div class="container-fluid p-0 checkout-wrapper">
+  <div class="row g-0 min-vh-100">
+
+    <div class="col-lg-5 summary-panel d-flex flex-column">
+
+      <div class="mb-5">
+        <a href="index.html" class="back-btn"><i class="bi bi-arrow-left"></i></a>
+        <span class="brand-logo ms-3"><i class="bi bi-lightning-fill text-warning"></i> IRON FITNESS</span>
+      </div>
+
+      <div class="summary-content flex-grow-1">
+        <p class="text-muted-light mb-1">Suscríbete a <span id="resumen-nombre-plan-sup">--</span></p>
+
+        <h1 class="price-display mb-5 text-white"><span id="resumen-precio-principal">--</span> <span class="fs-5 text-muted-light">por mes</span></h1>
+
+        <div class="d-flex justify-content-between mb-2">
+          <div>
+            <h6 class="text-white mb-0 fw-bold" id="resumen-nombre-plan">Calculando plan...</h6>
+            <small class="text-muted-light" id="resumen-desc-plan">Esperando datos del servidor.</small>
+          </div>
+          <span class="text-white fw-bold" id="resumen-precio-item">--</span>
+        </div>
+        <div class="mb-4">
+          <small class="text-muted-light">Facturación mensual</small>
+        </div>
+
+        <hr class="border-secondary mb-4">
+
+        <div class="d-flex justify-content-between mb-3">
+          <span class="text-white fw-bold">Subtotal</span>
+          <span class="text-white fw-bold" id="resumen-subtotal">--</span>
+        </div>
+
+        <div class="mb-4">
+          <button class="btn btn-outline-secondary btn-sm rounded-pill text-white px-3" type="button" data-bs-toggle="collapse" data-bs-target="#promoContainer" aria-expanded="false" aria-controls="promoContainer">
+            Añadir código de promoción
+          </button>
+
+          <div class="collapse mt-3" id="promoContainer">
+            <div class="d-flex gap-2 align-items-center">
+              <input type="text" class="form-control custom-input py-2" placeholder="Ingresa tu código" id="inputPromo" style="max-width: 250px;">
+              <button class="btn btn-warning fw-bold py-2" type="button" id="btnApplyPromo">Aplicar</button>
+            </div>
+            <small id="promoMessage" class="text-success mt-2 d-none"><i class="bi bi-check-circle-fill"></i> Código aplicado correctamente.</small>
+          </div>
+        </div>
+
+        <hr class="border-secondary mb-4">
+
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-white fs-5 fw-bold">Total adeudado hoy</span>
+          <span class="text-white fs-5 fw-bold text-warning" id="resumen-total">--</span>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-4">
+        <small class="text-muted-light"><i class="bi bi-shield-lock-fill text-warning"></i> Pago 100% seguro encriptado</small>
+      </div>
+
+    </div>
+
+    <div class="col-lg-7 payment-panel d-flex justify-content-center align-items-start">
+      <div class="payment-form-container w-100">
+
+        <div class="mb-4">
+          <button type="button" class="btn btn-express w-100 text-dark fw-bold" id="btnPichincha" style="background-color: #ffc107;" data-bs-toggle="collapse" data-bs-target="#imagen-pichincha-container" aria-expanded="false" aria-controls="imagen-pichincha-container">
+            <i class="bi bi-bank2"></i> Pagar por Banco Pichincha
+          </button>
+
+          <div class="collapse mt-3" id="imagen-pichincha-container">
+            <div class="placeholder-imagen-banco text-center p-4">
+              <i class="bi bi-image fs-1 text-warning mb-2"></i>
+              <p class="text-white-50 small mb-0">La imagen con los datos de la cuenta y código QR para el depósito se cargará aquí.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="separator mb-4">
+          <span>O PAGO CON TARJETA</span>
+        </div>
+
+        <form id="checkoutForm">
+          <h5 class="text-white mb-3 fw-bold fs-6">Información de contacto</h5>
+          <div class="mb-4">
+            <input type="email" class="form-control custom-input" placeholder="Correo electrónico" required>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-end mb-3">
+            <h5 class="text-white mb-0 fw-bold fs-6">Detalles de la tarjeta</h5>
+            <div class="card-icons text-muted-light fs-5">
+              <i class="bi bi-cc-visa"></i>
+              <i class="bi bi-cc-mastercard"></i>
+              <i class="bi bi-cc-amex"></i>
+            </div>
+          </div>
+
+          <div class="payment-details-direct mb-4">
+            <div class="mb-2">
+              <input type="text" class="form-control custom-input" placeholder="Número de tarjeta" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="text" class="form-control custom-input" placeholder="MM / AA" required>
+              </div>
+              <div class="col-6">
+                <input type="text" class="form-control custom-input" placeholder="CVC" required>
+              </div>
+            </div>
+            <div class="mt-2">
+              <input type="text" class="form-control custom-input" placeholder="Nombre en la tarjeta" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-pay w-100 mb-3" id="btnSubmit">
+            Suscribirse
+          </button>
+
+          <p class="text-center text-muted-light small px-3">
+            Al suscribirte, autorizas a Iron Fitness a cobrarte según las condiciones establecidas hasta que canceles.
+          </p>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/checkout.js"></script>
+
+</body>
+</html>

@@ -25,23 +25,15 @@
         <a class="nav-link active" href="#" onclick="cargarModulo('resumen', this)">
           <i class="bi bi-speedometer2"></i> Resumen
         </a>
-
-        <a class="nav-link" href="#" onclick="cargarModulo('usuarios', this)">
-          <i class="bi bi-person-badge"></i> Usuarios Staff
-        </a>
-
         <a class="nav-link" href="#" onclick="cargarModulo('clientes', this)">
           <i class="bi bi-people-fill"></i> Clientes
         </a>
-
         <a class="nav-link" href="#" onclick="cargarModulo('entrenadores', this)">
           <i class="bi bi-person-video"></i> Entrenadores
         </a>
-
         <a class="nav-link" href="#" onclick="cargarModulo('pagos', this)">
           <i class="bi bi-currency-dollar"></i> Pagos
         </a>
-
         <a class="nav-link" href="#" onclick="cargarModulo('reportes', this)">
           <i class="bi bi-file-earmark-bar-graph"></i> Reportes
         </a>
@@ -59,7 +51,7 @@
       <div class="header-bar">
         <h5 class="m-0 text-white" id="page-title">Panel de Control</h5>
         <div class="d-flex align-items-center">
-          <span class="me-3 text-muted">Hola, <span class="text-white fw-bold">Administrador</span></span>
+          <span class="me-3 text-light">Hola, <span class="text-white fw-bold">Administrador</span></span>
           <div class="rounded-circle bg-warning d-flex justify-content-center align-items-center fw-bold text-dark" style="width: 40px; height: 40px;">
             AD
           </div>
@@ -71,29 +63,30 @@
         <div id="vista-resumen">
 
           <div class="row g-4 mb-4">
+
             <div class="col-md-3">
               <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 class="text-uppercase">Clientes Activos</h6>
-                    <h2 class="fw-bold mb-0" id="kpi-clientes">--</h2>
+                    <h6 style="color: #ffffff !important; font-weight: bold; opacity: 1 !important; margin-bottom: 5px;">CLIENTES REGISTRADOS</h6>
+                    <h2 style="color: #ffffff !important; font-weight: bold; margin-bottom: 0;" id="kpi-cuentas">--</h2>
                   </div>
                   <div class="stat-icon"><i class="bi bi-people"></i></div>
                 </div>
-                <small class="text-muted">Cargando datos...</small>
+                <small style="color: #d1d5db !important;">Cargando datos...</small>
               </div>
             </div>
 
             <div class="col-md-3">
-              <div class="stat-card">
+              <div class="stat-card border-warning">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 class="text-uppercase">Ingresos (Mes)</h6>
-                    <h2 class="fw-bold mb-0" id="kpi-ingresos">--</h2>
+                    <h6 style="color: #ffffff !important; font-weight: bold; opacity: 1 !important; margin-bottom: 5px;">INGRESOS TOTALES</h6>
+                    <h2 style="color: #ffffff !important; font-weight: bold; margin-bottom: 0;" id="kpi-ingresos1">--</h2>
                   </div>
-                  <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+                  <div class="stat-icon text-warning"><i class="bi bi-cash-stack"></i></div>
                 </div>
-                <small class="text-muted">Cargando datos...</small>
+                <small style="color: #d1d5db !important;">Cargando datos...</small>
               </div>
             </div>
 
@@ -101,12 +94,12 @@
               <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 class="text-uppercase">Asistencias Hoy</h6>
-                    <h2 class="fw-bold mb-0" id="kpi-asistencias">--</h2>
+                    <h6 style="color: #ffffff !important; font-weight: bold; opacity: 1 !important; margin-bottom: 5px;">ENTRENADORES EN NÓMINA</h6>
+                    <h2 style="color: #ffffff !important; font-weight: bold; margin-bottom: 0;" id="kpi-entrenadores1">--</h2>
                   </div>
-                  <div class="stat-icon"><i class="bi bi-qr-code-scan"></i></div>
+                  <div class="stat-icon text-warning"><i class="bi bi-person-video"></i></div>
                 </div>
-                <small class="text-muted">Esperando lecturas...</small>
+                <small style="color: #d1d5db !important;">Cargando datos...</small>
               </div>
             </div>
 
@@ -114,35 +107,35 @@
               <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 class="text-uppercase">Membresías Vencidas</h6>
-                    <h2 class="fw-bold text-danger mb-0" id="kpi-vencidas">--</h2>
+                    <h6 style="color: #ffffff !important; font-weight: bold; opacity: 1 !important; margin-bottom: 5px;">MEMBRESÍAS VENCIDAS</h6>
+                    <h2 class="text-danger" style="font-weight: bold; margin-bottom: 0;" id="kpi-vencidas">--</h2>
                   </div>
                   <div class="stat-icon text-danger"><i class="bi bi-exclamation-circle"></i></div>
                 </div>
-                <small class="text-muted">Verificando estado...</small>
+                <small style="color: #d1d5db !important;">Verificando estado...</small>
               </div>
             </div>
           </div>
 
-          <div class="card bg-dark border-secondary">
+          <div class="card bg-dark border-secondary mt-5">
             <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-              <h5 class="mb-0 text-white">Últimos Accesos al Sistema (RF09)</h5>
-              <button class="btn btn-sm btn-outline-warning" disabled>Ver Todo</button>
+              <h5 class="mb-0" style="color: #ffffff !important;">Últimos Accesos al Sistema</h5>
+              <button class="btn btn-sm btn-outline-warning">Ver Todo</button>
             </div>
             <div class="table-responsive">
               <table class="table table-dark table-hover align-middle mb-0" id="tabla-logs">
                 <thead>
                 <tr>
-                  <th>Usuario</th>
-                  <th>Rol</th>
-                  <th>Fecha/Hora</th>
-                  <th>IP</th>
-                  <th>Estado</th>
+                  <th class="text-warning">Usuario</th>
+                  <th class="text-warning">Rol</th>
+                  <th class="text-warning">Fecha/Hora</th>
+                  <th class="text-warning">IP</th>
+                  <th class="text-warning">Estado</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
-                  <td colspan="5" class="text-center py-4 text-muted">
+                  <td colspan="5" class="text-center py-4" style="color: #d1d5db !important;">
                     <i class="bi bi-inbox fs-4 d-block mb-2"></i>
                     No hay datos disponibles por el momento
                   </td>
@@ -151,6 +144,7 @@
               </table>
             </div>
           </div>
+
         </div>
 
         <div id="vista-dinamica-contenedor"></div>
@@ -159,46 +153,48 @@
     </div>
   </div>
 </div>
+
 <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-white border-warning">
+    <div class="modal-content bg-dark border-warning">
       <div class="modal-header border-secondary">
         <h5 class="modal-title text-warning fw-bold" id="modalTitulo">Nuevo Usuario</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form id="formUsuario">
-          <input type="hidden" id="userId"> <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label text-muted">Nombre(s)</label>
-            <input type="text" class="form-control bg-black text-white border-secondary" id="userNombre" required>
+          <input type="hidden" id="userId">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label" style="color: #ffffff !important;">Nombre(s)</label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="userNombre" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" style="color: #ffffff !important;">Apellido(s)</label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="userApellido" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" style="color: #ffffff !important;">Nombre de Usuario</label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="userUsername" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" style="color: #ffffff !important;">Rol en el Sistema</label>
+              <select class="form-select bg-black text-white border-secondary" id="userRol">
+                <option value="1">Administrador</option>
+                <option value="2">Recepcionista</option>
+                <option value="3">Entrenador</option>
+                <option value="4">Cliente</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label" style="color: #ffffff !important;">Contraseña <small id="passHint" class="text-warning fw-bold ms-2"></small></label>
+              <input type="password" class="form-control bg-black text-white border-secondary" id="userPass" placeholder="Ingrese contraseña">
+            </div>
           </div>
-          <div class="col-md-6">
-            <label class="form-label text-muted">Apellido(s)</label>
-            <input type="text" class="form-control bg-black text-white border-secondary" id="userApellido" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label text-muted">Nombre de Usuario</label>
-            <input type="text" class="form-control bg-black text-white border-secondary" id="userUsername" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label text-muted">Rol en el Sistema</label>
-            <select class="form-select bg-black text-white border-secondary" id="userRol">
-              <option value="1">Administrador</option>
-              <option value="2">Recepcionista</option>
-              <option value="3">Entrenador</option>
-              <option value="4">Cliente</option>
-            </select>
-          </div>
-          <div class="col-12">
-            <label class="form-label text-muted">Contraseña <small id="passHint" class="text-info"></small></label>
-            <input type="password" class="form-control bg-black text-white border-secondary" id="userPass" placeholder="Ingrese contraseña">
-          </div>
-        </div>
         </form>
       </div>
       <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-warning fw-bold" onclick="guardarUsuario()">Guardar Datos</button>
       </div>
     </div>

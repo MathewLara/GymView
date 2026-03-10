@@ -1,32 +1,28 @@
-/* Variables globales para mantener coherencia en la paleta de colores de la marca */
+/* Variables globales */
 :root {
-  --primary-color: #ffc107; /* Amarillo tipo Smart Fit/Gold's Gym */
+  --primary-color: #ffc107;
   --dark-bg: #121212;
 }
 
-/* Define la tipografía base para todo el documento */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Configuración de la sección principal (Hero): añade la imagen de fondo, un filtro oscuro para legibilidad y centra el contenido */
 .hero-section {
   background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
   url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
   background-size: cover;
   background-position: center;
-  height: 90vh; /* Ocupa casi toda la pantalla */
+  height: 90vh;
   display: flex;
   align-items: center;
   color: white;
 }
 
-/* Clase de utilidad para dar espaciado vertical uniforme a las distintas secciones de la página */
 .section-padding {
   padding: 80px 0;
 }
 
-/* Personalización de las tarjetas (cards): elimina el borde por defecto y añade una sombra suave */
 .card-custom {
   border: none;
   transition: transform 0.3s;
@@ -34,27 +30,36 @@ body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* Efecto hover interactivo: eleva la tarjeta ligeramente cuando el usuario pasa el cursor por encima */
 .card-custom:hover {
   transform: translateY(-10px);
 }
 
-/* Botones con el color primario de la marca, texto en negrita y espaciado ajustado */
-.btn-brand {
-  background-color: var(--primary-color);
-  color: black;
-  font-weight: bold;
-  padding: 12px 30px;
-  border: none;
+/* =========================================
+   NUEVOS BOTONES RESALTADOS (BLANCOS)
+   ========================================= */
+.btn-highlight {
+  background-color: #ffffff !important; /* Fondo blanco forzado */
+  color: #000000 !important; /* Texto negro forzado */
+  font-weight: 900 !important; /* Texto extra grueso */
+  opacity: 1 !important; /* Elimina cualquier opacidad impuesta por Bootstrap */
+  padding: 14px 35px;
+  border: 3px solid var(--primary-color) !important; /* Borde amarillo de Iron Fitness */
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(255, 193, 7, 0.5); /* Sombra/resplandor amarillo suave */
+  transition: all 0.3s ease;
+  text-decoration: none; /* Asegura que no tenga línea debajo */
 }
 
-/* Efecto hover para oscurecer un poco el botón principal al interactuar con él */
-.btn-brand:hover {
-  background-color: #e0a800;
-  color: black;
+/* Efecto hover: Invertimos colores para que sea interactivo */
+.btn-highlight:hover {
+  background-color: var(--primary-color) !important; /* Se vuelve amarillo al pasar el mouse */
+  color: #000000 !important;
+  border-color: #ffffff !important; /* El borde se vuelve blanco */
+  box-shadow: 0 0 30px rgba(255, 193, 7, 1);
+  transform: translateY(-4px) scale(1.02);
+  opacity: 1 !important;
 }
 
-/* Clase de utilidad para aplicar el color de fondo oscuro corporativo y asegurar que el texto sea blanco */
 .bg-dark-custom {
   background-color: var(--dark-bg);
   color: white;

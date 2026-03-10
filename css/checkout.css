@@ -1,0 +1,154 @@
+:root {
+  --primary-color: #ffc107;
+  --dark-bg: #121212;
+  --panel-bg: #1e1e1e;
+  --border-color: #333333;
+  --text-muted-light: #a1a1aa;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--dark-bg);
+  overflow-x: hidden;
+}
+
+/* Panel Izquierdo (Resumen) */
+.summary-panel {
+  background-color: var(--dark-bg);
+  padding: 3rem 4rem;
+  border-right: 1px solid var(--border-color);
+}
+
+.back-btn {
+  color: var(--text-muted-light);
+  font-size: 1.5rem;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.back-btn:hover {
+  color: var(--primary-color);
+}
+
+.brand-logo {
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.price-display {
+  font-size: 2.8rem;
+  font-weight: 800;
+}
+
+.text-muted-light {
+  color: var(--text-muted-light) !important;
+}
+
+/* Panel Derecho (Pago) */
+.payment-panel {
+  background-color: var(--panel-bg);
+  padding: 3rem 0;
+}
+
+.payment-form-container {
+  max-width: 450px;
+}
+
+/* Botón Expres / Pichincha */
+.btn-express {
+  border-radius: 6px;
+  padding: 0.8rem;
+  font-size: 1rem;
+  transition: opacity 0.2s;
+  border: 1px solid var(--primary-color);
+}
+.btn-express:hover {
+  opacity: 0.85;
+}
+
+/* Marcador de posición para imagen de Banco */
+.placeholder-imagen-banco {
+  border: 2px dashed var(--border-color);
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Separador "O PAGO CON TARJETA" */
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-muted-light);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+}
+.separator:not(:empty)::before {
+  margin-right: .5em;
+}
+.separator:not(:empty)::after {
+  margin-left: .5em;
+}
+
+/* Inputs Personalizados */
+.custom-input {
+  background-color: var(--dark-bg);
+  border: 1px solid var(--border-color);
+  color: #fff;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+}
+.custom-input::placeholder {
+  color: #6c757d;
+}
+.custom-input:focus {
+  background-color: var(--dark-bg);
+  color: #fff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* Formulario Tarjeta Directo (sin radios) */
+.payment-details-direct {
+  background-color: transparent;
+}
+
+/* Botón Pagar Principal */
+.btn-pay {
+  background-color: var(--primary-color);
+  color: #000;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: none;
+  transition: all 0.3s;
+}
+.btn-pay:hover {
+  background-color: #e0a800;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+}
+
+/* Responsividad */
+@media (max-width: 991px) {
+  .summary-panel {
+    padding: 2rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .payment-panel {
+    padding: 2rem;
+  }
+  .payment-form-container {
+    max-width: 100%;
+  }
+}

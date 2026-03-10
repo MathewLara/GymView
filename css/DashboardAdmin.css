@@ -5,7 +5,7 @@
   --sidebar-bg: #1e1e1e;
   --text-light: #f8f9fa;
   --card-bg: #212529;
-  --text-muted-light: #b0b3b8; /* Nuevo color para mejor contraste */
+  --text-muted-light: #d1d5db;
 }
 
 /* Configuración general del cuerpo */
@@ -13,7 +13,7 @@ body {
   background-color: var(--dark-bg);
   color: var(--text-light);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow-x: hidden; /* Evita el scroll horizontal indeseado */
+  overflow-x: hidden;
 }
 
 /* =========================================
@@ -26,17 +26,15 @@ body {
   padding-top: 20px;
 }
 
-/* Diseño de los enlaces del menú lateral */
 .sidebar .nav-link {
   color: #aaa;
   font-size: 1.1rem;
   padding: 15px 20px;
   transition: all 0.3s;
   border-left: 4px solid transparent;
-  cursor: pointer; /* Indica visualmente que es interactivo */
+  cursor: pointer;
 }
 
-/* Estilo para el enlace cuando el ratón pasa por encima o cuando es la sección activa */
 .sidebar .nav-link:hover, .sidebar .nav-link.active {
   color: var(--primary-color);
   background-color: rgba(255, 193, 7, 0.05);
@@ -47,7 +45,6 @@ body {
   margin-right: 10px;
 }
 
-/* Contenedor del logo en el sidebar */
 .brand-section {
   padding: 0 20px 20px 20px;
   border-bottom: 1px solid #333;
@@ -61,7 +58,18 @@ body {
   padding: 30px;
 }
 
-/* Tarjetas de Estadísticas (KPIs) */
+/* Aseguramos que el texto que inyecta JS en Pagos y Reportes sea blanco */
+#vista-dinamica-contenedor {
+  color: #ffffff !important;
+}
+/* Forzamos que si el JS inserta una alerta o texto con clase text-muted, se vea claro */
+#vista-dinamica-contenedor .text-muted {
+  color: #d1d5db !important;
+}
+
+/* =========================================
+   TARJETAS DE ESTADÍSTICAS (KPIs)
+   ========================================= */
 .stat-card {
   background-color: var(--card-bg);
   border: 1px solid #333;
@@ -71,13 +79,19 @@ body {
   transition: transform 0.2s;
 }
 
+/* NUEVA REGLA: Fuerza el color blanco en los títulos de los cuadros */
 .stat-card h6 {
-  color: var(--text-muted-light) !important;
-  font-size: 0.9rem;
+  color: #ffffff !important;
+  font-size: 0.85rem;
   letter-spacing: 0.5px;
+  opacity: 1 !important;
 }
 
-/* Efecto hover interactivo para las tarjetas */
+/* NUEVA REGLA: Fuerza el color blanco en los números grandes de los cuadros */
+.stat-card h2:not(.text-danger) {
+  color: #ffffff !important;
+}
+
 .stat-card:hover {
   transform: translateY(-5px);
   border-color: var(--primary-color);
@@ -87,6 +101,11 @@ body {
   font-size: 2.5rem;
   color: var(--primary-color);
   opacity: 0.8;
+}
+
+/* Clase de utilidad para textos grises pequeños */
+.text-light-gray {
+  color: var(--text-muted-light) !important;
 }
 
 /* =========================================
@@ -125,8 +144,7 @@ body {
   align-items: center;
 }
 
-/* Texto alternativo cuando una tabla está vacía */
 .data-placeholder {
-  color: #666;
+  color: #999;
   font-style: italic;
 }

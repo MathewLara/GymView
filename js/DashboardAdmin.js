@@ -1,10 +1,7 @@
 // Función enlazada al botón "Salir"
 function cerrarSesion() {
-  // Elimina las credenciales del almacenamiento
   localStorage.removeItem('tokenGimnasio');
-  // Opcional: limpiar también los datos del usuario
   sessionStorage.removeItem('usuarioLogueado');
-  // Redirige al inicio de sesión
   window.location.href = 'index.html';
 }
 
@@ -12,9 +9,9 @@ function cerrarSesion() {
 // NAVEGACIÓN DINÁMICA DEL DASHBOARD (SPA)
 // ==========================================
 
-// Función que cambia el contenido visible según la opción clickeada en el menú lateral
 async function cargarModulo(modulo, elementoHTML) {
-  const tituloMap = { 'resumen': 'Panel de Control Gerencial', 'usuarios': 'Gestión de Staff' };
+  // Se quitó el título de 'usuarios'
+  const tituloMap = { 'resumen': 'Panel de Control Gerencial' };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
 
   if (elementoHTML) {
@@ -30,44 +27,40 @@ async function cargarModulo(modulo, elementoHTML) {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
 
-    // Mostramos un spinner mientras la base de datos responde
-    vistaResumen.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><h5 class="text-white mt-3">Calculando métricas reales...</h5></div>';
+    document.getElementById('kpi-cuentas').innerText = '...';
+    document.getElementById('kpi-ingresos1').innerText = '...';
+    document.getElementById('kpi-entrenadores1').innerText = '...';
 
     try {
-      // AQUÍ OCURRE LA MAGIA: Petición real a tu base de datos en Render
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/dashboard');
+      // ¡AQUÍ CAMBIAMOS A LA NUEVA RUTA LIMPIA!
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard');
 
       if(res.ok) {
         const data = await res.json();
 
-        // Inyectamos las tarjetas con los números devueltos por tu Java
-        vistaResumen.innerHTML = `
-          <div class="row g-4 mb-4">
-              <div class="col-md-4">
-                  <div class="card bg-dark border-warning p-4 shadow-sm" style="border-radius: 15px;">
-                      <h6 class="text-muted fw-bold">INGRESOS TOTALES (BDD)</h6>
-                      <h2 class="text-white fw-bold">$ ${data.ingresos.toFixed(2)}</h2>
-                  </div>
-              </div>
-              <div class="col-md-4">
-                  <div class="card bg-dark border-info p-4 shadow-sm" style="border-radius: 15px;">
-                      <h6 class="text-muted fw-bold">CLIENTES REGISTRADOS</h6>
-                      <h2 class="text-white fw-bold">${data.totalClientes} <i class="bi bi-people-fill text-info fs-4 float-end"></i></h2>
-                  </div>
-              </div>
-              <div class="col-md-4">
-                  <div class="card bg-dark border-danger p-4 shadow-sm" style="border-radius: 15px;">
-                      <h6 class="text-muted fw-bold">ENTRENADORES EN NÓMINA</h6>
-                      <h2 class="text-white fw-bold">${data.totalEntrenadores} <i class="bi bi-person-badge text-danger fs-4 float-end"></i></h2>
-                  </div>
-              </div>
-          </div>
-        `;
+        // Rellenar las tarjetas (KPIs)
+        document.getElementById('kpi-cuentas').innerText = data.totalCuentas;
+        document.getElementById('kpi-ingresos1').innerText = '$ ' + parseFloat(data.ingresos).toFixed(2);
+        document.getElementById('kpi-entrenadores1').innerText = data.totalEntrenadores;
+
+        // Rellenar la Tabla de "Últimos Accesos" / Actividad Reciente
+        const tbody = document.querySelector('.table tbody'); // Busca el cuerpo de tu tabla
+        if (tbody && data.ultimosAccesos) {
+          tbody.innerHTML = data.ultimosAccesos.map(acc => `
+                <tr>
+                    <td class="fw-bold">${acc.usuario}</td>
+                    <td class="text-success">${acc.accion}</td>
+                    <td class="text-muted">${acc.fecha}</td>
+                    <td><span class="badge bg-success">Completado</span></td>
+                </tr>
+            `).join('');
+        }
+
       }
-    } catch (e) {
-      vistaResumen.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con la base de datos.</h5>';
+    } catch (error) {
+      console.error("Error cargando dashboard:", error);
     }
-  } else if (modulo === 'usuarios' || modulo === 'clientes' || modulo === 'entrenadores') {
+  } else if (modulo === 'clientes' || modulo === 'entrenadores') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
@@ -76,33 +69,23 @@ async function cargarModulo(modulo, elementoHTML) {
       if (res.ok) {
         const todosLosUsuarios = await res.json();
 
-        // ==========================================
-        // FILTRADO INTELIGENTE SEGÚN LA PESTAÑA
-        // ==========================================
         let usuariosFiltrados = [];
         let tituloTabla = "";
 
-        if (modulo === 'usuarios') {
-          // Staff: Solo Admin y Recepcionista
-          usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Administrador' || u.rol === 'Recepcionista');
-          tituloTabla = "Directorio de Staff";
-        } else if (modulo === 'clientes') {
-          // Solo Clientes
+        // SE ELIMINÓ LA LÓGICA DE 'usuarios' AQUÍ
+        if (modulo === 'clientes') {
           usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Cliente');
           tituloTabla = "Directorio de Clientes";
         } else if (modulo === 'entrenadores') {
-          // Solo Entrenadores
           usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Entrenador');
           tituloTabla = "Directorio de Entrenadores";
         }
 
-        // Generamos las filas usando la lista ya filtrada
-        // Generamos las filas usando la lista ya filtrada
         let filas = usuariosFiltrados.map(u => `
           <tr>
-            <td class="text-muted">#${u.id}</td>
+            <td class="text-light">#${u.id}</td>
             <td class="fw-bold text-white">${u.usuario}</td>
-            <td>${u.nombre} ${u.apellido}</td>
+            <td class="text-white">${u.nombre} ${u.apellido}</td>
             <td><span class="badge bg-secondary">${u.rol}</span></td>
             <td>${u.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
             <td>
@@ -114,12 +97,10 @@ async function cargarModulo(modulo, elementoHTML) {
           </tr>
         `).join('');
 
-        // Si no hay nadie en esa categoría, mostramos un mensaje bonito
         if (filas === '') {
-          filas = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay registros en esta categoría.</td></tr>`;
+          filas = `<tr><td colspan="6" class="text-center py-4 text-white">No hay registros en esta categoría.</td></tr>`;
         }
 
-        // Inyectamos la tabla en el HTML
         contenedorDinamico.innerHTML = `
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="text-white m-0">${tituloTabla}</h4>
@@ -128,7 +109,7 @@ async function cargarModulo(modulo, elementoHTML) {
           <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
             <div class="table-responsive">
               <table class="table table-dark table-hover mb-0 align-middle">
-                <thead class="text-muted">
+                <thead class="text-white border-secondary">
                   <tr><th>ID</th><th>USUARIO</th><th>NOMBRE COMPLETO</th><th>ROL</th><th>ESTADO</th><th>ACCIONES</th></tr>
                 </thead>
                 <tbody>${filas}</tbody>
@@ -147,20 +128,17 @@ async function cargarModulo(modulo, elementoHTML) {
       <div class="text-center py-5 mt-5">
           <i class="bi bi-tools fs-1 text-secondary mb-3"></i>
           <h3 class="text-white fw-bold">Módulo de ${modulo.toUpperCase()}</h3>
-          <p class="text-muted">Conectado a BDD. Interfaz en construcción.</p>
+          <p class="text-white fs-5 mt-3">Conectado a BDD. Interfaz en construcción.</p>
       </div>
     `;
   }
 }
 
-// Se ejecuta automáticamente en cuanto el HTML termina de cargar
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard cargado (Restricción desactivada).");
   cargarModulo('resumen');
 });
 
-// Función para el Eliminado Lógico / Reactivación
-// Función para el Eliminado Lógico / Reactivación
 async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
   if(!confirm(`¿Estás seguro de que deseas ${nuevoEstado ? 'activar' : 'desactivar'} este usuario?`)) return;
 
@@ -168,9 +146,7 @@ async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}/estado?activo=${nuevoEstado}`, {
       method: 'PUT'
     });
-
     if(res.ok) {
-      // Recargamos el módulo EXACTO en el que estábamos
       cargarModulo(moduloActual);
     } else {
       alert('Hubo un error al actualizar el estado.');
@@ -180,6 +156,7 @@ async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
     alert('Error de conexión al servidor.');
   }
 }
+
 // ==========================================
 // MODAL DE CREACIÓN Y EDICIÓN
 // ==========================================
@@ -200,7 +177,6 @@ function abrirModalEditar(id, usuario, nombre, apellido, rolTexto) {
   document.getElementById('userNombre').value = nombre !== 'null' ? nombre : '';
   document.getElementById('userApellido').value = apellido !== 'null' ? apellido : '';
 
-  // Mapeo del texto del rol al ID numérico
   const rolesMap = { 'Administrador': 1, 'Recepcionista': 2, 'Entrenador': 3, 'Cliente': 4 };
   document.getElementById('userRol').value = rolesMap[rolTexto] || 4;
 
@@ -229,7 +205,6 @@ async function guardarUsuario() {
   const url = isEdit
     ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}`
     : `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios`;
-
   const metodo = isEdit ? 'PUT' : 'POST';
 
   try {
@@ -241,10 +216,9 @@ async function guardarUsuario() {
 
     if (res.ok) {
       myModal.hide();
-      // Refresca la tabla buscando en qué menú estamos activos
       const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
-      if(moduloActivo.includes('staff')) cargarModulo('usuarios');
-      else if(moduloActivo.includes('cliente')) cargarModulo('clientes');
+      // SE ELIMINÓ EL REDIRECCIONAMIENTO A 'staff' AQUI
+      if(moduloActivo.includes('cliente')) cargarModulo('clientes');
       else if(moduloActivo.includes('entrenador')) cargarModulo('entrenadores');
     } else {
       alert('Error al guardar. Verifique que el usuario no esté repetido.');

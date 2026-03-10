@@ -1,15 +1,13 @@
 // ==========================================
-// 1. INICIALIZACIÓN Y VALIDACIÓN DE SESIÓN
+// 1. INICIALIZACIÓN (Sin restricción de Front)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  // Validar si el usuario inició sesión previamente
-  const sesion = sessionStorage.getItem('usuarioLogueado');
-  if(!sesion) {
-    window.location.href = 'index.html';
-    return;
-  }
+  console.log("Dashboard cargado. Restricción de FrontEnd desactivada.");
 
-  const usuario = JSON.parse(sesion);
+  // Intentamos obtener la sesión, si no existe, creamos un objeto "dummy"
+  // para que la interfaz no se rompa buscando el ID. Tu backend se encargará de lo real.
+  const sesion = sessionStorage.getItem('usuarioLogueado');
+  const usuario = sesion ? JSON.parse(sesion) : { usuario: 'Cliente', idUsuario: 1 };
 
   // Llenar datos básicos del header (arriba a la derecha)
   document.getElementById('header-user').textContent = usuario.usuario;
@@ -28,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function cargarDatos(id) {
   try {
     // Petición al backend para obtener los datos del dashboard del cliente
+    // Nota: Si tu backend maneja la sesión por cookie, puede que ya no necesites pasar el {id} en la URL
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${id}/dashboard`);
 
     if(res.ok) {
@@ -54,6 +53,11 @@ async function cargarDatos(id) {
       } else {
         badge.className = 'badge bg-success fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-shield-check text-success';
+      }
+
+      // Validar si mostrar el aviso de vencimiento (3 días antes)
+      if (data.fechaVencimiento) {
+        verificarVencimiento(data.fechaVencimiento);
       }
 
       // C. Llenar tabla de Historial de Asistencias
@@ -120,9 +124,40 @@ async function cargarDatos(id) {
         // Mensaje si no tiene rutina asignada
         divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
       }
+    } else {
+      console.warn("El servidor rechazó la petición. Posible sesión inválida.");
     }
   } catch(e) {
-    console.error(e);
+    console.error("Error al cargar datos del backend:", e);
+  }
+}
+
+// ==========================================
+// 2.5 LÓGICA PARA VERIFICAR VENCIMIENTO
+// ==========================================
+function verificarVencimiento(fechaStr) {
+  // Asume que la fecha viene en formato YYYY-MM-DD
+  const partes = fechaStr.split('-');
+  if (partes.length !== 3) return;
+
+  // Crear objeto Date con la fecha de vencimiento
+  const fechaVencimiento = new Date(partes[0], partes[1] - 1, partes[2]);
+  const hoy = new Date();
+
+  // Normalizar horas para comparar solo días
+  hoy.setHours(0, 0, 0, 0);
+  fechaVencimiento.setHours(0, 0, 0, 0);
+
+  // Calcular diferencia en milisegundos y convertir a días
+  const diferenciaMs = fechaVencimiento.getTime() - hoy.getTime();
+  const diasRestantes = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+
+  // Si faltan 3 días o menos, o si ya está vencida (días <= 0)
+  if (diasRestantes <= 3) {
+    document.getElementById('toast-fecha-vencimiento').textContent = fechaStr;
+    const toastEl = document.getElementById('membresiaToast');
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
   }
 }
 
@@ -130,8 +165,7 @@ async function cargarDatos(id) {
 // 3. LÓGICA DE CHECKBOXES (Almacenamiento Local)
 // ==========================================
 function toggleEjercicio(index, userId) {
-  // Evitar modificar si la rutina ya fue marcada como terminada en el backend
-  const btn = document.getElementById('btnFinalizar'); // <- Corrección de ID ('btnTerminar' en código original a 'btnFinalizar')
+  const btn = document.getElementById('btnFinalizar');
   if (btn && btn.disabled) return;
 
   const hoy = new Date().toISOString().split('T')[0];
@@ -158,13 +192,12 @@ function toggleEjercicio(index, userId) {
 // 4. LÓGICA DE FINALIZAR RUTINA (Petición al Servidor)
 // ==========================================
 async function finalizarRutina() {
+  // Evitamos que se rompa si no hay sessionStorage
   const sesion = sessionStorage.getItem('usuarioLogueado');
-  if (!sesion) return;
-  const usuario = JSON.parse(sesion);
+  const usuario = sesion ? JSON.parse(sesion) : { idUsuario: 1 };
 
   if(confirm("¿Estás seguro de que terminaste tu rutina por hoy?")) {
     try {
-      // Petición POST para guardar el completado de la rutina en base de datos
       const url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${usuario.idUsuario}/completar`;
 
       const res = await fetch(url, {
@@ -175,7 +208,6 @@ async function finalizarRutina() {
       if(res.ok) {
         alert("✅ ¡Excelente! Tu entrenador ha sido notificado.");
 
-        // Deshabilitar botón visualmente
         const btn = document.getElementById('btnFinalizar');
         if(btn) {
           btn.disabled = true;
@@ -188,7 +220,7 @@ async function finalizarRutina() {
       }
     } catch(e) {
       console.error(e);
-      alert("❌ Error de conexión. Revisa que el servidor WildFly esté activo.");
+      alert("❌ Error de conexión. Revisa que el servidor esté activo.");
     }
   }
 }
@@ -197,12 +229,9 @@ async function finalizarRutina() {
 // 5. NAVEGACIÓN ENTRE PESTAÑAS (SPA)
 // ==========================================
 function ver(v, link) {
-  // Oculta todas las vistas
   document.querySelectorAll('.vista').forEach(e => e.classList.remove('activa'));
-  // Muestra solo la solicitada
   document.getElementById('vista-'+v).classList.add('activa');
 
-  // Resalta la opción del menú clickeada
   if(link) {
     document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
     link.classList.add('active');
@@ -215,6 +244,33 @@ function ver(v, link) {
 function salir() {
   if(confirm("¿Cerrar sesión?")) {
     sessionStorage.removeItem('usuarioLogueado');
+    // Si el backend maneja cookies, probablemente debas hacer un fetch a /logout aquí antes de redirigir
     window.location.href = 'index.html';
+  }
+}
+
+// ==========================================
+// 7. CANCELAR SUSCRIPCIÓN (Mock Visual)
+// ==========================================
+function cancelarSuscripcion() {
+  const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu plan?\n\nTranquilo: podrás seguir ingresando al gimnasio normalmente hasta que se cumplan los días que ya pagaste.");
+
+  if (confirmacion) {
+    // Cambiamos el botón para que parezca que ya se ejecutó la acción
+    const btn = document.getElementById('btnCancelarSuscripcion');
+    if(btn) {
+      btn.classList.replace('btn-outline-danger', 'btn-secondary');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-info-circle"></i> Cancelación Programada';
+    }
+
+    alert("¡Suscripción cancelada exitosamente!\n\nTu acceso seguirá activo en el sistema, pero no te cobraremos el próximo mes.");
+
+    // Cambiar la etiqueta "Activo" visualmente a un aviso naranja para mayor realismo
+    const badge = document.getElementById('m-estado');
+    if(badge && (badge.textContent === "Activo" || badge.classList.contains('bg-success'))) {
+      badge.textContent = "Activo (No se renovará)";
+      badge.className = 'badge bg-warning text-dark fs-6 mb-4';
+    }
   }
 }
