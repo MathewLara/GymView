@@ -75,14 +75,14 @@
               </div>
             </div>
             <div class="col-md-4">
-              <div class="action-btn" onclick="alert('Próximamente: Modal de Pago')">
+              <div class="action-btn" onclick="cargarModulo('pagos', document.querySelectorAll('.nav-link')[3])">
                 <i class="bi bi-currency-dollar"></i>
                 <h5>Registrar Pago</h5>
                 <small>Cobrar mensualidad/día</small>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="action-btn" onclick="alert('Próximamente: Modal Nuevo Cliente')">
+              <div class="action-btn" onclick="cargarModulo('clientes', document.querySelectorAll('.nav-link')[2]); setTimeout(abrirModalNuevo, 500);">
                 <i class="bi bi-person-plus-fill"></i>
                 <h5>Nuevo Socio</h5>
                 <small>Inscripción rápida</small>
@@ -104,13 +104,13 @@
               </div>
             </div>
             <div class="col-md-6">
-              <div class="stat-card">
+              <div class="stat-card border-warning">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 class="text-uppercase">Personas Entrenando</h6>
+                    <h6 class="text-uppercase text-muted">Personas Entrenando</h6>
                     <h2 class="fw-bold mb-0 text-white" id="kpi-aforo">--</h2>
                   </div>
-                  <div class="stat-icon"><i class="bi bi-buildings"></i></div>
+                  <div class="stat-icon"><i class="bi bi-buildings text-warning"></i></div>
                 </div>
                 <small class="text-muted">Aforo en tiempo real</small>
               </div>
@@ -147,6 +147,61 @@
 
         <div id="vista-dinamica-contenedor"></div>
 
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark border-warning shadow-lg">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning fw-bold" id="modalTitulo">Ficha del Socio</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formUsuario">
+          <input type="hidden" id="userId">
+          <input type="hidden" id="userRol" value="4"> <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label text-white">Nombre(s) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="userNombre" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Apellido(s) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="userApellido" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Nombre de Usuario (Para su App) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="userUsername" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Contraseña <small id="passHint" class="text-warning fw-bold ms-2"></small></label>
+            <div class="input-group">
+              <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-key"></i></span>
+              <input type="password" class="form-control bg-black text-white border-secondary" id="userPass" placeholder="Asignar contraseña">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Correo Electrónico</label>
+            <div class="input-group">
+              <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-envelope"></i></span>
+              <input type="email" class="form-control bg-black text-white border-secondary" id="userEmail">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white">Teléfono Móvil</label>
+            <div class="input-group">
+              <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-telephone"></i></span>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="userTelefono">
+            </div>
+          </div>
+        </div>
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold" onclick="guardarUsuario()"><i class="bi bi-save"></i> Guardar Ficha</button>
       </div>
     </div>
   </div>
