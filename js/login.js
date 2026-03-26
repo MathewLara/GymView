@@ -1,4 +1,31 @@
 // ==========================================
+// 0. AUTO-REDIRECCIÓN (EL "ESCUDO")
+// ==========================================
+// Si el usuario ya tiene sesión iniciada, lo mandamos a su panel y no lo dejamos ver el login.
+document.addEventListener('DOMContentLoaded', () => {
+  const sesion = localStorage.getItem('usuarioLogueado');
+  if (sesion) {
+    try {
+      const data = JSON.parse(sesion);
+      const rol = data.idRol || data.id_rol;
+
+      switch (rol) {
+        case 1: window.location.href = 'DashboardAdmin.html'; break;
+        case 2: window.location.href = 'DashboardRecep.html'; break;
+        case 3: window.location.href = 'DashboardEntrenador.html'; break;
+        case 4: window.location.href = 'DashboardCliente.html'; break; // Asegúrate de que el nombre del HTML sea correcto
+        default:
+          localStorage.removeItem('usuarioLogueado');
+          break;
+      }
+    } catch(e) {
+      // Si hay error leyendo los datos, limpiamos la caché corrupta
+      localStorage.removeItem('usuarioLogueado');
+    }
+  }
+});
+
+// ==========================================
 // CONFIGURACIÓN DE RUTAS API
 // ==========================================
 const BASE_URL = "https://gimnasio-f7td.onrender.com";
@@ -83,7 +110,9 @@ loginForm.addEventListener('submit', async function(e) {
       if (data.token) {
         localStorage.setItem('tokenGimnasio', data.token);
       }
-      sessionStorage.setItem('usuarioLogueado', JSON.stringify(data));
+
+      // CAMBIO CLAVE: Ahora usamos localStorage en lugar de sessionStorage
+      localStorage.setItem('usuarioLogueado', JSON.stringify(data));
       showGlobalStatus('¡Login Correcto! Entrando...', 'success');
 
       // Redirección basada en el Rol del usuario

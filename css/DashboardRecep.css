@@ -2,13 +2,12 @@
 :root {
   --primary-color: #ffc107;
   --dark-bg: #121212;
-  --sidebar-bg: #1e1e1e;
+  --sidebar-bg: #000000; /* CAMBIO: Negro puro */
   --text-light: #f8f9fa;
   --card-bg: #212529;
   --text-muted-light: #b0b3b8;
 }
 
-/* Configuración general del cuerpo */
 body {
   background-color: var(--dark-bg);
   color: var(--text-light);
@@ -17,16 +16,15 @@ body {
 }
 
 /* =========================================
-   BARRA LATERAL (SIDEBAR)
+   BARRA LATERAL (SIDEBAR) - PC
    ========================================= */
 .sidebar {
-  min-height: 100vh;
   background-color: var(--sidebar-bg);
   box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-  padding-top: 20px;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1050;
 }
 
-/* Diseño de los enlaces del menú lateral */
 .sidebar .nav-link {
   color: #aaa;
   font-size: 1.1rem;
@@ -36,7 +34,6 @@ body {
   cursor: pointer;
 }
 
-/* Estilo para el enlace activo o al pasar el ratón */
 .sidebar .nav-link:hover, .sidebar .nav-link.active {
   color: var(--primary-color);
   background-color: rgba(255, 193, 7, 0.05);
@@ -47,11 +44,9 @@ body {
   margin-right: 10px;
 }
 
-/* Contenedor del logo en el sidebar */
 .brand-section {
   padding: 0 20px 20px 20px;
   border-bottom: 1px solid #333;
-  margin-bottom: 20px;
 }
 
 /* =========================================
@@ -59,6 +54,16 @@ body {
    ========================================= */
 .main-content {
   padding: 30px;
+}
+
+/* Aseguramos que los textos del DOM inyectado se lean bien */
+#vista-dinamica-contenedor { color: #ffffff !important; }
+#vista-dinamica-contenedor .text-muted { color: #d1d5db !important; }
+
+.header-bar {
+  background-color: var(--sidebar-bg);
+  padding: 15px 30px;
+  border-bottom: 1px solid #333;
 }
 
 /* Tarjetas de Estadísticas (KPIs) */
@@ -71,10 +76,8 @@ body {
   transition: transform 0.2s;
 }
 
-.stat-card h6 {
-  color: var(--text-muted-light) !important;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
+.stat-card:hover {
+  transform: translateY(-3px);
 }
 
 .stat-icon {
@@ -84,9 +87,8 @@ body {
 }
 
 /* =========================================
-   BOTONES DE ACCIÓN RÁPIDA (Exclusivo Recepción)
+   BOTONES DE ACCIÓN RÁPIDA
    ========================================= */
-/* Estilo para los botones cuadrados de escaneo, cobro y nuevo socio */
 .action-btn {
   background-color: var(--card-bg);
   border: 1px solid var(--primary-color);
@@ -99,7 +101,6 @@ body {
   height: 100%;
 }
 
-/* Efecto hover: el botón se vuelve amarillo y se eleva */
 .action-btn:hover {
   background-color: var(--primary-color);
   color: black;
@@ -138,12 +139,48 @@ body {
   color: #e0e0e0;
 }
 
-/* Barra superior horizontal (Header del panel) */
-.header-bar {
-  background-color: var(--sidebar-bg);
-  padding: 15px 30px;
-  border-bottom: 1px solid #333;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* =========================================
+   MEDIA QUERIES (SOLO PARA MÓVILES)
+   ========================================= */
+@media (max-width: 767.98px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.mostrar {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .header-bar {
+    padding: 15px;
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1040;
+    backdrop-filter: blur(2px);
+  }
+
+  .overlay.mostrar {
+    display: block;
+  }
+
+  .w-sm-auto {
+    width: 100% !important;
+  }
 }

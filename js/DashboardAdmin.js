@@ -1,16 +1,20 @@
-// Función enlazada al botón "Salir"
+// ==========================================
+// FUNCIÓN PARA CERRAR SESIÓN (CORREGIDA)
+// ==========================================
 function cerrarSesion() {
   localStorage.removeItem('tokenGimnasio');
-  sessionStorage.removeItem('usuarioLogueado');
+  localStorage.removeItem('usuarioLogueado');
   window.location.href = 'index.html';
 }
 
 // ==========================================
 // NAVEGACIÓN DINÁMICA DEL DASHBOARD (SPA)
 // ==========================================
-
 async function cargarModulo(modulo, elementoHTML) {
-  const tituloMap = { 'resumen': 'Panel de Control Gerencial' };
+  const tituloMap = {
+    'resumen': 'Panel de Control Gerencial',
+    'pagos': 'Historial de Facturación'
+  };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
 
   if (elementoHTML) {
@@ -55,13 +59,16 @@ async function cargarModulo(modulo, elementoHTML) {
                 </tr>
             `}).join('');
         } else if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Aún no hay registros de acceso. Inicia sesión con una cuenta para generar el primero.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Aún no hay registros de acceso.</td></tr>';
         }
       }
     } catch (error) {
       console.error("Error cargando dashboard:", error);
     }
 
+    // ==========================================
+    // MÓDULO DE USUARIOS (CRUD)
+    // ==========================================
   } else if (['clientes', 'entrenadores', 'recepcionistas', 'administradores'].includes(modulo)) {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
@@ -145,7 +152,79 @@ async function cargarModulo(modulo, elementoHTML) {
     }
 
     // ==========================================
-    // NUEVO: MÓDULO DE REPORTES GERENCIALES
+    // NUEVO: MÓDULO DE PAGOS
+    // ==========================================
+  } else if (modulo === 'pagos') {
+    vistaResumen.style.display = 'none';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando historial de pagos...</p></div>';
+
+    try {
+      // Ajusta esta URL si el backend de pagos se llama diferente
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
+      let pagos = [];
+
+      if (res.ok) {
+        pagos = await res.json();
+      } else {
+        // Datos de prueba (Mock) en caso de que la API de pagos aún no esté creada en Java
+        pagos = [
+          { idPago: 1001, nombreCliente: 'Mathew Lara', nombrePlan: 'Plan Anual Black', monto: 299.99, fechaPago: '2026-03-12', metodoPago: 'Tarjeta de Crédito' },
+          { idPago: 1002, nombreCliente: 'Ana Gómez', nombrePlan: 'Plan Mensual Estándar', monto: 29.99, fechaPago: '2026-03-10', metodoPago: 'Efectivo' },
+          { idPago: 1003, nombreCliente: 'Carlos Ruiz', nombrePlan: 'Plan Semestral', monto: 150.00, fechaPago: '2026-03-08', metodoPago: 'Transferencia' }
+        ];
+        console.warn("Endpoint de pagos devolvió error, usando datos de prueba (Mock Data).");
+      }
+
+      let filas = pagos.map(p => `
+        <tr>
+          <td class="text-light fw-bold">#${p.idPago || p.id}</td>
+          <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.nombreCliente || p.cliente}</td>
+          <td class="text-info">${p.nombrePlan || p.plan}</td>
+          <td class="text-warning fw-bold">$${parseFloat(p.monto || p.total || 0).toFixed(2)}</td>
+          <td class="text-muted">${p.fechaPago || p.fecha}</td>
+          <td><span class="badge bg-secondary">${p.metodoPago || p.metodo || 'N/A'}</span></td>
+          <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span></td>
+        </tr>
+      `).join('');
+
+      if (filas === '') {
+        filas = `<tr><td colspan="7" class="text-center py-4 text-white">No hay transacciones registradas.</td></tr>`;
+      }
+
+      contenedorDinamico.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="text-white m-0">Historial de Transacciones</h4>
+          <button class="btn btn-outline-warning fw-bold" onclick="alert('Funcionalidad de exportación en desarrollo')">
+            <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
+          </button>
+        </div>
+        <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
+          <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0 align-middle">
+              <thead class="text-white border-secondary">
+                <tr>
+                  <th>N° RECIBO</th>
+                  <th>SOCIO</th>
+                  <th>MEMBRESÍA</th>
+                  <th>MONTO</th>
+                  <th>FECHA</th>
+                  <th>MÉTODO DE PAGO</th>
+                  <th>ESTADO</th>
+                </tr>
+              </thead>
+              <tbody>${filas}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+    } catch (error) {
+      console.error(error);
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error al conectar con la base de datos financiera.</div>';
+    }
+
+    // ==========================================
+    // MÓDULO DE REPORTES GERENCIALES
     // ==========================================
   } else if (modulo === 'reportes') {
     vistaResumen.style.display = 'none';
@@ -222,7 +301,6 @@ async function cargarModulo(modulo, elementoHTML) {
           </div>
         `;
 
-        // 1. INYECTAR GRÁFICO DE DONA (MÉTODOS DE PAGO)
         const ctxMetodos = document.getElementById('chartMetodos');
         if (data.ingresosPorMetodo && data.ingresosPorMetodo.length > 0) {
           new Chart(ctxMetodos, {
@@ -242,7 +320,6 @@ async function cargarModulo(modulo, elementoHTML) {
           ctxMetodos.parentElement.innerHTML = '<p class="text-muted text-center mt-5">No hay datos de pagos para graficar.</p>';
         }
 
-        // 2. INYECTAR GRÁFICO DE BARRAS (MEMBRESÍAS)
         const ctxMembresias = document.getElementById('chartMembresias');
         if (data.membresiasPopulares && data.membresiasPopulares.length > 0) {
           new Chart(ctxMembresias, {

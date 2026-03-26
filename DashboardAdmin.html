@@ -13,64 +13,75 @@
 </head>
 <body>
 
-<div class="container-fluid">
-  <div class="row">
+<div class="overlay" onclick="toggleMenu()"></div>
 
-    <div class="col-md-3 col-lg-2 sidebar d-none d-md-block p-0">
+<div class="container-fluid overflow-hidden p-0">
+  <div class="row vh-100 g-0">
 
-      <div class="brand-section text-center mt-3">
-        <h4 class="text-warning fw-bold"><i class="bi bi-lightning-fill"></i> IRON ADMIN</h4>
+    <div class="col-md-3 col-lg-2 p-0 sidebar d-flex flex-column bg-black" id="sidebarAdmin">
+
+      <div class="brand-section position-relative text-center mt-3">
+        <h4 class="text-warning fw-bold mb-0"><i class="bi bi-lightning-fill"></i> IRON ADMIN</h4>
+        <button class="btn btn-sm btn-outline-light d-md-none position-absolute end-0 top-50 translate-middle-y me-3" onclick="toggleMenu()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
 
-      <nav class="nav flex-column" id="sidebarMenu">
-        <a class="nav-link active" href="#" onclick="cargarModulo('resumen', this)">
+      <nav class="nav flex-column flex-grow-1 overflow-auto mt-3" id="sidebarMenu">
+        <a class="nav-link active" href="#" onclick="cargarModuloResponsive('resumen', this)">
           <i class="bi bi-speedometer2"></i> Resumen
         </a>
-        <a class="nav-link" href="#" onclick="cargarModulo('administradores', this)">
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('administradores', this)">
           <i class="bi bi-person-badge-fill"></i> Administradores
         </a>
-        <a class="nav-link" href="#" onclick="cargarModulo('recepcionistas', this)">
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('recepcionistas', this)">
           <i class="bi bi-person-workspace"></i> Recepcionistas
         </a>
-        <a class="nav-link" href="#" onclick="cargarModulo('clientes', this)">
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('clientes', this)">
           <i class="bi bi-people-fill"></i> Clientes
         </a>
-        <a class="nav-link" href="#" onclick="cargarModulo('entrenadores', this)">
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('entrenadores', this)">
           <i class="bi bi-person-video"></i> Entrenadores
         </a>
-        <a class="nav-link" href="#" onclick="cargarModulo('pagos', this)">
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('pagos', this)">
           <i class="bi bi-currency-dollar"></i> Pagos
         </a>
-        <a class="nav-link text-warning fw-bold" href="#" onclick="cargarModulo('reportes', this)">
+        <a class="nav-link text-warning fw-bold" href="#" onclick="cargarModuloResponsive('reportes', this)">
           <i class="bi bi-file-earmark-bar-graph"></i> Reportes Gerenciales
         </a>
       </nav>
 
-      <div class="mt-auto p-4">
-        <button class="btn btn-outline-danger w-100" onclick="cerrarSesion()">
+      <div class="mt-auto p-4 mb-2">
+        <button class="btn btn-outline-danger w-100 fw-bold" onclick="cerrarSesion()">
           <i class="bi bi-box-arrow-left"></i> Salir
         </button>
       </div>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-0">
+    <div class="col-md-9 col-lg-10 p-0 d-flex flex-column overflow-auto h-100">
 
-      <div class="header-bar">
-        <h5 class="m-0 text-white" id="page-title">Panel de Control Gerencial</h5>
+      <div class="header-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="d-flex align-items-center">
-          <span class="me-3 text-light">Hola, <span class="text-white fw-bold">Administrador</span></span>
-          <div class="rounded-circle bg-warning d-flex justify-content-center align-items-center fw-bold text-dark" style="width: 40px; height: 40px;">
+          <button class="btn btn-outline-warning d-md-none me-3" onclick="toggleMenu()">
+            <i class="bi bi-list fs-4"></i>
+          </button>
+          <h5 class="m-0 text-white" id="page-title">Panel de Control Gerencial</h5>
+        </div>
+
+        <div class="d-flex align-items-center ms-auto ms-sm-0">
+          <span class="me-3 text-light d-none d-sm-inline">Hola, <span class="text-white fw-bold">Administrador</span></span>
+          <div class="rounded-circle bg-warning d-flex justify-content-center align-items-center fw-bold text-dark flex-shrink-0" style="width: 40px; height: 40px;">
             AD
           </div>
         </div>
       </div>
 
-      <div class="main-content" style="padding: 20px;">
+      <div class="main-content flex-grow-1">
 
         <div id="vista-resumen">
 
           <div class="row g-4 mb-4">
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-lg-3">
               <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
@@ -82,8 +93,8 @@
               </div>
             </div>
 
-            <div class="col-md-3">
-              <div class="stat-card border-warning">
+            <div class="col-12 col-sm-6 col-lg-3">
+              <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
                     <h6 style="color: #ffffff !important; font-weight: bold; opacity: 1 !important; margin-bottom: 5px;">INGRESOS TOTALES</h6>
@@ -94,11 +105,11 @@
               </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-lg-3">
               <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 style="color: #ffffff !important; font-weight: bold; opacity: 1 !important; margin-bottom: 5px;">ENTRENADORES EN NÓMINA</h6>
+                    <h6 style="color: #ffffff !important; font-weight: bold; opacity: 1 !important; margin-bottom: 5px;">ENTRENADORES</h6>
                     <h2 style="color: #ffffff !important; font-weight: bold; margin-bottom: 0;" id="kpi-entrenadores1">--</h2>
                   </div>
                   <div class="stat-icon text-warning"><i class="bi bi-person-video"></i></div>
@@ -106,7 +117,7 @@
               </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-lg-3">
               <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
@@ -120,12 +131,12 @@
             </div>
           </div>
 
-          <div class="card bg-dark border-secondary mt-5">
+          <div class="card bg-dark border-secondary mt-5 overflow-hidden">
             <div class="card-header border-secondary d-flex justify-content-between align-items-center">
               <h5 class="mb-0" style="color: #ffffff !important;">Últimos Accesos al Sistema</h5>
             </div>
             <div class="table-responsive">
-              <table class="table table-dark table-hover align-middle mb-0" id="tabla-logs">
+              <table class="table table-dark table-hover align-middle mb-0" id="tabla-logs" style="min-width: 600px;">
                 <thead>
                 <tr>
                   <th>Usuario</th>
@@ -146,10 +157,17 @@
               </table>
             </div>
           </div>
-        </div> <div id="vista-dinamica-contenedor"></div>
+        </div>
 
-      </div> </div> </div> </div> <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div id="vista-dinamica-contenedor"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
     <div class="modal-content bg-dark border-warning shadow-lg">
       <div class="modal-header border-secondary">
         <h5 class="modal-title text-warning fw-bold" id="modalTitulo">Nuevo Usuario</h5>
@@ -208,8 +226,8 @@
         </form>
       </div>
       <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-warning fw-bold" onclick="guardarUsuario()"><i class="bi bi-save"></i> Guardar Datos</button>
+        <button type="button" class="btn btn-outline-light w-100 w-sm-auto mb-2 mb-sm-0" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold w-100 w-sm-auto" onclick="guardarUsuario()"><i class="bi bi-save"></i> Guardar Datos</button>
       </div>
     </div>
   </div>
@@ -217,6 +235,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/DashboardAdmin.js"></script>
+
+<script>
+  function toggleMenu() {
+    document.getElementById('sidebarAdmin').classList.toggle('mostrar');
+    document.querySelector('.overlay').classList.toggle('mostrar');
+  }
+
+  function cargarModuloResponsive(modulo, elemento) {
+    cargarModulo(modulo, elemento);
+    if (window.innerWidth <= 767) {
+      document.getElementById('sidebarAdmin').classList.remove('mostrar');
+      document.querySelector('.overlay').classList.remove('mostrar');
+    }
+  }
+</script>
 
 </body>
 </html>

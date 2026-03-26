@@ -6,61 +6,158 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden; /* Evita scroll horizontal indeseado en móviles */
 }
 
+/* Navbar ajustes */
+.navbar-nav .nav-item .nav-link {
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Sección Hero */
 .hero-section {
-  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
   url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
   background-size: cover;
   background-position: center;
-  height: 90vh;
+  background-attachment: fixed; /* Efecto parallax suave */
+  height: 100vh;
   display: flex;
   align-items: center;
   color: white;
+  padding-top: 60px; /* Compensa el navbar fijo */
 }
 
 .section-padding {
-  padding: 80px 0;
+  padding: 100px 0;
 }
 
+/* Tarjetas base */
 .card-custom {
   border: none;
-  transition: transform 0.3s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   height: 100%;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 
 .card-custom:hover {
   transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+/* Efecto de escala para la tarjeta de precio principal */
+.transform-scale {
+  transform: scale(1.05);
+  z-index: 2;
+}
+.transform-scale:hover {
+  transform: scale(1.08) translateY(-5px);
 }
 
 /* =========================================
-   NUEVOS BOTONES RESALTADOS (BLANCOS)
+   NUEVOS BOTONES RESALTADOS Y ELEGANTES
    ========================================= */
 .btn-highlight {
-  background-color: #ffffff !important; /* Fondo blanco forzado */
-  color: #000000 !important; /* Texto negro forzado */
-  font-weight: 900 !important; /* Texto extra grueso */
-  opacity: 1 !important; /* Elimina cualquier opacidad impuesta por Bootstrap */
-  padding: 14px 35px;
-  border: 3px solid var(--primary-color) !important; /* Borde amarillo de Iron Fitness */
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(255, 193, 7, 0.5); /* Sombra/resplandor amarillo suave */
-  transition: all 0.3s ease;
-  text-decoration: none; /* Asegura que no tenga línea debajo */
+  background-color: transparent !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px;
+  padding: 15px 40px;
+  border: 2px solid var(--primary-color) !important;
+  border-radius: 50px; /* Botón en forma de píldora (elegante) */
+  box-shadow: inset 0 0 0 0 var(--primary-color), 0 0 15px rgba(255, 193, 7, 0.4);
+  transition: all 0.4s ease-in-out;
+  text-decoration: none;
+  display: inline-block;
+  text-transform: uppercase;
 }
 
-/* Efecto hover: Invertimos colores para que sea interactivo */
+/* Efecto hover: Se rellena de amarillo suavemente */
 .btn-highlight:hover {
-  background-color: var(--primary-color) !important; /* Se vuelve amarillo al pasar el mouse */
+  background-color: var(--primary-color) !important;
   color: #000000 !important;
-  border-color: #ffffff !important; /* El borde se vuelve blanco */
-  box-shadow: 0 0 30px rgba(255, 193, 7, 1);
-  transform: translateY(-4px) scale(1.02);
-  opacity: 1 !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: inset 0 0 0 50px var(--primary-color), 0 0 25px rgba(255, 193, 7, 0.8);
+  transform: translateY(-3px);
 }
 
+/* Utilidad para fondos oscuros */
 .bg-dark-custom {
   background-color: var(--dark-bg);
   color: white;
+}
+
+/* =========================================
+   MEDIA QUERIES (RESPONSIVE DESIGN)
+   ========================================= */
+
+/* Para pantallas menores a 992px (Tablets horizontales y móviles) */
+@media (max-width: 991.98px) {
+  /* Quita el efecto de escala de la tarjeta de precio en móviles para que no se superponga */
+  .transform-scale {
+    transform: scale(1);
+    z-index: 1;
+    margin-top: 2rem; /* Espacio extra para el badge "Recomendado" */
+  }
+  .transform-scale:hover {
+    transform: translateY(-5px);
+  }
+
+  /* Ajusta el menú en móvil */
+  .navbar-collapse {
+    background-color: #212529;
+    padding: 1rem;
+    border-radius: 0 0 10px 10px;
+    margin-top: 10px;
+  }
+}
+
+/* Para pantallas menores a 768px (Móviles estándar) */
+@media (max-width: 767.98px) {
+  .hero-section {
+    height: auto;
+    min-height: 80vh;
+    padding-top: 100px;
+    padding-bottom: 60px;
+  }
+
+  /* Textos de la cabecera más pequeños */
+  .title-hero {
+    font-size: 3rem !important;
+  }
+  .subtitle-hero {
+    font-size: 1.1rem;
+  }
+
+  /* Reducir el padding general de las secciones */
+  .section-padding {
+    padding: 60px 0;
+  }
+
+  /* Botones anchos en móviles */
+  .w-sm-100 {
+    width: 100%;
+  }
+
+  /* Ajustar imágenes de la tienda */
+  .card-img-top {
+    height: 200px !important;
+  }
+
+  .display-4 {
+    font-size: 2.5rem;
+  }
+}
+
+/* Para pantallas muy pequeñas (Ej. iPhone SE) */
+@media (max-width: 400px) {
+  .title-hero {
+    font-size: 2.5rem !important;
+  }
+
+  .btn-highlight {
+    padding: 12px 25px;
+    font-size: 0.9rem;
+  }
 }
