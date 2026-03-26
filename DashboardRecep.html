@@ -7,86 +7,82 @@
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
   <link rel="stylesheet" href="css/DashboardRecep.css">
 </head>
 <body>
 
-<div class="overlay" onclick="toggleMenu()"></div>
+<div class="container-fluid">
+  <div class="row">
 
-<div class="container-fluid overflow-hidden p-0">
-  <div class="row vh-100 g-0">
+    <div class="col-md-3 col-lg-2 sidebar d-none d-md-block p-0">
 
-    <div class="col-md-3 col-lg-2 p-0 sidebar d-flex flex-column bg-black" id="sidebarRecep">
-
-      <div class="brand-section position-relative text-center mt-3">
-        <h4 class="text-warning fw-bold mb-0"><i class="bi bi-lightning-fill"></i> IRON DESK</h4>
-        <button class="btn btn-sm btn-outline-light d-md-none position-absolute end-0 top-50 translate-middle-y me-3" onclick="toggleMenu()">
-          <i class="bi bi-x-lg"></i>
-        </button>
+      <div class="brand-section text-center mt-3">
+        <h4 class="text-warning fw-bold"><i class="bi bi-lightning-fill"></i> IRON DESK</h4>
       </div>
 
-      <nav class="nav flex-column mt-3" id="sidebarMenu">
-        <a class="nav-link active" href="#" onclick="cargarModuloResponsive('resumen', this)">
+      <nav class="nav flex-column" id="sidebarMenu">
+        <a class="nav-link active" href="#" onclick="cargarModulo('resumen', this)">
           <i class="bi bi-grid-1x2"></i> Resumen
         </a>
-        <a class="nav-link" href="#" onclick="cargarModuloResponsive('acceso', this)">
+
+        <a class="nav-link" href="#" onclick="cargarModulo('acceso', this)">
           <i class="bi bi-qr-code"></i> Control Acceso
         </a>
-        <a class="nav-link" href="#" onclick="cargarModuloResponsive('clientes', this)">
+
+        <a class="nav-link" href="#" onclick="cargarModulo('clientes', this)">
           <i class="bi bi-people-fill"></i> Socios
         </a>
-        <a class="nav-link" href="#" onclick="cargarModuloResponsive('pagos', this)">
+
+        <a class="nav-link" href="#" onclick="cargarModulo('pagos', this)">
           <i class="bi bi-cash-coin"></i> Caja / Pagos
         </a>
-        <a class="nav-link" href="#" onclick="cargarModuloResponsive('entrenadores', this)">
+
+        <a class="nav-link" href="#" onclick="cargarModulo('entrenadores', this)">
           <i class="bi bi-person-video"></i> Entrenadores
         </a>
       </nav>
 
       <div class="mt-auto p-4">
-        <button class="btn btn-outline-danger w-100 fw-bold" onclick="cerrarSesion()">
+        <button class="btn btn-outline-danger w-100" onclick="cerrarSesion()">
           <i class="bi bi-box-arrow-left"></i> Salir
         </button>
       </div>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-0 d-flex flex-column overflow-auto h-100">
+    <div class="col-md-9 col-lg-10 p-0">
 
-      <div class="header-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="header-bar">
+        <h5 class="m-0 text-white" id="page-title">Recepción</h5>
         <div class="d-flex align-items-center">
-          <button class="btn btn-outline-warning d-md-none me-3" onclick="toggleMenu()">
-            <i class="bi bi-list fs-4"></i>
-          </button>
-          <h5 class="m-0 text-white" id="page-title">Recepción</h5>
-        </div>
-
-        <div class="d-flex align-items-center ms-auto ms-sm-0">
-          <span class="me-3 text-muted d-none d-sm-inline">Turno de: <span class="text-white fw-bold">Recepcionista</span></span>
-          <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center fw-bold text-white flex-shrink-0" style="width: 40px; height: 40px;">
+          <span class="me-3 text-muted">Turno de: <span class="text-white fw-bold">Recepcionista</span></span>
+          <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center fw-bold text-white" style="width: 40px; height: 40px;">
             RC
           </div>
         </div>
       </div>
 
-      <div class="main-content flex-grow-1" id="contenido-dinamico">
+      <div class="main-content" id="contenido-dinamico">
+
         <div id="vista-resumen">
+
           <div class="row g-4 mb-4">
-            <div class="col-12 col-md-4">
-              <div class="action-btn" onclick="cargarModuloResponsive('acceso', document.querySelectorAll('.nav-link')[1])">
+            <div class="col-md-4">
+              <div class="action-btn" onclick="cargarModulo('acceso', document.querySelectorAll('.nav-link')[1])">
                 <i class="bi bi-qr-code-scan"></i>
                 <h5>Escanear Entrada</h5>
                 <small>Validar QR de socio</small>
               </div>
             </div>
-            <div class="col-12 col-md-4">
-              <div class="action-btn" onclick="abrirModalPago()">
+            <div class="col-md-4">
+              <div class="action-btn" onclick="alert('Próximamente: Modal de Pago')">
                 <i class="bi bi-currency-dollar"></i>
                 <h5>Registrar Pago</h5>
                 <small>Cobrar mensualidad/día</small>
               </div>
             </div>
-            <div class="col-12 col-md-4">
-              <div class="action-btn" onclick="cargarModuloResponsive('clientes', document.querySelectorAll('.nav-link')[2]); setTimeout(abrirModalNuevo, 500);">
+            <div class="col-md-4">
+              <div class="action-btn" onclick="alert('Próximamente: Modal Nuevo Cliente')">
                 <i class="bi bi-person-plus-fill"></i>
                 <h5>Nuevo Socio</h5>
                 <small>Inscripción rápida</small>
@@ -95,36 +91,38 @@
           </div>
 
           <div class="row g-4 mb-4">
-            <div class="col-12 col-md-6">
-              <div class="stat-card border-warning">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 class="text-uppercase text-white fw-bold mb-1">Ingresos (Hoy)</h6>
-                    <h2 class="fw-bold mb-0 text-white" id="kpi-caja">--</h2>
-                  </div>
-                  <div class="stat-icon"><i class="bi bi-wallet2 text-warning"></i></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
+            <div class="col-md-6">
               <div class="stat-card">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 class="text-uppercase text-white fw-bold mb-1">Entrenando</h6>
+                    <h6 class="text-uppercase">Ingresos en Caja (Hoy)</h6>
+                    <h2 class="fw-bold mb-0 text-white" id="kpi-caja">--</h2>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+                </div>
+                <small class="text-muted">Cierre pendiente</small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="text-uppercase">Personas Entrenando</h6>
                     <h2 class="fw-bold mb-0 text-white" id="kpi-aforo">--</h2>
                   </div>
                   <div class="stat-icon"><i class="bi bi-buildings"></i></div>
                 </div>
+                <small class="text-muted">Aforo en tiempo real</small>
               </div>
             </div>
           </div>
 
-          <div class="card bg-dark border-secondary overflow-hidden">
+          <div class="card bg-dark border-secondary">
             <div class="card-header border-secondary">
-              <h5 class="mb-0 text-white">Actividad Reciente</h5>
+              <h5 class="mb-0 text-white">Actividad Reciente en Recepción</h5>
             </div>
             <div class="table-responsive">
-              <table class="table table-dark table-hover align-middle mb-0" style="min-width: 500px;">
+              <table class="table table-dark table-hover align-middle mb-0">
                 <thead>
                 <tr>
                   <th>Hora</th>
@@ -148,136 +146,17 @@
         </div>
 
         <div id="vista-dinamica-contenedor"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-    <div class="modal-content bg-dark border-warning shadow-lg">
-      <div class="modal-header border-secondary">
-        <h5 class="modal-title text-warning fw-bold" id="modalTitulo">Nuevo Usuario</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="formUsuario">
-          <input type="hidden" id="userId">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label text-white">Nombre(s) <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-black text-white border-secondary" id="userNombre" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label text-white">Apellido(s) <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-black text-white border-secondary" id="userApellido" required>
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label text-white">Rol en el Sistema</label>
-              <select class="form-select bg-black text-white border-secondary fw-bold" id="userRol">
-                <option value="3">Entrenador</option>
-                <option value="4" selected>Cliente / Socio</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label text-white">Nombre de Usuario (Login) <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-black text-white border-secondary" id="userUsername" required>
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label text-white">Correo Electrónico</label>
-              <div class="input-group">
-                <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-envelope"></i></span>
-                <input type="email" class="form-control bg-black text-white border-secondary" id="userEmail">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label text-white">Teléfono</label>
-              <div class="input-group">
-                <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-telephone"></i></span>
-                <input type="text" class="form-control bg-black text-white border-secondary" id="userTelefono">
-              </div>
-            </div>
-
-            <div class="col-12 mt-4">
-              <label class="form-label text-white">Contraseña <small id="passHint" class="text-warning fw-bold ms-2"></small></label>
-              <div class="input-group">
-                <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-key"></i></span>
-                <input type="password" class="form-control bg-black text-white border-secondary" id="userPass" placeholder="Contraseña (mín 5 caracteres)">
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light w-100 w-sm-auto mb-2 mb-sm-0" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-warning fw-bold w-100 w-sm-auto" onclick="guardarUsuario()"><i class="bi bi-save"></i> Guardar Datos</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark border-success shadow-lg">
-      <div class="modal-header border-secondary bg-black">
-        <h5 class="modal-title text-success fw-bold"><i class="bi bi-cash-coin me-2"></i> Registrar Pago</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-4">
-        <form id="formPago">
-          <div class="mb-3">
-            <label class="form-label text-white fw-bold">Seleccionar Socio</label>
-            <select class="form-select bg-black text-white border-secondary" id="pagoSocio" required>
-              <option value="" disabled selected>Cargando socios...</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-white fw-bold">Tipo de Membresía</label>
-            <select class="form-select bg-black text-white border-secondary" id="pagoPlan" required>
-              <option value="1">Plan Diario ($5.00)</option>
-              <option value="2">Plan Mensual Estándar ($30.00)</option>
-              <option value="3">Plan VIP Mensual ($50.00)</option>
-              <option value="4">Plan Anual ($300.00)</option>
-            </select>
-          </div>
-          <div class="mb-4">
-            <label class="form-label text-white fw-bold">Método de Pago</label>
-            <select class="form-select bg-black text-white border-secondary" id="pagoMetodo" required>
-              <option value="Efectivo" selected>Efectivo</option>
-              <option value="Tarjeta">Tarjeta de Crédito / Débito</option>
-              <option value="Transferencia">Transferencia Bancaria</option>
-            </select>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light w-100 w-sm-auto mb-2 mb-sm-0" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-success fw-bold w-100 w-sm-auto" onclick="procesarPago()"><i class="bi bi-check-circle"></i> Procesar Pago</button>
       </div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
 <script src="js/DashboardRecep.js"></script>
-
-<script>
-  function toggleMenu() {
-    document.getElementById('sidebarRecep').classList.toggle('mostrar');
-    document.querySelector('.overlay').classList.toggle('mostrar');
-  }
-
-  function cargarModuloResponsive(modulo, elemento) {
-    cargarModulo(modulo, elemento);
-    if (window.innerWidth <= 767) {
-      document.getElementById('sidebarRecep').classList.remove('mostrar');
-      document.querySelector('.overlay').classList.remove('mostrar');
-    }
-  }
-</script>
 
 </body>
 </html>
