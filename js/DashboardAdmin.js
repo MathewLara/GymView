@@ -202,7 +202,7 @@ async function cargarModulo(modulo, elementoHTML) {
             <h4 class="text-white m-0">Historial de Transacciones</h4>
             <div>
               <button class="btn btn-success fw-bold me-2" onclick="abrirModalPago()"><i class="bi bi-plus-circle"></i> Nuevo Pago</button>
-              <button class="btn btn-outline-warning fw-bold" onclick="alert('Funcionalidad de exportación en desarrollo')">
+              <button class="btn btn-outline-warning fw-bold" onclick="exportarPagosCSV()">
                 <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
               </button>
             </div>
@@ -564,4 +564,39 @@ async function procesarPago() {
   } catch(e) {
     alert("Error de conexión con el servidor al procesar el pago.");
   }
+}
+// ==========================================
+// EXPORTAR TABLA A CSV
+// ==========================================
+function exportarPagosCSV() {
+  const tabla = document.querySelector('.table');
+  if (!tabla) {
+    alert("No hay datos cargados para exportar.");
+    return;
+  }
+
+  let csv = [];
+  const filas = tabla.querySelectorAll('tr');
+
+  for (let i = 0; i < filas.length; i++) {
+    let fila = [], columnas = filas[i].querySelectorAll('th, td');
+    for (let j = 0; j < columnas.length; j++) {
+      // Limpiar texto para evitar saltos de línea y errores en Excel
+      let texto = columnas[j].innerText.replace(/(\r\n|\n|\r)/gm, "").trim();
+      fila.push('"' + texto + '"'); // Envolver en comillas para que no se rompan las columnas
+    }
+    csv.push(fila.join(','));
+  }
+
+  // Crear el archivo con formato UTF-8 (para que se vean las tildes y la $)
+  const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join('\n');
+  const encodedUri = encodeURI(csvContent);
+
+  // Forzar la descarga
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "Historial_Pagos_IronFitness.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
