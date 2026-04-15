@@ -2,7 +2,7 @@
 :root {
   --primary-color: #ffc107;
   --dark-bg: #121212;
-  --sidebar-bg: #000000;
+  --sidebar-bg: #000000; /* CAMBIO: Negro puro */
   --text-light: #f8f9fa;
   --card-bg: #212529;
   --text-muted-light: #b0b3b8;
@@ -64,9 +64,6 @@ body {
   background-color: var(--sidebar-bg);
   padding: 15px 30px;
   border-bottom: 1px solid #333;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 /* Tarjetas de Estadísticas (KPIs) */
@@ -79,10 +76,8 @@ body {
   transition: transform 0.2s;
 }
 
-.stat-card h6 {
-  color: var(--text-muted-light) !important;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
+.stat-card:hover {
+  transform: translateY(-3px);
 }
 
 .stat-icon {
@@ -145,64 +140,6 @@ body {
 }
 
 /* =========================================
-   CORRECCIONES VISUALES (ESCÁNER QR Y FORMS)
-   ========================================= */
-
-/* Forzar textos claros y legibles dentro del contenedor de la cámara */
-#lector-qr span,
-#lector-qr div {
-  color: #f8f9fa !important;
-}
-
-/* Estilar los enlaces ("Scan an Image File" / "Scan using camera directly") */
-#lector-qr a {
-  color: var(--primary-color) !important;
-  text-decoration: none;
-  font-weight: bold;
-  cursor: pointer;
-  display: inline-block;
-  margin-top: 10px;
-}
-
-#lector-qr a:hover {
-  text-decoration: underline;
-  color: #fff !important;
-}
-
-/* Estilizar los botones nativos de la librería (Start Scanning, Stop) */
-#lector-qr button {
-  background-color: var(--primary-color) !important;
-  color: #000 !important;
-  border: none !important;
-  border-radius: 5px;
-  padding: 6px 15px;
-  font-weight: bold;
-  margin: 8px 5px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-#lector-qr button:hover {
-  background-color: #e0a800 !important;
-}
-
-/* Selector de cámara */
-#lector-qr select {
-  background-color: #222 !important;
-  color: #fff !important;
-  border: 1px solid var(--primary-color) !important;
-  padding: 6px;
-  border-radius: 5px;
-  margin-bottom: 10px;
-}
-
-/* Aclarar el texto "Ingreso manual..." dentro de los inputs oscuros */
-.form-control::placeholder {
-  color: #aeb5bc !important;
-  opacity: 1; /* Forzar visibilidad en Firefox/Chrome */
-}
-
-/* =========================================
    MEDIA QUERIES (SOLO PARA MÓVILES)
    ========================================= */
 @media (max-width: 767.98px) {
@@ -212,11 +149,11 @@ body {
     left: 0;
     height: 100vh;
     width: 260px;
-    transform: translateX(-100%); /* Oculto a la izquierda */
+    transform: translateX(-100%);
   }
 
   .sidebar.mostrar {
-    transform: translateX(0); /* Se muestra al hacer click en el botón */
+    transform: translateX(0);
   }
 
   .main-content {
@@ -227,7 +164,6 @@ body {
     padding: 15px;
   }
 
-  /* Capa oscura de fondo al abrir el menú en móvil */
   .overlay {
     display: none;
     position: fixed;
