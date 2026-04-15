@@ -169,70 +169,66 @@ async function cargarModulo(modulo, elementoHTML) {
     }
 
     // ==========================================
-    // 4. VISTA DE PAGOS
+    // 4. VISTA DE PAGOS (CONECTADA A BDD)
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando pagos...</p></div>';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando historial de caja...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
-      let pagos = [];
-      if (res.ok) pagos = await res.json();
-      else {
-        // Datos de prueba (Mock)
-        pagos = [
-          { idPago: 1004, nombreCliente: 'Mathew Lara', nombrePlan: 'Plan Diario', monto: 5.00, fechaPago: '2026-03-13', metodoPago: 'Efectivo' },
-          { idPago: 1005, nombreCliente: 'Ana Gómez', nombrePlan: 'Plan Mensual', monto: 30.00, fechaPago: '2026-03-13', metodoPago: 'Tarjeta' }
-        ];
-      }
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos');
 
-      let filas = pagos.map(p => `
-        <tr>
-          <td class="text-light fw-bold">#${p.idPago || p.id}</td>
-          <td class="text-white">${p.nombreCliente || p.cliente}</td>
-          <td class="text-info">${p.nombrePlan || p.plan}</td>
-          <td class="text-success fw-bold">+$${parseFloat(p.monto || p.total || 0).toFixed(2)}</td>
-          <td class="text-muted">${p.fechaPago || p.fecha}</td>
-          <td><span class="badge bg-secondary">${p.metodoPago || p.metodo}</span></td>
-        </tr>
-      `).join('');
+      if (res.ok) {
+        const pagos = await res.json();
+        const nombresPlanes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
 
-      if (filas === '') filas = `<tr><td colspan="6" class="text-center py-4 text-white">Caja vacía. No hay transacciones.</td></tr>`;
+        let filas = pagos.map(p => `
+          <tr>
+            <td class="text-light fw-bold">#${1000 + p.id_pago}</td>
+            <td class="text-white">${p.socio}</td>
+            <td class="text-info">${nombresPlanes[p.id_plan] || 'Membresía'}</td>
+            <td class="text-success fw-bold">+$${parseFloat(p.monto).toFixed(2)}</td>
+            <td class="text-muted">${p.fecha}</td>
+            <td><span class="badge bg-secondary">${p.metodo}</span></td>
+          </tr>
+        `).join('');
 
-      contenedorDinamico.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h4 class="text-white m-0">Historial de Caja (Recepción)</h4>
-          <button class="btn btn-success fw-bold" onclick="abrirModalPago()">
-            <i class="bi bi-cash-coin"></i> Nuevo Pago
-          </button>
-        </div>
-        <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <div class="table-responsive">
-            <table class="table table-dark table-hover mb-0 align-middle">
-              <thead class="text-white border-secondary">
-                <tr>
-                  <th>N° RECIBO</th>
-                  <th>SOCIO</th>
-                  <th>PLAN</th>
-                  <th>MONTO</th>
-                  <th>FECHA</th>
-                  <th>MÉTODO</th>
-                </tr>
-              </thead>
-              <tbody>${filas}</tbody>
-            </table>
+        if (filas === '') filas = `<tr><td colspan="6" class="text-center py-4 text-white">Caja vacía. No hay transacciones.</td></tr>`;
+
+        contenedorDinamico.innerHTML = `
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <h4 class="text-white m-0">Historial de Caja (Recepción)</h4>
+            <button class="btn btn-success fw-bold" onclick="abrirModalPago()">
+              <i class="bi bi-cash-coin"></i> Nuevo Pago
+            </button>
           </div>
-        </div>
-      `;
+          <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="text-white border-secondary">
+                  <tr>
+                    <th>N° RECIBO</th>
+                    <th>SOCIO</th>
+                    <th>PLAN</th>
+                    <th>MONTO</th>
+                    <th>FECHA / HORA</th>
+                    <th>MÉTODO</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
     } catch (e) {
-      contenedorDinamico.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con finanzas.</h5>';
+      contenedorDinamico.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con la base de datos de pagos.</h5>';
     }
   }
 }
 
 // ==========================================
-// FUNCIONES DE CÁMARA QR (IGUALES)
+// FUNCIONES DE CÁMARA QR
 // ==========================================
 function iniciarEscanerQR() {
   if (escanerCamara) return;
@@ -353,10 +349,9 @@ async function guardarUsuario() {
 }
 
 // ==========================================
-// FUNCIONES DEL MODAL DE PAGOS
+// FUNCIONES DEL MODAL DE PAGOS (CONECTADO A BDD)
 // ==========================================
 async function abrirModalPago() {
-  // 1. Cargar lista de clientes para el select
   const selectSocio = document.getElementById('pagoSocio');
   selectSocio.innerHTML = '<option value="" disabled selected>Cargando socios...</option>';
 
@@ -367,13 +362,16 @@ async function abrirModalPago() {
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
 
       if(clientes.length > 0) {
-        selectSocio.innerHTML = clientes.map(c => `<option value="${c.id}">${c.nombre} ${c.apellido} (@${c.usuario})</option>`).join('');
+        selectSocio.innerHTML = '<option value="" disabled selected>Seleccione un socio activo...</option>';
+        clientes.forEach(c => {
+          selectSocio.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido} (@${c.usuario})</option>`;
+        });
       } else {
         selectSocio.innerHTML = '<option value="" disabled selected>No hay socios activos</option>';
       }
     }
   } catch(e) {
-    selectSocio.innerHTML = '<option value="" disabled selected>Error de red</option>';
+    selectSocio.innerHTML = '<option value="" disabled selected>Error de red al cargar socios</option>';
   }
 
   const modalPagoInstance = new bootstrap.Modal(document.getElementById('modalPago'));
@@ -381,25 +379,52 @@ async function abrirModalPago() {
   modalPagoInstance.show();
 }
 
-function procesarPago() {
+async function procesarPago() {
   const socio = document.getElementById('pagoSocio').value;
   const plan = document.getElementById('pagoPlan').value;
   const metodo = document.getElementById('pagoMetodo').value;
 
   if(!socio) {
-    alert("Por favor, selecciona un socio válido.");
+    alert("Por favor, selecciona un socio válido para proceder con el cobro.");
     return;
   }
 
-  // Simulación de procesamiento (Aquí iría el Fetch POST al backend real de pagos)
-  alert(`¡Pago procesado exitosamente!\n\nMétodo: ${metodo}\nPlan ID: ${plan}\n\nEl acceso del cliente ha sido renovado en el sistema.`);
+  // Precios estandarizados según el HTML del plan
+  const precios = { "1": 5.00, "2": 30.00, "3": 50.00, "4": 300.00 };
+  const montoCalculado = precios[plan];
 
-  const modalElement = document.getElementById('modalPago');
-  const modalInstance = bootstrap.Modal.getInstance(modalElement);
-  if(modalInstance) modalInstance.hide();
+  const payload = {
+    idCliente: parseInt(socio),
+    idPlan: parseInt(plan),
+    monto: montoCalculado,
+    metodo: metodo
+  };
 
-  // Recargar la vista actual para simular actualización
-  const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
-  if(moduloActivo.includes('pago')) cargarModulo('pagos');
-  else cargarModulo('resumen');
+  try {
+    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(res.ok && data.status === 'ok') {
+      alert(`¡Pago procesado correctamente!\n\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
+
+      const modalElement = document.getElementById('modalPago');
+      const modalInstance = bootstrap.Modal.getInstance(modalElement);
+      if(modalInstance) modalInstance.hide();
+
+      // Refrescamos la vista actual (Pagos o Dashboard principal)
+      const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
+      if(moduloActivo.includes('pago')) cargarModulo('pagos');
+      else cargarModulo('resumen');
+
+    } else {
+      alert("No se pudo procesar: " + data.mensaje);
+    }
+  } catch(e) {
+    alert("Error de conexión con el servidor al procesar el pago.");
+  }
 }
