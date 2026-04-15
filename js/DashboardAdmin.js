@@ -1,4 +1,10 @@
 // ==========================================
+// VARIABLES GLOBALES
+// ==========================================
+let modalUsuarioInstance = null;
+let modalPagoInstance = null;
+
+// ==========================================
 // FUNCIÓN PARA CERRAR SESIÓN (CORREGIDA)
 // ==========================================
 function cerrarSesion() {
@@ -152,37 +158,30 @@ async function cargarModulo(modulo, elementoHTML) {
     }
 
     // ==========================================
-    // NUEVO: MÓDULO DE PAGOS
+    // MÓDULO DE PAGOS (CONECTADO A BDD REAL)
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando historial de pagos...</p></div>';
 
     try {
-      // Ajusta esta URL si el backend de pagos se llama diferente
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
       let pagos = [];
 
       if (res.ok) {
         pagos = await res.json();
-      } else {
-        // Datos de prueba (Mock) en caso de que la API de pagos aún no esté creada en Java
-        pagos = [
-          { idPago: 1001, nombreCliente: 'Mathew Lara', nombrePlan: 'Plan Anual Black', monto: 299.99, fechaPago: '2026-03-12', metodoPago: 'Tarjeta de Crédito' },
-          { idPago: 1002, nombreCliente: 'Ana Gómez', nombrePlan: 'Plan Mensual Estándar', monto: 29.99, fechaPago: '2026-03-10', metodoPago: 'Efectivo' },
-          { idPago: 1003, nombreCliente: 'Carlos Ruiz', nombrePlan: 'Plan Semestral', monto: 150.00, fechaPago: '2026-03-08', metodoPago: 'Transferencia' }
-        ];
-        console.warn("Endpoint de pagos devolvió error, usando datos de prueba (Mock Data).");
       }
+
+      const planes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
 
       let filas = pagos.map(p => `
         <tr>
-          <td class="text-light fw-bold">#${p.idPago || p.id}</td>
-          <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.nombreCliente || p.cliente}</td>
-          <td class="text-info">${p.nombrePlan || p.plan}</td>
-          <td class="text-warning fw-bold">$${parseFloat(p.monto || p.total || 0).toFixed(2)}</td>
-          <td class="text-muted">${p.fechaPago || p.fecha}</td>
-          <td><span class="badge bg-secondary">${p.metodoPago || p.metodo || 'N/A'}</span></td>
+          <td class="text-light fw-bold">#${1000 + (p.id_pago || 0)}</td>
+          <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Desconocido'}</td>
+          <td class="text-info">${planes[p.id_plan] || 'Membresía'}</td>
+          <td class="text-warning fw-bold">$${parseFloat(p.monto || 0).toFixed(2)}</td>
+          <td class="text-muted">${p.fecha || 'N/A'}</td>
+          <td><span class="badge bg-secondary">${p.metodo || 'N/A'}</span></td>
           <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span></td>
         </tr>
       `).join('');
@@ -192,11 +191,14 @@ async function cargarModulo(modulo, elementoHTML) {
       }
 
       contenedorDinamico.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
           <h4 class="text-white m-0">Historial de Transacciones</h4>
-          <button class="btn btn-outline-warning fw-bold" onclick="alert('Funcionalidad de exportación en desarrollo')">
-            <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
-          </button>
+          <div>
+            <button class="btn btn-success fw-bold me-2" onclick="abrirModalPago()"><i class="bi bi-plus-circle"></i> Nuevo Pago</button>
+            <button class="btn btn-outline-warning fw-bold" onclick="alert('Funcionalidad de exportación en desarrollo')">
+              <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
+            </button>
+          </div>
         </div>
         <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
           <div class="table-responsive">
@@ -366,9 +368,19 @@ async function cargarModulo(modulo, elementoHTML) {
   }
 }
 
+// ==========================================
+// INICIALIZACIÓN
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard cargado.");
   cargarModulo('resumen');
+
+  // Inicializamos los modales
+  const elModalUsr = document.getElementById('modalUsuario');
+  if(elModalUsr) modalUsuarioInstance = new bootstrap.Modal(elModalUsr);
+
+  const elModalPago = document.getElementById('modalPago');
+  if(elModalPago) modalPagoInstance = new bootstrap.Modal(elModalPago);
 });
 
 async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
@@ -390,16 +402,14 @@ async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
 }
 
 // ==========================================
-// MODAL DE CREACIÓN Y EDICIÓN
+// MODAL DE CREACIÓN Y EDICIÓN (USUARIOS)
 // ==========================================
-const myModal = new bootstrap.Modal(document.getElementById('modalUsuario'));
-
 function abrirModalNuevo() {
   document.getElementById('formUsuario').reset();
   document.getElementById('userId').value = '';
   document.getElementById('modalTitulo').innerText = 'Nuevo Usuario';
   document.getElementById('passHint').innerText = '(Obligatoria)';
-  myModal.show();
+  if(modalUsuarioInstance) modalUsuarioInstance.show();
 }
 
 function abrirModalEditar(id, usuario, nombre, apellido, rolTexto, email, telefono) {
@@ -417,7 +427,7 @@ function abrirModalEditar(id, usuario, nombre, apellido, rolTexto, email, telefo
 
   document.getElementById('modalTitulo').innerText = 'Editar Usuario #' + id;
   document.getElementById('passHint').innerText = '(Déjela en blanco para no cambiarla)';
-  myModal.show();
+  if(modalUsuarioInstance) modalUsuarioInstance.show();
 }
 
 async function guardarUsuario() {
@@ -452,7 +462,7 @@ async function guardarUsuario() {
     });
 
     if (res.ok) {
-      myModal.hide();
+      if(modalUsuarioInstance) modalUsuarioInstance.hide();
       const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
 
       if(moduloActivo.includes('cliente')) cargarModulo('clientes');
@@ -465,5 +475,86 @@ async function guardarUsuario() {
     }
   } catch (e) {
     alert('Error conectando al servidor.');
+  }
+}
+
+// ==========================================
+// MODAL DE REGISTRO DE PAGOS (NUEVO)
+// ==========================================
+async function abrirModalPago() {
+  const selectSocio = document.getElementById('pagoSocio');
+
+  if (!selectSocio) {
+    alert("¡Falta el HTML del Modal de Pagos! Asegúrate de pegarlo en DashboardAdmin.html");
+    return;
+  }
+
+  selectSocio.innerHTML = '<option value="" disabled selected>Cargando socios...</option>';
+  if(modalPagoInstance) modalPagoInstance.show();
+
+  try {
+    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+    if(res.ok) {
+      const usuarios = await res.json();
+      const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
+
+      if(clientes.length > 0) {
+        selectSocio.innerHTML = '<option value="" disabled selected>Seleccione un socio activo...</option>';
+        clientes.forEach(c => {
+          selectSocio.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido} (@${c.usuario})</option>`;
+        });
+      } else {
+        selectSocio.innerHTML = '<option value="" disabled selected>No hay socios activos</option>';
+      }
+    }
+  } catch(e) {
+    selectSocio.innerHTML = '<option value="" disabled selected>Error al cargar socios</option>';
+  }
+}
+
+async function procesarPago() {
+  const socio = document.getElementById('pagoSocio').value;
+  const plan = document.getElementById('pagoPlan').value;
+  const metodo = document.getElementById('pagoMetodo').value;
+
+  if(!socio) {
+    alert("Por favor, selecciona un socio válido para proceder con el cobro.");
+    return;
+  }
+
+  const precios = { "1": 5.00, "2": 30.00, "3": 50.00, "4": 300.00 };
+  const montoCalculado = precios[plan];
+
+  const payload = {
+    idCliente: parseInt(socio),
+    idPlan: parseInt(plan),
+    monto: montoCalculado,
+    metodo: metodo
+  };
+
+  try {
+    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(res.ok && data.status === 'ok') {
+      alert(`¡Pago registrado exitosamente!\\n\\nMonto ingresado: $${montoCalculado.toFixed(2)}`);
+
+      if(modalPagoInstance) modalPagoInstance.hide();
+
+      const form = document.getElementById('formPago');
+      if (form) form.reset();
+
+      cargarModulo('pagos');
+
+    } else {
+      alert("No se pudo registrar el pago: " + (data.mensaje || "Error en el servidor"));
+    }
+  } catch(e) {
+    alert("Error de conexión al procesar el pago.");
   }
 }
