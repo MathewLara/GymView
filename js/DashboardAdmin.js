@@ -57,14 +57,19 @@ async function cargarModulo(modulo, elementoHTML) {
 
         if (tbody && data.ultimosAccesos && data.ultimosAccesos.length > 0) {
           tbody.innerHTML = data.ultimosAccesos.map(acc => {
-            const colorEstado = acc.estado.toLowerCase().includes('exito') ? 'bg-success' : 'bg-danger';
+            const colorEstado = acc.estado && acc.estado.toLowerCase().includes('exito') ? 'bg-success' : 'bg-danger';
+
+            // Forzamos a que lea acc.hora (así se llama en Java)
+            const horaMostrar = acc.hora ? acc.hora : '---';
+            const ipMostrar = acc.ip ? acc.ip : '---';
+
             return `
                 <tr>
-                    <td class="fw-bold text-warning"><i class="bi bi-person-circle"></i> ${acc.usuario}</td>
-                    <td><span class="badge bg-secondary">${acc.rol}</span></td>
-                    <td class="text-white">${acc.hora}</td>
-                    <td class="text-info">${acc.ip}</td>
-                    <td><span class="badge ${colorEstado}">${acc.estado}</span></td>
+                    <td class="fw-bold text-warning"><i class="bi bi-person-circle"></i> ${acc.usuario || 'Desconocido'}</td>
+                    <td><span class="badge bg-secondary">${acc.rol || 'N/A'}</span></td>
+                    <td class="text-white fw-bold">${horaMostrar}</td>
+                    <td class="text-info fw-bold">${ipMostrar}</td>
+                    <td><span class="badge ${colorEstado}">${acc.estado || 'N/A'}</span></td>
                 </tr>
             `;
           }).join('');
