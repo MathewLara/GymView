@@ -67,7 +67,7 @@ async function cargarModulo(modulo, elementoHTML) {
                 <tr>
                     <td class="fw-bold text-warning"><i class="bi bi-person-circle"></i> ${acc.usuario || 'Desconocido'}</td>
                     <td><span class="badge bg-secondary">${acc.rol || 'N/A'}</span></td>
-                    <td class="text-white fw-bold">${horaMostrar}</td>
+                    <td class="text-white fw-bold">${acc.horaIngreso || '---'}</td>
                     <td class="text-info fw-bold">${ipMostrar}</td>
                     <td><span class="badge ${colorEstado}">${acc.estado || 'N/A'}</span></td>
                 </tr>
