@@ -57,7 +57,7 @@ async function cargarModulo(modulo, elementoHTML) {
 
             return `
                 <tr>
-                  <td class="text-muted fw-bold">${act.hora}</td>
+                  <td class="text-white fw-bold">${act.hora}</td>
                   <td>${icono} ${act.tipo}</td>
                   <td class="text-white fw-bold">${act.cliente}</td>
                   <td class="text-muted">Gimnasio</td>
@@ -226,7 +226,6 @@ async function cargarModulo(modulo, elementoHTML) {
     }
   }
 }
-
 // ==========================================
 // FUNCIONES DE CÁMARA QR
 // ==========================================
