@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Ejecutar la carga de datos del servidor
   cargarDatos(idUsar);
 });
-
 // ==========================================
 // 2. CARGA DE DATOS DESDE EL BACKEND
 // ==========================================
@@ -55,14 +54,32 @@ async function cargarDatos(id) {
 
       // Validar si mostrar el aviso de vencimiento (3 días antes)
       if (data.fechaVencimiento) {
-        verificarVencimiento(data.fechaVencimiento);
+        if (typeof verificarVencimiento === 'function') {
+          verificarVencimiento(data.fechaVencimiento);
+        }
       }
 
-      // C. Llenar tabla de Historial de Asistencias
+      // C. Llenar tabla de Historial de Asistencias (¡AQUÍ ESTÁ LA MAGIA DE LA HORA DE SALIDA!)
       const tabla = document.getElementById('tabla-asistencias');
-      tabla.innerHTML = data.historialAsistencias.length ?
-        data.historialAsistencias.map(a => `<tr><td>${a.fecha}</td><td class="text-success">${a.hora}</td></tr>`).join('') :
+      tabla.innerHTML = data.historialAsistencias && data.historialAsistencias.length ?
+        data.historialAsistencias.map(a => `
+          <tr>
+            <td class="text-white align-middle">${a.fecha}</td>
+            <td>
+              <div class="text-success fw-bold"><i class="bi bi-box-arrow-in-right"></i> Entrada: ${a.hora || '--:--'}</div>
+              <div class="text-info fw-bold"><i class="bi bi-box-arrow-right"></i> Salida: ${a.hora_salida || '--:--'}</div>
+            </td>
+          </tr>
+        `).join('') :
         '<tr><td colspan="2" class="text-center text-muted">Sin registros</td></tr>';
+
+      // (OPCIONAL) Si agregaste los textos sueltos en las tarjetas, esto los pone en blanco:
+      const elUltimo = document.getElementById('m-ultimo');
+      if (elUltimo) { elUltimo.textContent = data.ultimoIngreso || '--:--'; elUltimo.className = 'text-white fw-bold'; }
+
+      const elSalida = document.getElementById('m-salida');
+      if (elSalida) { elSalida.textContent = data.ultimaSalida || '--:--'; elSalida.className = 'text-info fw-bold'; }
+
 
       // D. GENERAR RUTINA INTERACTIVA (Checkboxes)
       const divRutina = document.getElementById('rutina-container');
@@ -107,9 +124,11 @@ async function cargarDatos(id) {
           // Si el servidor confirma que ya terminó la rutina hoy, bloquear controles
           if (data.rutinaTerminadaHoy) {
             const btn = document.getElementById('btnFinalizar');
-            btn.disabled = true;
-            btn.textContent = "¡YA ENTRENASTE HOY!";
-            btn.classList.replace('btn-success', 'btn-secondary');
+            if (btn) {
+              btn.disabled = true;
+              btn.textContent = "¡YA ENTRENASTE HOY!";
+              btn.classList.replace('btn-success', 'btn-secondary');
+            }
 
             // Marcar todos los checkboxes visualmente como terminados
             document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
@@ -120,7 +139,7 @@ async function cargarDatos(id) {
         }
       } else {
         // Mensaje si no tiene rutina asignada
-        divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
+        if (divRutina) divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
       }
     } else {
       console.warn("El servidor rechazó la petición. Posible sesión inválida.");
