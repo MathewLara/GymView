@@ -1,10 +1,4 @@
 // ==========================================
-// VARIABLES GLOBALES
-// ==========================================
-let modalUsuarioInstance = null;
-let modalPagoInstance = null;
-
-// ==========================================
 // FUNCIÓN PARA CERRAR SESIÓN (CORREGIDA)
 // ==========================================
 function cerrarSesion() {
@@ -19,7 +13,8 @@ function cerrarSesion() {
 async function cargarModulo(modulo, elementoHTML) {
   const tituloMap = {
     'resumen': 'Panel de Control Gerencial',
-    'pagos': 'Historial de Facturación'
+    'pagos': 'Historial de Facturación',
+    'reportes': 'Reportes Gerenciales'
   };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
 
@@ -32,6 +27,9 @@ async function cargarModulo(modulo, elementoHTML) {
   const vistaResumen = document.getElementById('vista-resumen');
   const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
 
+  // ==========================================
+  // VISTA RESUMEN (DASHBOARD INICIAL)
+  // ==========================================
   if (modulo === 'resumen') {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
@@ -124,7 +122,7 @@ async function cargarModulo(modulo, elementoHTML) {
         `}).join('');
 
         if (filas === '') {
-          filas = `<tr><td colspan="8" class="text-center py-4 text-white">No hay registros en esta categoría.</td></tr>`;
+          filas = `<tr><td colspan=\"8\" class=\"text-center py-4 text-white\">No hay registros en esta categoría.</td></tr>`;
         }
 
         contenedorDinamico.innerHTML = `
@@ -158,7 +156,7 @@ async function cargarModulo(modulo, elementoHTML) {
     }
 
     // ==========================================
-    // MÓDULO DE PAGOS (CONECTADO A BDD REAL)
+    // MÓDULO DE PAGOS (CONECTADO A LA BDD)
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
@@ -166,67 +164,64 @@ async function cargarModulo(modulo, elementoHTML) {
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
-      let pagos = [];
 
       if (res.ok) {
-        pagos = await res.json();
-      }
+        const pagos = await res.json();
+        const nombresPlanes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
 
-      const planes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
+        let filas = pagos.map(p => `
+          <tr>
+            <td class="text-light fw-bold">#${1000 + (p.id_pago || 0)}</td>
+            <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Usuario'}</td>
+            <td class="text-info">${nombresPlanes[p.id_plan] || 'Membresía'}</td>
+            <td class="text-success fw-bold">+$${parseFloat(p.monto).toFixed(2)}</td>
+            <td class="text-muted">${p.fecha}</td>
+            <td><span class="badge bg-secondary">${p.metodo}</span></td>
+            <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span></td>
+          </tr>
+        `).join('');
 
-      let filas = pagos.map(p => `
-        <tr>
-          <td class="text-light fw-bold">#${1000 + (p.id_pago || 0)}</td>
-          <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Desconocido'}</td>
-          <td class="text-info">${planes[p.id_plan] || 'Membresía'}</td>
-          <td class="text-warning fw-bold">$${parseFloat(p.monto || 0).toFixed(2)}</td>
-          <td class="text-muted">${p.fecha || 'N/A'}</td>
-          <td><span class="badge bg-secondary">${p.metodo || 'N/A'}</span></td>
-          <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span></td>
-        </tr>
-      `).join('');
+        if (filas === '') {
+          filas = `<tr><td colspan="7" class="text-center py-4 text-white">No hay transacciones registradas.</td></tr>`;
+        }
 
-      if (filas === '') {
-        filas = `<tr><td colspan="7" class="text-center py-4 text-white">No hay transacciones registradas.</td></tr>`;
-      }
-
-      contenedorDinamico.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-          <h4 class="text-white m-0">Historial de Transacciones</h4>
-          <div>
-            <button class="btn btn-success fw-bold me-2" onclick="abrirModalPago()"><i class="bi bi-plus-circle"></i> Nuevo Pago</button>
-            <button class="btn btn-outline-warning fw-bold" onclick="alert('Funcionalidad de exportación en desarrollo')">
-              <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
-            </button>
+        contenedorDinamico.innerHTML = `
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h4 class="text-white m-0">Historial de Transacciones</h4>
+            <div>
+              <button class="btn btn-success fw-bold me-2" onclick="abrirModalPago()"><i class="bi bi-plus-circle"></i> Nuevo Pago</button>
+              <button class="btn btn-outline-warning fw-bold" onclick="alert('Funcionalidad de exportación en desarrollo')">
+                <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
-          <div class="table-responsive">
-            <table class="table table-dark table-hover mb-0 align-middle">
-              <thead class="text-white border-secondary">
-                <tr>
-                  <th>N° RECIBO</th>
-                  <th>SOCIO</th>
-                  <th>MEMBRESÍA</th>
-                  <th>MONTO</th>
-                  <th>FECHA</th>
-                  <th>MÉTODO DE PAGO</th>
-                  <th>ESTADO</th>
-                </tr>
-              </thead>
-              <tbody>${filas}</tbody>
-            </table>
+          <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="text-white border-secondary">
+                  <tr>
+                    <th>N° RECIBO</th>
+                    <th>SOCIO</th>
+                    <th>MEMBRESÍA</th>
+                    <th>MONTO</th>
+                    <th>FECHA</th>
+                    <th>MÉTODO DE PAGO</th>
+                    <th>ESTADO</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      `;
-
+        `;
+      }
     } catch (error) {
       console.error(error);
       contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error al conectar con la base de datos financiera.</div>';
     }
 
     // ==========================================
-    // MÓDULO DE REPORTES GERENCIALES
+    // MÓDULO DE REPORTES GERENCIALES (CHART.JS)
     // ==========================================
   } else if (modulo === 'reportes') {
     vistaResumen.style.display = 'none';
@@ -371,17 +366,20 @@ async function cargarModulo(modulo, elementoHTML) {
 // ==========================================
 // INICIALIZACIÓN
 // ==========================================
+let modalUsuarioInstance;
+let modalPagoInstance;
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard cargado.");
   cargarModulo('resumen');
 
-  // Inicializamos los modales
-  const elModalUsr = document.getElementById('modalUsuario');
-  if(elModalUsr) modalUsuarioInstance = new bootstrap.Modal(elModalUsr);
-
-  const elModalPago = document.getElementById('modalPago');
-  if(elModalPago) modalPagoInstance = new bootstrap.Modal(elModalPago);
+  const modalEl = document.getElementById('modalUsuario');
+  if(modalEl) { modalUsuarioInstance = new bootstrap.Modal(modalEl); }
 });
+
+// ==========================================
+// FUNCIONES GLOBALES (USUARIOS Y PAGOS)
+// ==========================================
 
 async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
   if(!confirm(`¿Estás seguro de que deseas ${nuevoEstado ? 'activar' : 'desactivar'} este usuario?`)) return;
@@ -401,15 +399,12 @@ async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
   }
 }
 
-// ==========================================
-// MODAL DE CREACIÓN Y EDICIÓN (USUARIOS)
-// ==========================================
 function abrirModalNuevo() {
   document.getElementById('formUsuario').reset();
   document.getElementById('userId').value = '';
   document.getElementById('modalTitulo').innerText = 'Nuevo Usuario';
   document.getElementById('passHint').innerText = '(Obligatoria)';
-  if(modalUsuarioInstance) modalUsuarioInstance.show();
+  modalUsuarioInstance.show();
 }
 
 function abrirModalEditar(id, usuario, nombre, apellido, rolTexto, email, telefono) {
@@ -427,7 +422,7 @@ function abrirModalEditar(id, usuario, nombre, apellido, rolTexto, email, telefo
 
   document.getElementById('modalTitulo').innerText = 'Editar Usuario #' + id;
   document.getElementById('passHint').innerText = '(Déjela en blanco para no cambiarla)';
-  if(modalUsuarioInstance) modalUsuarioInstance.show();
+  modalUsuarioInstance.show();
 }
 
 async function guardarUsuario() {
@@ -462,7 +457,7 @@ async function guardarUsuario() {
     });
 
     if (res.ok) {
-      if(modalUsuarioInstance) modalUsuarioInstance.hide();
+      modalUsuarioInstance.hide();
       const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
 
       if(moduloActivo.includes('cliente')) cargarModulo('clientes');
@@ -478,19 +473,17 @@ async function guardarUsuario() {
   }
 }
 
-// ==========================================
-// MODAL DE REGISTRO DE PAGOS (NUEVO)
-// ==========================================
 async function abrirModalPago() {
   const selectSocio = document.getElementById('pagoSocio');
+  selectSocio.innerHTML = '<option value="" disabled selected>Cargando socios...</option>';
 
-  if (!selectSocio) {
-    alert("¡Falta el HTML del Modal de Pagos! Asegúrate de pegarlo en DashboardAdmin.html");
-    return;
+  if(!modalPagoInstance) {
+    const modalEl = document.getElementById('modalPago');
+    modalPagoInstance = new bootstrap.Modal(modalEl);
   }
 
-  selectSocio.innerHTML = '<option value="" disabled selected>Cargando socios...</option>';
-  if(modalPagoInstance) modalPagoInstance.show();
+  document.getElementById('formPago').reset();
+  modalPagoInstance.show();
 
   try {
     const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
@@ -508,7 +501,7 @@ async function abrirModalPago() {
       }
     }
   } catch(e) {
-    selectSocio.innerHTML = '<option value="" disabled selected>Error al cargar socios</option>';
+    selectSocio.innerHTML = '<option value="" disabled selected>Error de red al cargar socios</option>';
   }
 }
 
@@ -542,19 +535,15 @@ async function procesarPago() {
     const data = await res.json();
 
     if(res.ok && data.status === 'ok') {
-      alert(`¡Pago registrado exitosamente!\\n\\nMonto ingresado: $${montoCalculado.toFixed(2)}`);
+      alert(`¡Pago procesado correctamente!\n\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
 
-      if(modalPagoInstance) modalPagoInstance.hide();
-
-      const form = document.getElementById('formPago');
-      if (form) form.reset();
-
+      modalPagoInstance.hide();
       cargarModulo('pagos');
 
     } else {
-      alert("No se pudo registrar el pago: " + (data.mensaje || "Error en el servidor"));
+      alert("No se pudo procesar: " + data.mensaje);
     }
   } catch(e) {
-    alert("Error de conexión al procesar el pago.");
+    alert("Error de conexión con el servidor al procesar el pago.");
   }
 }
