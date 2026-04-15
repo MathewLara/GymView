@@ -2,12 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo | Iron Fitness</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Catálogo | Iron Fitness</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
   <link rel="stylesheet" href="css/catalogo.css">
 </head>
 <body>
@@ -17,31 +15,31 @@
     <a class="brand-logo" href="index.html">
       <i class="bi bi-lightning-fill"></i> Iron Fitness
     </a>
-    <button class="navbar-toggler bg-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <button class="navbar-toggler bg-secondary border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
+      <ul class="navbar-nav me-auto mt-3 mt-lg-0">
         <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
         <li class="nav-item"><a class="nav-link" href="index.html#instalaciones">Instalaciones</a></li>
         <li class="nav-item"><a class="nav-link" href="index.html#planes">Planes</a></li>
       </ul>
-      <div class="d-flex gap-2">
-        <a href="login.html" class="btn-socios">Zona Socios</a>
+      <div class="d-flex mt-3 mt-lg-0 pb-3 pb-lg-0">
+        <a href="login.html" class="btn-socios w-100 text-center">Zona Socios</a>
       </div>
     </div>
   </div>
 </nav>
 
-<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+<div class="container contenedor-principal">
 
-  <div class="row mb-4 align-items-center">
-    <div class="col-md-6">
-      <h2 class="text-white">Nuestro Catálogo</h2>
-      <p class="text-white-50">Explora nuestros productos y equipamiento.</p>
+  <div class="row mb-4 align-items-center text-center text-md-start">
+    <div class="col-md-5 col-lg-6 mb-3 mb-md-0">
+      <h2 class="text-white fw-bold">Nuestro Catálogo</h2>
+      <p class="text-white-50 mb-0">Explora nuestros productos y equipamiento.</p>
     </div>
-    <div class="col-md-6 d-flex justify-content-md-end">
-      <ul class="nav nav-pills" id="pills-tab">
+    <div class="col-md-7 col-lg-6 d-flex justify-content-center justify-content-md-end">
+      <ul class="nav nav-pills flex-wrap justify-content-center gap-2" id="pills-tab">
         <li class="nav-item"><button class="nav-link active" id="pills-todos-tab" onclick="filtrarProductos('todos')">Todos</button></li>
         <li class="nav-item"><button class="nav-link" id="pills-venta-tab" onclick="filtrarProductos('venta')">Tienda</button></li>
         <li class="nav-item"><button class="nav-link" id="pills-uso-tab" onclick="filtrarProductos('uso')">Equipamiento</button></li>
@@ -52,20 +50,19 @@
   <div class="row g-4" id="catalogo-container">
   </div>
 
-  <div class="text-center mt-5">
-    <a href="index.html" class="text-secondary text-decoration-none"><i class="bi bi-arrow-left"></i> Volver al Inicio</a>
+  <div class="text-center mt-5 pt-3 border-top border-secondary">
+    <a href="index.html" class="text-secondary text-decoration-none fw-bold"><i class="bi bi-arrow-left"></i> Volver al Inicio</a>
   </div>
 </div>
 
-<button class="btn btn-warning rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4 p-0 d-flex align-items-center justify-content-center"
-        style="z-index: 1050; width: 65px; height: 65px; border: 2px solid white;"
+<button class="btn btn-warning rounded-circle shadow-lg position-fixed bottom-0 end-0 m-3 m-md-4 p-0 d-flex align-items-center justify-content-center boton-carrito-flotante"
         data-bs-toggle="modal" data-bs-target="#modalCarrito" onclick="carritoController.renderizarModal()">
-  <i class="bi bi-cart-fill fs-3 text-dark"></i>
+  <i class="bi bi-cart-fill fs-4 text-dark"></i>
   <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light d-none">0</span>
 </button>
 
 <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
     <div class="modal-content bg-dark text-white border-secondary shadow-lg">
       <div class="modal-header border-secondary bg-black">
         <h5 class="modal-title fw-bold text-warning"><i class="bi bi-bag-check-fill me-2"></i> Tu Pedido</h5>
@@ -73,7 +70,7 @@
       </div>
 
       <div class="modal-body p-0">
-        <div id="carrito-items-container" class="p-3" style="max-height: 400px; overflow-y: auto;"></div>
+        <div id="carrito-items-container" class="p-2 p-sm-3"></div>
 
         <div id="carrito-vacio-msg" class="text-center py-5 d-none">
           <i class="bi bi-cart-x fs-1 text-secondary"></i>
@@ -82,15 +79,15 @@
         </div>
       </div>
 
-      <div class="modal-footer border-secondary bg-black d-flex justify-content-between">
-        <div class="text-start">
+      <div class="modal-footer border-secondary bg-black d-flex flex-column flex-sm-row justify-content-between gap-3">
+        <div class="text-center text-sm-start w-100 w-sm-auto">
           <small class="text-white-50 d-block">Total Estimado</small>
           <h3 class="fw-bold text-white mb-0">$<span id="carrito-total-label">0.00</span></h3>
         </div>
-        <div>
-          <button type="button" class="btn btn-outline-light me-2" onclick="carritoController.vaciar()">Vaciar</button>
-          <button type="button" class="btn btn-warning fw-bold px-4" onclick="carritoController.procesarPago()">
-            CONFIRMAR PEDIDO <i class="bi bi-arrow-right-circle-fill ms-2"></i>
+        <div class="d-flex gap-2 w-100 w-sm-auto">
+          <button type="button" class="btn btn-outline-light flex-grow-1 flex-sm-grow-0" onclick="carritoController.vaciar()">Vaciar</button>
+          <button type="button" class="btn btn-warning fw-bold flex-grow-1 flex-sm-grow-0" onclick="carritoController.procesarPago()">
+            PAGAR <i class="bi bi-arrow-right-circle-fill ms-1"></i>
           </button>
         </div>
       </div>
@@ -99,7 +96,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="js/catalogo.js"></script>
 
 </body>

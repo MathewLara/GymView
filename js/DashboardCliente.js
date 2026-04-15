@@ -4,20 +4,20 @@
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard cargado. Restricción de FrontEnd desactivada.");
 
-  // Intentamos obtener la sesión, si no existe, creamos un objeto "dummy"
-  // para que la interfaz no se rompa buscando el ID. Tu backend se encargará de lo real.
-  const sesion = sessionStorage.getItem('usuarioLogueado');
+  // CAMBIO APLICADO: Leer desde localStorage
+  const sesion = localStorage.getItem('usuarioLogueado');
   const usuario = sesion ? JSON.parse(sesion) : { usuario: 'Cliente', idUsuario: 1 };
 
   // Llenar datos básicos del header (arriba a la derecha)
-  document.getElementById('header-user').textContent = usuario.usuario;
-  document.getElementById('lbl-id').textContent = usuario.idUsuario;
+  document.getElementById('header-user').textContent = usuario.usuario || usuario.nombre;
+  document.getElementById('lbl-id').textContent = usuario.idUsuario || usuario.id;
 
   // Generar Código QR consumiendo una API pública usando el ID del cliente
-  document.getElementById('img-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=IRON_${usuario.idUsuario}`;
+  const idUsar = usuario.idUsuario || usuario.id || 1;
+  document.getElementById('img-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=IRON_${idUsar}`;
 
   // 2. Ejecutar la carga de datos del servidor
-  cargarDatos(usuario.idUsuario);
+  cargarDatos(idUsar);
 });
 
 // ==========================================
@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 async function cargarDatos(id) {
   try {
-    // Petición al backend para obtener los datos del dashboard del cliente
-    // Nota: Si tu backend maneja la sesión por cookie, puede que ya no necesites pasar el {id} en la URL
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${id}/dashboard`);
 
     if(res.ok) {
@@ -136,28 +134,25 @@ async function cargarDatos(id) {
 // 2.5 LÓGICA PARA VERIFICAR VENCIMIENTO
 // ==========================================
 function verificarVencimiento(fechaStr) {
-  // Asume que la fecha viene en formato YYYY-MM-DD
   const partes = fechaStr.split('-');
   if (partes.length !== 3) return;
 
-  // Crear objeto Date con la fecha de vencimiento
   const fechaVencimiento = new Date(partes[0], partes[1] - 1, partes[2]);
   const hoy = new Date();
 
-  // Normalizar horas para comparar solo días
   hoy.setHours(0, 0, 0, 0);
   fechaVencimiento.setHours(0, 0, 0, 0);
 
-  // Calcular diferencia en milisegundos y convertir a días
   const diferenciaMs = fechaVencimiento.getTime() - hoy.getTime();
   const diasRestantes = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
 
-  // Si faltan 3 días o menos, o si ya está vencida (días <= 0)
   if (diasRestantes <= 3) {
     document.getElementById('toast-fecha-vencimiento').textContent = fechaStr;
     const toastEl = document.getElementById('membresiaToast');
-    const toast = new bootstrap.Toast(toastEl);
-    toast.show();
+    if(toastEl) {
+      const toast = new bootstrap.Toast(toastEl);
+      toast.show();
+    }
   }
 }
 
@@ -175,16 +170,13 @@ function toggleEjercicio(index, userId) {
   let guardados = JSON.parse(localStorage.getItem(key)) || [];
 
   if (guardados.includes(index)) {
-    // Si estaba marcado, desmarcarlo
     guardados = guardados.filter(i => i !== index);
     card.classList.remove('ejercicio-completado');
   } else {
-    // Si no estaba marcado, marcarlo
     guardados.push(index);
     card.classList.add('ejercicio-completado');
   }
 
-  // Actualizar el estado en el navegador
   localStorage.setItem(key, JSON.stringify(guardados));
 }
 
@@ -192,13 +184,14 @@ function toggleEjercicio(index, userId) {
 // 4. LÓGICA DE FINALIZAR RUTINA (Petición al Servidor)
 // ==========================================
 async function finalizarRutina() {
-  // Evitamos que se rompa si no hay sessionStorage
-  const sesion = sessionStorage.getItem('usuarioLogueado');
+  // CAMBIO APLICADO: Leer desde localStorage
+  const sesion = localStorage.getItem('usuarioLogueado');
   const usuario = sesion ? JSON.parse(sesion) : { idUsuario: 1 };
+  const idUsar = usuario.idUsuario || usuario.id || 1;
 
   if(confirm("¿Estás seguro de que terminaste tu rutina por hoy?")) {
     try {
-      const url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${usuario.idUsuario}/completar`;
+      const url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/completar`;
 
       const res = await fetch(url, {
         method: 'POST',
@@ -226,15 +219,31 @@ async function finalizarRutina() {
 }
 
 // ==========================================
+// NUEVO: CONTROL DEL MENÚ RESPONSIVE
+// ==========================================
+function toggleMenu() {
+  document.querySelector('.sidebar').classList.toggle('mostrar');
+  document.querySelector('.overlay').classList.toggle('mostrar');
+}
+
+// ==========================================
 // 5. NAVEGACIÓN ENTRE PESTAÑAS (SPA)
 // ==========================================
 function ver(v, link) {
+  // Cambiar la vista activa
   document.querySelectorAll('.vista').forEach(e => e.classList.remove('activa'));
   document.getElementById('vista-'+v).classList.add('activa');
 
+  // Cambiar el enlace activo en el menú
   if(link) {
     document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
     link.classList.add('active');
+  }
+
+  // Si estamos en un dispositivo móvil, cerrar el menú automáticamente al hacer clic en un enlace
+  if (window.innerWidth <= 768) {
+    document.querySelector('.sidebar').classList.remove('mostrar');
+    document.querySelector('.overlay').classList.remove('mostrar');
   }
 }
 
@@ -243,8 +252,9 @@ function ver(v, link) {
 // ==========================================
 function salir() {
   if(confirm("¿Cerrar sesión?")) {
-    sessionStorage.removeItem('usuarioLogueado');
-    // Si el backend maneja cookies, probablemente debas hacer un fetch a /logout aquí antes de redirigir
+    // CAMBIO APLICADO: Destruir la sesión real en el localStorage
+    localStorage.removeItem('tokenGimnasio');
+    localStorage.removeItem('usuarioLogueado');
     window.location.href = 'index.html';
   }
 }
@@ -256,7 +266,6 @@ function cancelarSuscripcion() {
   const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu plan?\n\nTranquilo: podrás seguir ingresando al gimnasio normalmente hasta que se cumplan los días que ya pagaste.");
 
   if (confirmacion) {
-    // Cambiamos el botón para que parezca que ya se ejecutó la acción
     const btn = document.getElementById('btnCancelarSuscripcion');
     if(btn) {
       btn.classList.replace('btn-outline-danger', 'btn-secondary');
@@ -266,7 +275,6 @@ function cancelarSuscripcion() {
 
     alert("¡Suscripción cancelada exitosamente!\n\nTu acceso seguirá activo en el sistema, pero no te cobraremos el próximo mes.");
 
-    // Cambiar la etiqueta "Activo" visualmente a un aviso naranja para mayor realismo
     const badge = document.getElementById('m-estado');
     if(badge && (badge.textContent === "Activo" || badge.classList.contains('bg-success'))) {
       badge.textContent = "Activo (No se renovará)";

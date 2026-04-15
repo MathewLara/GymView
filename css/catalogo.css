@@ -12,7 +12,12 @@ body {
   background-color: var(--dark-bg);
   color: white;
   min-height: 100vh;
-  padding-bottom: 80px; /* Espacio reservado para que el botón flotante no tape el contenido */
+}
+
+/* Contenedor principal con espacio para no tapar navbar ni el botón de carrito */
+.contenedor-principal {
+  margin-top: 100px;
+  margin-bottom: 80px;
 }
 
 /* =========================================
@@ -53,6 +58,7 @@ body {
   padding: 0.4rem 1.5rem;
   transition: all 0.3s;
   text-decoration: none;
+  display: inline-block;
 }
 
 .btn-socios:hover {
@@ -66,7 +72,6 @@ body {
 .nav-pills .nav-link {
   color: var(--text-gray);
   background-color: #2c2c2c;
-  margin-right: 10px;
   border: 1px solid #444;
   transition: all 0.3s;
 }
@@ -93,7 +98,6 @@ body {
   flex-direction: column;
 }
 
-/* Efecto de elevación al pasar el ratón */
 .product-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(255, 193, 7, 0.15);
@@ -120,13 +124,52 @@ body {
   color: #fff;
 }
 
-.price-tag {
-  font-size: 1.5rem;
-  color: var(--primary-color);
-  font-weight: bold;
-  margin-top: 1rem;
+/* Botón flotante Base */
+.boton-carrito-flotante {
+  width: 65px;
+  height: 65px;
+  border: 2px solid white;
+  z-index: 1050;
 }
 
 /* Animación de aparición suave para los productos */
 .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =========================================
+   MEDIA QUERIES (MÓVILES Y TABLETS)
+   ========================================= */
+@media (max-width: 767.98px) {
+
+  .contenedor-principal {
+    margin-top: 80px; /* Menos espacio arriba en móviles */
+  }
+
+  /* Ajustar imágenes para móviles para que no sean tan altas */
+  .card-img-top {
+    height: 160px;
+  }
+
+  /* Botón carrito ligeramente más pequeño en celulares */
+  .boton-carrito-flotante {
+    width: 55px;
+    height: 55px;
+  }
+
+  .boton-carrito-flotante i {
+    font-size: 1.25rem !important; /* Ajustar el icono interior */
+  }
+
+  /* Textos de items en carrito más pequeños para no desbordar */
+  #carrito-items-container h6 {
+    font-size: 0.95rem;
+  }
+  #carrito-items-container small {
+    font-size: 0.8rem;
+  }
+
+  /* Arreglar el nav-link dentro del sidebar colapsado */
+  .nav-link {
+    margin-left: 0;
+  }
+}

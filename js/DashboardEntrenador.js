@@ -1,22 +1,38 @@
 let globalData = null;
 
-// ID fijo para que las rutas del API funcionen sin necesidad de iniciar sesión
+// ID fijo para que funcione directo sin iniciar sesión
 const idEntrenador = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // --- RESTRICCIÓN DE SESIÓN DESACTIVADA TEMPORALMENTE ---
-  /*
-  const token = localStorage.getItem('tokenGimnasio');
+  console.log("Dashboard Entrenador cargado. Modo Desarrollo (Sin Sesión).");
 
-  if (!token) {
+  // -- RESTRICCIÓN DE SESIÓN DESACTIVADA --
+  /*
+  const sesion = localStorage.getItem('usuarioLogueado');
+  if (!sesion) {
     window.location.href = 'index.html';
-    return; // Detiene la ejecución si no hay token
+    return;
   }
   */
 
-  // Procede a cargar el dashboard directamente
   cargarDashboard(idEntrenador);
 });
+
+// ==========================================
+// NUEVO: CONTROL DEL MENÚ RESPONSIVE
+// ==========================================
+function toggleMenu() {
+  document.getElementById('sidebarCoach').classList.toggle('mostrar');
+  document.querySelector('.overlay').classList.toggle('mostrar');
+}
+
+function salir() {
+  if(confirm("¿Seguro que deseas cerrar sesión?")) {
+    localStorage.removeItem('tokenGimnasio');
+    localStorage.removeItem('usuarioLogueado');
+    window.location.href = 'index.html';
+  }
+}
 
 async function cargarDashboard(id) {
   try {
@@ -36,7 +52,7 @@ async function cargarDashboard(id) {
                       <td>
                           <div class="d-flex align-items-center">
                               <div class="rounded-circle me-3 d-flex justify-content-center align-items-center text-white fw-bold"
-                                   style="width:35px;height:35px; background-color: ${al.terminoHoy ? '#198754' : '#6c757d'};">
+                                   style="width:35px;height:35px; background-color: ${al.terminoHoy ? '#198754' : '#6c757d'}; flex-shrink: 0;">
                                    ${al.terminoHoy ? '<i class="bi bi-check-lg"></i>' : al.nombre.charAt(0)}
                               </div>
                               <div>${al.nombre} ${al.terminoHoy ? '<span class="badge bg-success ms-2">¡TERMINÓ!</span>' : ''}</div>
@@ -73,12 +89,12 @@ function renderizarRutinas() {
   }
 
   lista.innerHTML = filtradas.map(r => `
-          <div class="list-group-item bg-black text-white border-secondary mb-3 p-3 d-flex justify-content-between align-items-center rounded">
+          <div class="list-group-item bg-black text-white border-secondary mb-3 p-3 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center rounded gap-2">
               <div>
                   <h6 class="mb-1 text-warning">${r.nombre}</h6>
                   <small class="text-light">${verPapelera ? 'ELIMINADA' : 'ACTIVA'}</small>
               </div>
-              <div>
+              <div class="d-flex w-100 w-sm-auto justify-content-end mt-2 mt-sm-0">
                   ${verPapelera
     ? `<button class="btn btn-sm btn-outline-success" onclick="reactivar(${r.id})"><i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar</button>`
     : `<button class="btn btn-sm btn-outline-info me-2" onclick="prepararEdicion(${r.id})"><i class="bi bi-pencil"></i></button>
@@ -145,11 +161,11 @@ async function guardarRutina() {
 
   if(!payload.nombreRutina || payload.idsEjercicios.length === 0) { alert("Completa los datos"); return; }
 
-  let url = `http://localhost:8080/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina`;
+  let url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina`;
   let metodo = 'POST';
 
   if(idRutina) {
-    url = `http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${idRutina}`;
+    url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${idRutina}`;
     metodo = 'PUT';
   }
 
@@ -163,7 +179,7 @@ async function guardarRutina() {
 async function desactivar(id) {
   if(confirm("¿Mover a papelera?")) {
     try {
-      await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
+      await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
       location.reload();
     } catch(e) { console.error("Error al eliminar:", e); }
   }
@@ -172,7 +188,7 @@ async function desactivar(id) {
 async function reactivar(id) {
   if(confirm("¿Restaurar rutina?")) {
     try {
-      await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
+      await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
       location.reload();
     } catch(e) { console.error("Error al restaurar:", e); }
   }
@@ -191,6 +207,12 @@ function ver(vista, btn) {
     btn.classList.add('active');
   }
 
+  // MODIFICADO: Esconder menú en celular al hacer clic
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebarCoach').classList.remove('mostrar');
+    document.querySelector('.overlay').classList.remove('mostrar');
+  }
+
   if(vista === 'agenda') {
     actualizarFecha();
     cargarAgenda(idEntrenador);
@@ -206,7 +228,7 @@ function actualizarFecha() {
 
 async function cargarAgenda(id) {
   try {
-    const res = await fetch(`http://localhost:8080/Gimnasio/api/entrenadores/${id}/agenda`);
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/agenda`);
     if(res.ok) {
       const agenda = await res.json();
       const cont = document.getElementById('lista-agenda-hoy');
@@ -217,9 +239,9 @@ async function cargarAgenda(id) {
         cont.innerHTML = agenda.map(item => {
           if(item.terminoHoy) c++; else p++;
           return `
-                      <div class="d-flex justify-content-between align-items-center p-3 mb-3 bg-black border-start border-4 ${item.terminoHoy?'border-success':'border-secondary'} rounded">
+                      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center p-3 mb-3 bg-black border-start border-4 ${item.terminoHoy?'border-success':'border-secondary'} rounded gap-2">
                           <div><h6 class="mb-1 ${item.terminoHoy?'text-success':'text-white'}">${item.nombre}</h6><small class="text-light">${item.rutina}</small></div>
-                          <span class="badge ${item.terminoHoy?'bg-success':'bg-dark border border-secondary text-light'}">${item.terminoHoy?'COMPLETADO':'PENDIENTE'}</span>
+                          <span class="badge ${item.terminoHoy?'bg-success':'bg-dark border border-secondary text-light'} align-self-end align-self-sm-center">${item.terminoHoy?'COMPLETADO':'PENDIENTE'}</span>
                       </div>`;
         }).join('');
       }
@@ -227,12 +249,4 @@ async function cargarAgenda(id) {
       document.getElementById('count-pend').textContent = p;
     }
   } catch(e) { console.error("Error al cargar la agenda:", e); }
-}
-
-function salir() {
-  if(confirm("¿Seguro que deseas cerrar sesión?")) {
-    localStorage.removeItem('tokenGimnasio');
-    sessionStorage.removeItem('usuarioLogueado');
-    window.location.href='index.html';
-  }
 }

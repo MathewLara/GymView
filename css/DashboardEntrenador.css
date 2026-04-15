@@ -3,12 +3,17 @@
   --bg: #121212;
   --card: #1e1e1e;
 }
+
 body {
   background-color: var(--bg);
   color: white;
   font-family: sans-serif;
   overflow-x: hidden;
 }
+
+/* =========================================
+   SIDEBAR (MENÚ LATERAL)
+   ========================================= */
 .sidebar {
   width: 260px;
   position: fixed;
@@ -17,18 +22,43 @@ body {
   border-right: 1px solid #333;
   padding-top: 20px;
   z-index: 1000;
+  transition: transform 0.3s ease-in-out;
 }
+
 .sidebar-brand {
   color: var(--primary);
   font-weight: bold;
   font-size: 1.5rem;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 0 15px;
 }
+
+.nav-link {
+  color: #aaa;
+  padding: 15px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: 0.3s;
+  text-decoration: none;
+}
+
+.nav-link.active, .nav-link:hover {
+  color: var(--primary);
+  background: #222;
+  border-left: 4px solid var(--primary);
+}
+
+/* =========================================
+   CONTENIDO PRINCIPAL Y COMPONENTES
+   ========================================= */
 .main {
   margin-left: 260px;
   padding: 30px;
+  transition: margin-left 0.3s ease-in-out;
 }
+
 .card-panel {
   background: var(--card);
   padding: 25px;
@@ -37,23 +67,12 @@ body {
   height: 100%;
   margin-bottom: 20px;
 }
-.nav-link {
-  color: #aaa;
-  padding: 15px 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: 0.3s;
-}
-.nav-link.active, .nav-link:hover {
-  color: var(--primary);
-  background: #222;
-  border-left: 4px solid var(--primary);
-}
+
 .vista {
   display: none;
   animation: fadeIn 0.4s;
 }
+
 .vista.activa {
   display: block;
 }
@@ -61,4 +80,49 @@ body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   MEDIA QUERIES (MÓVILES)
+   ========================================= */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+  }
+
+  .sidebar.mostrar {
+    transform: translateX(0);
+  }
+
+  .main {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .card-panel {
+    padding: 15px;
+  }
+
+  /* Overlay oscuro para fondo del menú móvil */
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+  }
+
+  .overlay.mostrar {
+    display: block;
+  }
+
+  /* Ajuste de utilidades de botones en modal para celular */
+  .w-sm-auto {
+    width: 100% !important;
+  }
 }

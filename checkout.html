@@ -140,8 +140,110 @@
   </div>
 </div>
 
+<div class="modal fade" id="modalFacturacion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white border-warning shadow-lg">
+      <div class="modal-header border-secondary bg-black">
+        <h5 class="modal-title fw-bold text-warning"><i class="bi bi-receipt"></i> Datos de Facturación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <p class="text-white-50 small mb-4">Por favor, ingresa los datos para emitir tu comprobante de pago.</p>
+
+        <form id="formDatosFactura">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label text-white-50 small mb-1">Nombre(s)</label>
+              <input type="text" class="form-control custom-input" id="factNombre" placeholder="Ej. Juan" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white-50 small mb-1">Apellido(s)</label>
+              <input type="text" class="form-control custom-input" id="factApellido" placeholder="Ej. Pérez" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label text-white-50 small mb-1">Cédula o RUC</label>
+              <input type="text" class="form-control custom-input" id="factCedula" placeholder="Ingresa tu identificación" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label text-white-50 small mb-1">Dirección de Domicilio</label>
+              <input type="text" class="form-control custom-input" id="factDireccion" placeholder="Calle principal y secundaria" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white-50 small mb-1">Teléfono</label>
+              <input type="tel" class="form-control custom-input" id="factTelefono" placeholder="Ej. 0987654321" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white-50 small mb-1">Correo Electrónico</label>
+              <input type="email" class="form-control custom-input" id="factCorreo" placeholder="correo@ejemplo.com" required>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer border-secondary bg-black d-flex flex-column flex-sm-row justify-content-between gap-2">
+        <button type="button" class="btn btn-outline-light w-100 w-sm-auto" onclick="generarConsumidorFinal()">
+          Consumidor Final
+        </button>
+        <button type="button" class="btn btn-warning fw-bold w-100 w-sm-auto" onclick="procesarFacturaPersonalizada()">
+          <i class="bi bi-check-circle"></i> Procesar Factura
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/checkout.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const checkoutForm = document.getElementById('checkoutForm');
+    const modalFacturacion = new bootstrap.Modal(document.getElementById('modalFacturacion'));
+
+    // Interceptamos el envío del formulario de la tarjeta
+    checkoutForm.addEventListener('submit', function(event) {
+      event.preventDefault(); // Evitamos que la página se recargue
+
+      // Si todo el formulario de tarjeta es válido, mostramos el modal de facturación
+      if (checkoutForm.checkValidity()) {
+        modalFacturacion.show();
+      }
+    });
+  });
+
+  // Función si el usuario elige "Consumidor Final"
+  function generarConsumidorFinal() {
+    // Aquí puedes enlazar con tu código de js/checkout.js para finalizar el pago
+    alert("Procesando pago como Consumidor Final (9999999999999)... \n\n¡Suscripción exitosa!");
+
+    // Ocultar modal y redirigir
+    const modalFacturacion = bootstrap.Modal.getInstance(document.getElementById('modalFacturacion'));
+    modalFacturacion.hide();
+    // window.location.href = "DashboardCliente.html"; // Descomenta para redirigir al dashboard
+  }
+
+  // Función si el usuario llena sus datos y presiona "Procesar Factura"
+  function procesarFacturaPersonalizada() {
+    const formFactura = document.getElementById('formDatosFactura');
+
+    // Validar que los campos de la factura estén llenos
+    if (!formFactura.checkValidity()) {
+      formFactura.reportValidity(); // Muestra las alertas rojas nativas del navegador
+      return;
+    }
+
+    const cedula = document.getElementById('factCedula').value;
+    const nombre = document.getElementById('factNombre').value;
+
+    alert(`Procesando pago con factura a nombre de: ${nombre} (C.I/RUC: ${cedula})... \n\n¡Suscripción exitosa!`);
+
+    // Ocultar modal y redirigir
+    const modalFacturacion = bootstrap.Modal.getInstance(document.getElementById('modalFacturacion'));
+    modalFacturacion.hide();
+    // window.location.href = "DashboardCliente.html"; // Descomenta para redirigir al dashboard
+  }
+</script>
 
 </body>
 </html>

@@ -13,10 +13,18 @@ body {
   url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
   background-size: cover;
   background-position: center;
-  height: 100vh;
+  /* Cambio clave para responsive: min-height en vez de height estricto */
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Contenedor flexible para centrar la tarjeta siempre */
+.login-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
+  padding: 1rem; /* Margen para pantallas muy pequeñas */
 }
 
 /* Diseño de la tarjeta central de inicio de sesión */
@@ -24,21 +32,23 @@ body {
   background-color: var(--card-bg);
   border: 1px solid #333;
   border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.6);
   color: white;
-  padding: 2rem;
+  padding: 2.5rem;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px; /* Límite para pantallas de PC */
+  transition: transform 0.3s ease;
 }
 
 /* Estilo del título/logo superior */
 .brand-logo {
   color: var(--primary-color);
   font-size: 2rem;
-  font-weight: bold;
+  font-weight: 900;
   text-align: center;
   margin-bottom: 1.5rem;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* Diseño base de los campos de texto (inputs) */
@@ -46,7 +56,7 @@ body {
   background-color: #2c2c2c;
   border: 1px solid #444;
   color: white;
-  padding: 0.75rem;
+  padding: 0.8rem;
 }
 
 /* Estilo al seleccionar/escribir dentro del campo de texto */
@@ -60,51 +70,59 @@ body {
 /* =========================================
    SISTEMA DE ERRORES VISUALES
    ========================================= */
-/* Estilo para cuando hay error (borde rojo y eliminación de icono por defecto) */
 .form-control.is-invalid {
   border-color: #dc3545;
   background-image: none;
 }
 
-/* Estilo del texto de error debajo del input */
 .invalid-feedback {
   font-size: 0.85rem;
-  color: #ff6b6b; /* Rojo claro para que se vea en fondo oscuro */
-  display: none; /* Oculto por defecto */
+  color: #ff6b6b;
+  display: none;
 }
 
-/* Mostrar las letras rojas cuando el input tiene la clase .is-invalid */
 .is-invalid ~ .invalid-feedback {
   display: block;
 }
 
-/* Botón principal de "Ingresar" */
-.btn-login {
-  background-color: var(--primary-color);
-  color: black;
-  font-weight: bold;
-  padding: 0.75rem;
-  width: 100%;
-  border: none;
-  margin-top: 1rem;
-  transition: all 0.3s;
+/* =========================================
+   NUEVO BOTÓN PREMIUM Y ELEGANTE
+   ========================================= */
+.btn-login-premium {
+  background-color: transparent;
+  color: var(--primary-color);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  padding: 0.8rem;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  transition: all 0.3s ease-in-out;
+  text-transform: uppercase;
 }
 
-/* Efecto de elevación al pasar el ratón por el botón */
-.btn-login:hover {
-  background-color: #e0a800;
+/* Hover: Fondo amarillo claro, texto negro, resplandor */
+.btn-login-premium:hover {
+  background-color: var(--primary-color);
+  color: #000;
+  box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
   transform: translateY(-2px);
+}
+
+/* Active (Al hacer clic) */
+.btn-login-premium:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(255, 193, 7, 0.4);
 }
 
 /* Sección de texto "¿No tienes una cuenta?" */
 .register-section {
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 2rem;
   font-size: 0.95rem;
-  color: #ccc;
+  color: #aaa;
 }
 
-/* Enlace hacia la página de registro */
 .register-section a {
   color: var(--primary-color);
   text-decoration: none;
@@ -133,18 +151,35 @@ body {
   color: var(--primary-color);
 }
 
-/* Estilo de los textos que acompañan a los inputs (Usuario/Contraseña) */
 .form-label {
   font-weight: 500;
   font-size: 0.9rem;
   color: #ccc;
 }
 
-/* Contenedor del mensaje superior (para errores de red/conexión) */
 #statusMessage {
   margin-top: 1rem;
   text-align: center;
   padding: 0.5rem;
   border-radius: 5px;
   display: none;
+}
+
+/* =========================================
+   MEDIA QUERIES PARA RESPONSIVE (MÓVILES)
+   ========================================= */
+@media (max-width: 576px) {
+  .login-card {
+    padding: 2rem 1.5rem; /* Reduce el padding interno en celulares */
+    border-radius: 10px;
+  }
+
+  .brand-logo {
+    font-size: 1.6rem; /* Achica un poco el logo */
+  }
+
+  .btn-login-premium {
+    font-size: 1rem;
+    padding: 0.7rem;
+  }
 }
