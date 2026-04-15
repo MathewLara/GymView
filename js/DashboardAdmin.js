@@ -37,6 +37,7 @@ async function cargarModulo(modulo, elementoHTML) {
     document.getElementById('kpi-cuentas').innerText = '...';
     document.getElementById('kpi-ingresos1').innerText = '...';
     document.getElementById('kpi-entrenadores1').innerText = '...';
+    document.getElementById('kpi-vencidas').innerText = data.membresiasVencidas || 0;
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard');
