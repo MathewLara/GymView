@@ -1,5 +1,5 @@
 // ==========================================
-// FUNCIÓN PARA CERRAR SESIÓN (CORREGIDA)
+// FUNCIÓN PARA CERRAR SESIÓN
 // ==========================================
 function cerrarSesion() {
   localStorage.removeItem('tokenGimnasio');
@@ -37,7 +37,9 @@ async function cargarModulo(modulo, elementoHTML) {
     document.getElementById('kpi-cuentas').innerText = '...';
     document.getElementById('kpi-ingresos1').innerText = '...';
     document.getElementById('kpi-entrenadores1').innerText = '...';
-    document.getElementById('kpi-vencidas').innerText = data.membresiasVencidas || 0;
+
+    const kpiVencidas = document.getElementById('kpi-vencidas');
+    if (kpiVencidas) kpiVencidas.innerText = '...';
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard');
@@ -45,9 +47,11 @@ async function cargarModulo(modulo, elementoHTML) {
       if(res.ok) {
         const data = await res.json();
 
-        document.getElementById('kpi-cuentas').innerText = data.totalCuentas;
-        document.getElementById('kpi-ingresos1').innerText = '$ ' + parseFloat(data.ingresos).toFixed(2);
-        document.getElementById('kpi-entrenadores1').innerText = data.totalEntrenadores;
+        document.getElementById('kpi-cuentas').innerText = data.totalCuentas || 0;
+        document.getElementById('kpi-ingresos1').innerText = '$ ' + parseFloat(data.ingresos || 0).toFixed(2);
+        document.getElementById('kpi-entrenadores1').innerText = data.totalEntrenadores || 0;
+
+        if (kpiVencidas) kpiVencidas.innerText = data.membresiasVencidas || 0;
 
         const tbody = document.getElementById('tabla-accesos-body') || document.querySelector('.table tbody');
 
@@ -62,7 +66,8 @@ async function cargarModulo(modulo, elementoHTML) {
                     <td class="text-info">${acc.ip}</td>
                     <td><span class="badge ${colorEstado}">${acc.estado}</span></td>
                 </tr>
-            `}).join('');
+            `;
+          }).join('');
         } else if (tbody) {
           tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Aún no hay registros de acceso.</td></tr>';
         }
@@ -120,10 +125,11 @@ async function cargarModulo(modulo, elementoHTML) {
               <button class="btn btn-sm btn-outline-info" onclick="abrirModalEditar(${u.id}, '${u.usuario}', '${u.nombre}', '${u.apellido}', '${u.rol}', '${u.email || ''}', '${u.telefono || ''}')"><i class="bi bi-pencil"></i></button>
             </td>
           </tr>
-        `}).join('');
+        `;
+        }).join('');
 
         if (filas === '') {
-          filas = `<tr><td colspan=\"8\" class=\"text-center py-4 text-white\">No hay registros en esta categoría.</td></tr>`;
+          filas = `<tr><td colspan="8" class="text-center py-4 text-white">No hay registros en esta categoría.</td></tr>`;
         }
 
         contenedorDinamico.innerHTML = `
@@ -405,7 +411,7 @@ function abrirModalNuevo() {
   document.getElementById('userId').value = '';
   document.getElementById('modalTitulo').innerText = 'Nuevo Usuario';
   document.getElementById('passHint').innerText = '(Obligatoria)';
-  modalUsuarioInstance.show();
+  if(modalUsuarioInstance) modalUsuarioInstance.show();
 }
 
 function abrirModalEditar(id, usuario, nombre, apellido, rolTexto, email, telefono) {
@@ -423,7 +429,7 @@ function abrirModalEditar(id, usuario, nombre, apellido, rolTexto, email, telefo
 
   document.getElementById('modalTitulo').innerText = 'Editar Usuario #' + id;
   document.getElementById('passHint').innerText = '(Déjela en blanco para no cambiarla)';
-  modalUsuarioInstance.show();
+  if(modalUsuarioInstance) modalUsuarioInstance.show();
 }
 
 async function guardarUsuario() {
@@ -458,7 +464,7 @@ async function guardarUsuario() {
     });
 
     if (res.ok) {
-      modalUsuarioInstance.hide();
+      if(modalUsuarioInstance) modalUsuarioInstance.hide();
       const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
 
       if(moduloActivo.includes('cliente')) cargarModulo('clientes');
@@ -476,6 +482,12 @@ async function guardarUsuario() {
 
 async function abrirModalPago() {
   const selectSocio = document.getElementById('pagoSocio');
+
+  if (!selectSocio) {
+    alert("¡Falta el HTML del Modal de Pagos! Asegúrate de pegarlo en DashboardAdmin.html");
+    return;
+  }
+
   selectSocio.innerHTML = '<option value="" disabled selected>Cargando socios...</option>';
 
   if(!modalPagoInstance) {
@@ -538,11 +550,11 @@ async function procesarPago() {
     if(res.ok && data.status === 'ok') {
       alert(`¡Pago procesado correctamente!\n\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
 
-      modalPagoInstance.hide();
+      if(modalPagoInstance) modalPagoInstance.hide();
       cargarModulo('pagos');
 
     } else {
-      alert("No se pudo procesar: " + data.mensaje);
+      alert("No se pudo procesar: " + (data.mensaje || "Error en el servidor"));
     }
   } catch(e) {
     alert("Error de conexión con el servidor al procesar el pago.");
