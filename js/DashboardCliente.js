@@ -1,24 +1,32 @@
 // ==========================================
-// 1. INICIALIZACIÓN (Sin restricción de Front)
+// 1. INICIALIZACIÓN Y VARIABLES GLOBALES
 // ==========================================
+let membresiaActiva = true; // Variable que actúa como candado de seguridad
+
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("Dashboard cargado. Restricción de FrontEnd desactivada.");
+  console.log("Dashboard del Cliente inicializado.");
 
-  // CAMBIO APLICADO: Leer desde localStorage
+  // Leer sesión desde localStorage
   const sesion = localStorage.getItem('usuarioLogueado');
-  const usuario = sesion ? JSON.parse(sesion) : { usuario: 'Cliente', idUsuario: 1 };
+  const usuario = sesion ? JSON.parse(sesion) : { usuario: 'Socio', idUsuario: 1 };
 
-  // Llenar datos básicos del header (arriba a la derecha)
-  document.getElementById('header-user').textContent = usuario.usuario || usuario.nombre;
-  document.getElementById('lbl-id').textContent = usuario.idUsuario || usuario.id;
+  // Llenar datos básicos del header
+  const headerUser = document.getElementById('header-user');
+  const lblId = document.getElementById('lbl-id');
+  if(headerUser) headerUser.textContent = usuario.usuario || "Socio";
+  if(lblId) lblId.textContent = usuario.idUsuario || usuario.id || "0";
 
-  // Generar Código QR consumiendo una API pública usando el ID del cliente
+  // Generar Código QR
   const idUsar = usuario.idUsuario || usuario.id || 1;
-  document.getElementById('img-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=IRON_${idUsar}`;
+  const imgQr = document.getElementById('img-qr');
+  if(imgQr) {
+    imgQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=IRON_${idUsar}`;
+  }
 
-  // 2. Ejecutar la carga de datos del servidor
+  // Cargar datos
   cargarDatos(idUsar);
 });
+
 // ==========================================
 // 2. CARGA DE DATOS DESDE EL BACKEND
 // ==========================================
@@ -29,7 +37,7 @@ async function cargarDatos(id) {
     if(res.ok) {
       const data = await res.json();
 
-      // A. Llenar sección de Perfil (Datos del usuario)
+      // A. Llenar sección de Perfil
       document.getElementById('p-nombre').textContent = data.nombreCompleto;
       document.getElementById('p-email').textContent = data.email;
       document.getElementById('p-telefono').textContent = data.telefono;
@@ -43,57 +51,45 @@ async function cargarDatos(id) {
       const badge = document.getElementById('m-estado');
       badge.textContent = data.estadoMembresia || "Inactivo";
 
-      // Determinar color de la etiqueta según el estado de la membresía
+      // 🔴 AQUÍ APLICAMOS EL BLOQUEO SI ESTÁ VENCIDO 🔴
       if(data.estadoMembresia === 'Vencido' || !data.estadoMembresia) {
         badge.className = 'badge bg-danger fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-x-circle text-danger';
+
+        membresiaActiva = false; // Cerramos el candado
+        mostrarAlertaBloqueo();  // Disparamos la alerta visual
       } else {
         badge.className = 'badge bg-success fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-shield-check text-success';
+
+        membresiaActiva = true; // Abrimos el candado
       }
 
-      // Validar si mostrar el aviso de vencimiento (3 días antes)
-      if (data.fechaVencimiento) {
-        if (typeof verificarVencimiento === 'function') {
-          verificarVencimiento(data.fechaVencimiento);
-        }
-      }
-
-      // C. Llenar tabla de Historial de Asistencias (¡AQUÍ ESTÁ LA MAGIA DE LA HORA DE SALIDA!)
+      // C. Llenar tabla de Historial de Asistencias
       const tabla = document.getElementById('tabla-asistencias');
-      tabla.innerHTML = data.historialAsistencias && data.historialAsistencias.length ?
-        data.historialAsistencias.map(a => `
-          <tr>
-            <td class="text-white align-middle">${a.fecha}</td>
-            <td>
-              <div class="text-success fw-bold"><i class="bi bi-box-arrow-in-right"></i> Entrada: ${a.hora || '--:--'}</div>
-              <div class="text-info fw-bold"><i class="bi bi-box-arrow-right"></i> Salida: ${a.hora_salida || '--:--'}</div>
-            </td>
-          </tr>
-        `).join('') :
-        '<tr><td colspan="2" class="text-center text-muted">Sin registros</td></tr>';
-
-      // (OPCIONAL) Si agregaste los textos sueltos en las tarjetas, esto los pone en blanco:
-      const elUltimo = document.getElementById('m-ultimo');
-      if (elUltimo) { elUltimo.textContent = data.ultimoIngreso || '--:--'; elUltimo.className = 'text-white fw-bold'; }
-
-      const elSalida = document.getElementById('m-salida');
-      if (elSalida) { elSalida.textContent = data.ultimaSalida || '--:--'; elSalida.className = 'text-info fw-bold'; }
-
+      if (tabla) {
+        tabla.innerHTML = data.historialAsistencias && data.historialAsistencias.length ?
+          data.historialAsistencias.map(a => `
+              <tr>
+                <td class="text-white align-middle">${a.fecha}</td>
+                <td>
+                  <div class="text-success fw-bold"><i class="bi bi-box-arrow-in-right"></i> Entrada: ${a.hora || '--:--'}</div>
+                  <div class="text-info fw-bold"><i class="bi bi-box-arrow-right"></i> Salida: ${a.hora_salida || '--:--'}</div>
+                </td>
+              </tr>
+            `).join('') :
+          '<tr><td colspan="2" class="text-center text-muted">Sin registros</td></tr>';
+      }
 
       // D. GENERAR RUTINA INTERACTIVA (Checkboxes)
       const divRutina = document.getElementById('rutina-container');
       if(data.nombreRutina) {
-
-        // Recuperar del LocalStorage los ejercicios ya marcados el día de hoy
         const hoy = new Date().toISOString().split('T')[0];
         const keyStorage = `rutina_${id}_${hoy}`;
         const completados = JSON.parse(localStorage.getItem(keyStorage)) || [];
 
-        // Generar el HTML de la lista de ejercicios
         const lista = data.ejercicios.map((e, index) => {
           const estaHecho = completados.includes(index);
-
           return `
             <div id="card-ej-${index}" class="d-flex justify-content-between p-3 mb-2 bg-black border border-secondary rounded align-items-center ${estaHecho ? 'ejercicio-completado' : ''}">
                 <div>
@@ -108,7 +104,6 @@ async function cargarDatos(id) {
             </div>`;
         }).join('');
 
-        // Inyectar la rutina en la vista
         if(data.nombreRutina) {
           divRutina.innerHTML = `
           <div class="card-panel border-start border-4 border-warning mb-3">
@@ -121,7 +116,6 @@ async function cargarDatos(id) {
           </button>
         `;
 
-          // Si el servidor confirma que ya terminó la rutina hoy, bloquear controles
           if (data.rutinaTerminadaHoy) {
             const btn = document.getElementById('btnFinalizar');
             if (btn) {
@@ -129,8 +123,6 @@ async function cargarDatos(id) {
               btn.textContent = "¡YA ENTRENASTE HOY!";
               btn.classList.replace('btn-success', 'btn-secondary');
             }
-
-            // Marcar todos los checkboxes visualmente como terminados
             document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
               chk.checked = true;
               chk.parentElement.classList.add('ejercicio-completado');
@@ -138,11 +130,8 @@ async function cargarDatos(id) {
           }
         }
       } else {
-        // Mensaje si no tiene rutina asignada
         if (divRutina) divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
       }
-    } else {
-      console.warn("El servidor rechazó la petición. Posible sesión inválida.");
     }
   } catch(e) {
     console.error("Error al cargar datos del backend:", e);
@@ -150,128 +139,85 @@ async function cargarDatos(id) {
 }
 
 // ==========================================
-// 2.5 LÓGICA PARA VERIFICAR VENCIMIENTO
+// 3. FUNCIÓN DE BLOQUEO VISUAL E INTERFAZ
 // ==========================================
-function verificarVencimiento(fechaStr) {
-  const partes = fechaStr.split('-');
-  if (partes.length !== 3) return;
+function mostrarAlertaBloqueo() {
+  if (document.getElementById('alerta-bloqueo')) return; // Evitar duplicados
 
-  const fechaVencimiento = new Date(partes[0], partes[1] - 1, partes[2]);
-  const hoy = new Date();
+  const vistaInicio = document.getElementById('vista-inicio');
+  const alerta = document.createElement('div');
+  alerta.id = 'alerta-bloqueo';
+  alerta.className = 'alert alert-danger border-danger text-center shadow-lg mb-4 mt-3 rounded-4 p-4';
+  alerta.innerHTML = `
+        <i class="bi bi-lock-fill text-danger" style="font-size: 3rem;"></i>
+        <h4 class="fw-bold text-danger mt-2">SISTEMA BLOQUEADO</h4>
+        <p class="text-dark fw-semibold mb-3">Tu membresía se encuentra vencida. No tienes acceso a las rutinas ni al ingreso del gimnasio.</p>
+        <button class="btn btn-danger fw-bold shadow fs-5 w-100 py-2" onclick="window.location.href='catalogo.html'">
+            <i class="bi bi-cart-check-fill"></i> Renovar Membresía Ahora
+        </button>
+    `;
 
-  hoy.setHours(0, 0, 0, 0);
-  fechaVencimiento.setHours(0, 0, 0, 0);
+  // Inyectar la alerta arriba de todo
+  if(vistaInicio) vistaInicio.prepend(alerta);
 
-  const diferenciaMs = fechaVencimiento.getTime() - hoy.getTime();
-  const diasRestantes = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+  // Hacer borroso el QR para indicar que no funciona en los torniquetes
+  const qrContainer = document.getElementById('img-qr');
+  if(qrContainer) {
+    qrContainer.style.filter = "blur(10px) grayscale(100%)";
+    qrContainer.style.opacity = "0.3";
+  }
 
-  if (diasRestantes <= 3) {
-    document.getElementById('toast-fecha-vencimiento').textContent = fechaStr;
-    const toastEl = document.getElementById('membresiaToast');
-    if(toastEl) {
-      const toast = new bootstrap.Toast(toastEl);
-      toast.show();
+  // Poner el candado rojo en el menú lateral
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(link => {
+    if(link.innerText.toLowerCase().includes('rutina')) {
+      link.innerHTML = `<i class="bi bi-lock-fill text-danger"></i> Rutina <span class="badge bg-danger ms-2">Bloqueado</span>`;
+      link.classList.add('text-danger');
     }
-  }
+  });
 }
 
 // ==========================================
-// 3. LÓGICA DE CHECKBOXES (Almacenamiento Local)
+// 4. NAVEGACIÓN SPA Y SEGURIDAD ESTRICTA
 // ==========================================
-function toggleEjercicio(index, userId) {
-  const btn = document.getElementById('btnFinalizar');
-  if (btn && btn.disabled) return;
-
-  const hoy = new Date().toISOString().split('T')[0];
-  const key = `rutina_${userId}_${hoy}`;
-  const card = document.getElementById(`card-ej-${index}`);
-
-  let guardados = JSON.parse(localStorage.getItem(key)) || [];
-
-  if (guardados.includes(index)) {
-    guardados = guardados.filter(i => i !== index);
-    card.classList.remove('ejercicio-completado');
-  } else {
-    guardados.push(index);
-    card.classList.add('ejercicio-completado');
+function ver(seccion, elemento) {
+  // 🛡️ BLOQUEO DE SEGURIDAD: Si está vencida y quiere salir de inicio, lo rebotamos
+  if (!membresiaActiva && seccion !== 'inicio') {
+    alert("⚠️ ACCESO DENEGADO\n\nTu plan está vencido. Por favor, renueva tu membresía para acceder a tus rutinas y entrenamientos.");
+    return;
   }
 
-  localStorage.setItem(key, JSON.stringify(guardados));
-}
+  // Ocultar todas las vistas
+  document.getElementById('vista-inicio').style.display = 'none';
+  const vistaRutina = document.getElementById('vista-rutina');
+  if (vistaRutina) vistaRutina.style.display = 'none';
 
-// ==========================================
-// 4. LÓGICA DE FINALIZAR RUTINA (Petición al Servidor)
-// ==========================================
-async function finalizarRutina() {
-  // CAMBIO APLICADO: Leer desde localStorage
-  const sesion = localStorage.getItem('usuarioLogueado');
-  const usuario = sesion ? JSON.parse(sesion) : { idUsuario: 1 };
-  const idUsar = usuario.idUsuario || usuario.id || 1;
+  // Mostrar la seleccionada
+  const vista = document.getElementById('vista-' + seccion);
+  if(vista) vista.style.display = 'block';
 
-  if(confirm("¿Estás seguro de que terminaste tu rutina por hoy?")) {
-    try {
-      const url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/completar`;
+  // Actualizar menú lateral
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(l => l.classList.remove('active'));
+  if(elemento) elemento.classList.add('active');
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'}
-      });
-
-      if(res.ok) {
-        alert("✅ ¡Excelente! Tu entrenador ha sido notificado.");
-
-        const btn = document.getElementById('btnFinalizar');
-        if(btn) {
-          btn.disabled = true;
-          btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> ¡YA ENTRENASTE HOY!';
-          btn.classList.remove('btn-success');
-          btn.classList.add('btn-secondary');
-        }
-      } else {
-        alert("Error al conectar con el servidor.");
-      }
-    } catch(e) {
-      console.error(e);
-      alert("❌ Error de conexión. Revisa que el servidor esté activo.");
-    }
+  // Si es móvil, cerrar el menú al hacer clic
+  if (window.innerWidth <= 767) {
+    document.querySelector('.sidebar').classList.remove('mostrar');
+    document.querySelector('.overlay').classList.remove('mostrar');
   }
 }
 
-// ==========================================
-// NUEVO: CONTROL DEL MENÚ RESPONSIVE
-// ==========================================
 function toggleMenu() {
   document.querySelector('.sidebar').classList.toggle('mostrar');
   document.querySelector('.overlay').classList.toggle('mostrar');
 }
 
 // ==========================================
-// 5. NAVEGACIÓN ENTRE PESTAÑAS (SPA)
-// ==========================================
-function ver(v, link) {
-  // Cambiar la vista activa
-  document.querySelectorAll('.vista').forEach(e => e.classList.remove('activa'));
-  document.getElementById('vista-'+v).classList.add('activa');
-
-  // Cambiar el enlace activo en el menú
-  if(link) {
-    document.querySelectorAll('.nav-link').forEach(e => e.classList.remove('active'));
-    link.classList.add('active');
-  }
-
-  // Si estamos en un dispositivo móvil, cerrar el menú automáticamente al hacer clic en un enlace
-  if (window.innerWidth <= 768) {
-    document.querySelector('.sidebar').classList.remove('mostrar');
-    document.querySelector('.overlay').classList.remove('mostrar');
-  }
-}
-
-// ==========================================
-// 6. CERRAR SESIÓN
+// 5. CERRAR SESIÓN
 // ==========================================
 function salir() {
   if(confirm("¿Cerrar sesión?")) {
-    // CAMBIO APLICADO: Destruir la sesión real en el localStorage
     localStorage.removeItem('tokenGimnasio');
     localStorage.removeItem('usuarioLogueado');
     window.location.href = 'index.html';
@@ -279,11 +225,10 @@ function salir() {
 }
 
 // ==========================================
-// 7. CANCELAR SUSCRIPCIÓN (CONECTADO A BD)
+// 6. CANCELAR SUSCRIPCIÓN
 // ==========================================
 async function cancelarSuscripcion() {
   const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu plan?\n\nTu estado pasará a Inactivo y deberás renovar para volver a ingresar.");
-
   if (!confirmacion) return;
 
   const sesion = localStorage.getItem('usuarioLogueado');
@@ -299,15 +244,11 @@ async function cancelarSuscripcion() {
       btn.disabled = true;
     }
 
-    // Llamamos al nuevo endpoint de tu backend
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, {
-      method: 'PUT'
-    });
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, { method: 'PUT' });
 
     if(res.ok) {
       alert("¡Suscripción cancelada exitosamente en el sistema!");
-
-      // Recargamos los datos del servidor para que la tarjeta se ponga roja (Vencida) inmediatamente
+      // Al recargar los datos, como ya se canceló, la pantalla se va a bloquear sola
       cargarDatos(idUsar);
 
       if(btn) {
