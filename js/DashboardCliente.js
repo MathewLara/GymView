@@ -45,13 +45,17 @@ async function cargarDatos(id) {
       const badge = document.getElementById('m-estado');
       badge.textContent = data.estadoMembresia || "Inactivo";
 
-      // 🛡️ LÓGICA DE BLOQUEO POR VENCIMIENTO
+      // 🛡️ LÓGICA DE BLOQUEO POR VENCIMIENTo
       if(data.estadoMembresia === 'Vencido' || !data.estadoMembresia) {
         badge.className = 'badge bg-danger fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-x-circle text-danger';
 
         membresiaActiva = false;
         mostrarAlertaBloqueo();
+
+        // REDIRECCIÓN AUTOMÁTICA A MEMBRESÍA
+        ver('membresia', document.querySelector('a[onclick*="membresia"]'));
+
       } else {
         badge.className = 'badge bg-success fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-shield-check text-success';
@@ -153,36 +157,13 @@ function mostrarAlertaBloqueo() {
 
   if(vistaInicio) vistaInicio.prepend(alerta);
 
-  // 🎯 EVENT LISTENER MODERNO Y PROFESIONAL
-  // Encontramos el botón y le inyectamos la lógica directamente
+  // 🎯 EVENT LISTENER MODERNO Y PROFESIONAL CORREGIDO
   const btnMembresia = document.getElementById('btn-ir-membresia');
   if (btnMembresia) {
     btnMembresia.addEventListener('click', () => {
-      console.log("Desplazando hacia la membresía...");
-
-      const vistaInicio = document.getElementById('vista-inicio');
-      const vistaRutina = document.getElementById('vista-rutina');
-      if (vistaInicio) vistaInicio.style.display = 'block';
-      if (vistaRutina) vistaRutina.style.display = 'none';
-
-      const ancla = document.getElementById('m-plan') || document.getElementById('m-estado') || document.querySelector('.card-panel');
-
-      if (ancla) {
-        const tarjeta = ancla.closest('.card') || ancla.parentElement;
-        tarjeta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        // Efecto de brillo rojo profesional
-        tarjeta.style.transition = "all 0.5s ease";
-        tarjeta.style.boxShadow = "0 0 40px rgba(220, 53, 69, 0.8)";
-        tarjeta.style.border = "2px solid #dc3545";
-
-        setTimeout(() => {
-          tarjeta.style.boxShadow = "none";
-          tarjeta.style.border = "1px solid rgba(255,255,255,0.1)";
-        }, 3000);
-      } else {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-      }
+      // En lugar de hacer scroll, usamos la navegación SPA para ir a la vista de Membresía
+      const btnMenuMembresia = document.querySelector('a[onclick*="membresia"]');
+      ver('membresia', btnMenuMembresia);
     });
   }
 
@@ -207,31 +188,30 @@ function mostrarAlertaBloqueo() {
 // 4. NAVEGACIÓN SPA Y SEGURIDAD ESTRICTA
 // ==========================================
 function ver(seccion, elemento) {
-  if (!membresiaActiva && seccion !== 'inicio') {
-    alert("⚠️ SECCIÓN BLOQUEADA\n\nTu plan está vencido. Por favor, renueva tu membresía en el panel de Inicio.");
+  // 1. Lógica de bloqueo corregida: Solo se permite ir a 'membresia' si está vencido
+  if (!membresiaActiva && seccion !== 'membresia') {
+    alert("⚠️ SECCIÓN BLOQUEADA\n\nTu plan está vencido. Por favor, renueva tu membresía para recuperar el acceso.");
     return;
   }
 
-  document.getElementById('vista-inicio').style.display = 'none';
-  const vistaRutina = document.getElementById('vista-rutina');
-  if (vistaRutina) vistaRutina.style.display = 'none';
+  // 2. Ocultar TODAS las vistas correctamente (tu código no ocultaba vista-membresia)
+  const vistas = document.querySelectorAll('.vista');
+  vistas.forEach(v => v.style.display = 'none');
 
+  // 3. Mostrar la vista solicitada
   const vista = document.getElementById('vista-' + seccion);
   if(vista) vista.style.display = 'block';
 
+  // 4. Actualizar estado activo en el menú lateral
   const links = document.querySelectorAll('.nav-link');
   links.forEach(l => l.classList.remove('active'));
   if(elemento) elemento.classList.add('active');
 
+  // 5. Ocultar menú en móviles
   if (window.innerWidth <= 767) {
     document.querySelector('.sidebar').classList.remove('mostrar');
     document.querySelector('.overlay').classList.remove('mostrar');
   }
-}
-
-function toggleMenu() {
-  document.querySelector('.sidebar').classList.toggle('mostrar');
-  document.querySelector('.overlay').classList.toggle('mostrar');
 }
 
 // ==========================================
