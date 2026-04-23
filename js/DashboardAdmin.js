@@ -14,7 +14,8 @@ async function cargarModulo(modulo, elementoHTML) {
   const tituloMap = {
     'resumen': 'Panel de Control Gerencial',
     'pagos': 'Gestión de Ingresos y Facturación',
-    'reportes': 'Reportes Gerenciales'
+    'reportes': 'Reportes Gerenciales',
+    'pedidos': 'Entregas de Tienda Online'
   };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
 
@@ -246,6 +247,73 @@ async function cargarModulo(modulo, elementoHTML) {
     } catch (error) {
       console.error(error);
       contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de conexión con el módulo financiero.</div>';
+    }
+    // ==========================================
+    // MÓDULO DE PEDIDOS DE TIENDA (NUEVO)
+    // ==========================================
+  } else if (modulo === 'pedidos') {
+    vistaResumen.style.display = 'none';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
+
+    try {
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes');
+
+      if (res.ok) {
+        const pedidos = await res.json();
+
+        let filas = pedidos.map(p => `
+          <tr>
+            <td class="text-light fw-bold">#${p.idFactura}</td>
+            <td class="text-white">${p.numeroFactura}</td>
+            <td class="text-white small">${p.fechaEmision}</td>
+            <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
+            <td><span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> PENDIENTE</span></td>
+            <td>
+              <button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})">
+                <i class="bi bi-box-seam"></i> Entregar
+              </button>
+            </td>
+          </tr>
+        `).join('');
+
+        if (filas === '') {
+          filas = `<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-check2-circle fs-1 d-block mb-3"></i>No hay pedidos pendientes por entregar. ¡Todo al día!</td></tr>`;
+        }
+
+        contenedorDinamico.innerHTML = `
+          <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-cart-check text-warning"></i> Entregas de Tienda</h4>
+                  <p class="text-muted small m-0">Aquí aparecen los productos que los clientes ya pagaron online y vienen a retirar</p>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                  <thead class="bg-black text-warning">
+                    <tr>
+                      <th class="py-3">ID BASE</th>
+                      <th class="py-3">N° FACTURA</th>
+                      <th class="py-3">FECHA COMPRA</th>
+                      <th class="py-3">TOTAL PAGADO</th>
+                      <th class="py-3">ESTADO</th>
+                      <th class="py-3">ACCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filas}</tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        throw new Error("No se pudieron cargar los pedidos");
+      }
+    } catch (error) {
+      console.error(error);
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger">Error al conectar con la base de datos de ventas.</div>';
     }
 
     // ==========================================
@@ -679,4 +747,28 @@ function exportarPagosCSV() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+// ==========================================
+// FUNCIÓN PARA ENTREGAR PEDIDOS DE TIENDA
+// ==========================================
+async function marcarComoEntregado(idFactura) {
+  const confirmacion = confirm("¿Confirmas que ya entregaste físicamente los productos al cliente?");
+  if (!confirmacion) return;
+
+  try {
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/entregar`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (res.ok) {
+      alert("¡Excelente! El producto ha sido marcado como entregado en el sistema.");
+      cargarModulo('pedidos'); // Recargamos el módulo para que el pedido desaparezca
+    } else {
+      alert("Hubo un error al intentar actualizar el estado del pedido.");
+    }
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    alert("Error de conexión con el servidor de ventas.");
+  }
 }
