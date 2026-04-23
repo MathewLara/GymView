@@ -171,23 +171,28 @@ async function guardarAlumno() {
   const payload = {
     idCliente: parseInt(idCliente),
     idEntrenador: idEntrenador,
-    idRutinaAsignada: idRutina ? parseInt(idRutina) : null,
+    // CAMBIO AQUÍ: Enviamos 0 en lugar de null para que Java no explote
+    idRutinaAsignada: idRutina ? parseInt(idRutina) : 0,
     notas: notas
   };
 
   try {
     const isEdit = document.getElementById('hdnIdVinculo').value !== "";
     const method = isEdit ? 'PUT' : 'POST';
-    // URL para registrar o actualizar el vínculo entrenador-alumno
     const url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/alumnos`;
 
-    const res = await fetch(url, { method: method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const res = await fetch(url, {
+      method: method,
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+
     if(res.ok) {
       alert(`Alumno ${isEdit ? 'actualizado' : 'vinculado'} exitosamente a tu cartera.`);
       modalAlumnoInstance.hide();
       cargarDashboard(idEntrenador); // Recargamos para ver los cambios
     } else {
-      alert("Error al guardar. Puede que este alumno ya esté asignado.");
+      alert("Error al guardar en la base de datos.");
     }
   } catch(e) { console.error(e); alert("Error de conexión al servidor."); }
 }
