@@ -264,6 +264,8 @@ async function cargarModulo(modulo, elementoHTML) {
         let filas = pedidos.map(p => `
           <tr>
             <td class="text-light fw-bold">#${p.idFactura}</td>
+            <td class="text-warning fw-bold"><i class="bi bi-person-badge"></i> ${p.nombreCliente || 'Cliente Web'}</td>
+
             <td class="text-white">${p.numeroFactura}</td>
             <td class="text-white small">${p.fechaEmision}</td>
             <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
@@ -295,7 +297,7 @@ async function cargarModulo(modulo, elementoHTML) {
                   <thead class="bg-black text-warning">
                     <tr>
                       <th class="py-3">ID BASE</th>
-                      <th class="py-3">N° FACTURA</th>
+                      <th class="py-3">CLIENTE</th> <th class="py-3">N° FACTURA</th>
                       <th class="py-3">FECHA COMPRA</th>
                       <th class="py-3">TOTAL PAGADO</th>
                       <th class="py-3">ESTADO</th>
