@@ -167,36 +167,45 @@ function mostrarAlertaBloqueo() {
 }
 
 // ==========================================
-// 🔴 VERSIÓN BLINDADA DE irAMembresia() 🔴
+// 🔴 VERSIÓN GLOBAL Y BLINDADA DE irAMembresia()
 // ==========================================
-function irAMembresia() {
-  // 1. Forzamos la vista de inicio pase lo que pase
+window.irAMembresia = function() {
+  console.log("Intentando desplazar a membresía...");
+
+  // 1. Asegurarnos de que estamos en la vista de inicio
   const vistaInicio = document.getElementById('vista-inicio');
   const vistaRutina = document.getElementById('vista-rutina');
+
   if (vistaInicio) vistaInicio.style.display = 'block';
   if (vistaRutina) vistaRutina.style.display = 'none';
 
-  // 2. Buscamos el texto del plan de membresía
-  const seccionMembresia = document.getElementById('m-plan');
-  if(seccionMembresia) {
-    // Buscamos la tarjeta completa que lo envuelve
-    const tarjeta = seccionMembresia.closest('.card') || seccionMembresia.parentElement;
+  // 2. Intentar buscar el elemento por varios IDs posibles para no fallar
+  const ancla = document.getElementById('m-plan') ||
+    document.getElementById('m-estado') ||
+    document.querySelector('.card-panel');
 
-    // Hacemos el deslizamiento suave hacia abajo
+  if (ancla) {
+    // Buscamos la tarjeta (card) que contiene ese texto
+    const tarjeta = ancla.closest('.card') || ancla.parentElement;
+
+    // Desplazamiento suave
     tarjeta.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    // Le damos un resplandor rojo llamativo por 2 segundos para que el cliente sepa qué mirar
-    tarjeta.style.transition = "box-shadow 0.4s ease-in-out";
-    tarjeta.style.boxShadow = "0 0 30px rgba(220, 53, 69, 0.9)";
+    // Efecto visual de resplandor para que el cliente no se pierda
+    tarjeta.style.transition = "all 0.5s ease";
+    tarjeta.style.boxShadow = "0 0 40px rgba(255, 193, 7, 0.8)"; // Brillo amarillo/warning
+    tarjeta.style.border = "2px solid #ffc107";
 
     setTimeout(() => {
       tarjeta.style.boxShadow = "none";
-    }, 2000);
+      tarjeta.style.border = "1px solid rgba(255,255,255,0.1)";
+    }, 3000);
   } else {
-    // Si no la encuentra, manda la pantalla al inicio de todo
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    console.error("No se encontró el elemento de membresía en el HTML.");
+    // Si falla todo, al menos lo mandamos abajo
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   }
-}
+};
 
 // ==========================================
 // 4. NAVEGACIÓN SPA Y SEGURIDAD ESTRICTA
