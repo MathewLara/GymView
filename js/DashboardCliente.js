@@ -236,38 +236,18 @@ async function cancelarSuscripcion() {
 
   const idUsar = usuario.idUsuario || usuario.id;
   const btn = document.getElementById('btnCancelarSuscripcion');
-
-  try {
-    // 2. Estado de carga
-    if(btn) {
-      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
+  if (data.cancelado) {
+    // Si la base de datos dice que ya está cancelado, bloqueamos el botón
+    if (btn) {
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Suscripción Cancelada';
+      btn.className = 'btn btn-secondary btn-sm w-100 fw-bold';
       btn.disabled = true;
     }
-
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, { method: 'PUT' });
-
-    if(res.ok) {
-      alert("¡Suscripción cancelada exitosamente!\nPodrás seguir ingresando al gimnasio hasta tu fecha de vencimiento.");
-      cargarDatos(idUsar); // Refresca los datos del dashboard
-
-      // 3A. Si fue exitoso, cambiamos el diseño del botón para que diga "Cancelada" y se quede bloqueado.
-      if(btn) {
-        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Suscripción Cancelada';
-        btn.classList.replace('btn-outline-danger', 'btn-secondary');
-      }
-    } else {
-      alert("Error al procesar la cancelación.");
-      // 3B. Si el backend rechaza la petición, restauramos el botón a la normalidad para que puedan volver a intentar.
-      if(btn) {
-        btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
-        btn.disabled = false;
-      }
-    }
-  } catch (error) {
-    alert("Error de conexión al intentar cancelar.");
-    // 3C. Si se cae el internet o falla el fetch, restauramos el botón.
-    if(btn) {
+  } else {
+    // Si no está cancelado, nos aseguramos de que el botón sea el normal
+    if (btn) {
       btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
+      btn.className = 'btn btn-outline-danger btn-sm w-100 fw-bold';
       btn.disabled = false;
     }
   }
