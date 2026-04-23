@@ -58,16 +58,14 @@ async function cargarModulo(modulo, elementoHTML) {
         if (tbody && data.ultimosAccesos && data.ultimosAccesos.length > 0) {
           tbody.innerHTML = data.ultimosAccesos.map(acc => {
             const colorEstado = acc.estado && acc.estado.toLowerCase().includes('exito') ? 'bg-success' : 'bg-danger';
-
-            // Forzamos a que lea acc.hora (así se llama en Java)
-            const horaMostrar = acc.hora ? acc.hora : '---';
+            const horaMostrar = acc.horaIngreso ? acc.horaIngreso : (acc.hora ? acc.hora : '---');
             const ipMostrar = acc.ip ? acc.ip : '---';
 
             return `
                 <tr>
                     <td class="fw-bold text-warning"><i class="bi bi-person-circle"></i> ${acc.usuario || 'Desconocido'}</td>
                     <td><span class="badge bg-secondary">${acc.rol || 'N/A'}</span></td>
-                    <td class="text-white fw-bold">${acc.horaIngreso || '---'}</td>
+                    <td class="text-white fw-bold">${horaMostrar}</td>
                     <td class="text-info fw-bold">${ipMostrar}</td>
                     <td><span class="badge ${colorEstado}">${acc.estado || 'N/A'}</span></td>
                 </tr>
@@ -168,7 +166,7 @@ async function cargarModulo(modulo, elementoHTML) {
     }
 
     // ==========================================
-    // MÓDULO DE PAGOS (CONECTADO A LA BDD)
+    // MÓDULO DE PAGOS (AHORA CON FILTRO DE CLIENTE)
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
@@ -181,13 +179,18 @@ async function cargarModulo(modulo, elementoHTML) {
         const pagos = await res.json();
         const nombresPlanes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
 
+        // 1. Extraemos una lista de todos los socios únicos para el desplegable
+        const sociosUnicos = [...new Set(pagos.map(p => p.socio || 'Usuario'))];
+        const opcionesSocios = sociosUnicos.map(s => `<option value="${s}">${s}</option>`).join('');
+
+        // 2. Le agregamos un 'data-socio' a cada fila para poder ocultarla fácilmente
         let filas = pagos.map(p => `
-          <tr>
+          <tr class="fila-pago" data-socio="${p.socio || 'Usuario'}">
             <td class="text-light fw-bold">#${1000 + (p.id_pago || 0)}</td>
             <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Usuario'}</td>
             <td class="text-info">${nombresPlanes[p.id_plan] || 'Membresía'}</td>
             <td class="text-success fw-bold">+$${parseFloat(p.monto).toFixed(2)}</td>
-            <td class="text-muted">${p.fecha}</td>
+            <td class="text-white">${p.fecha}</td>
             <td><span class="badge bg-secondary">${p.metodo}</span></td>
             <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span></td>
           </tr>
@@ -197,12 +200,19 @@ async function cargarModulo(modulo, elementoHTML) {
           filas = `<tr><td colspan="7" class="text-center py-4 text-white">No hay transacciones registradas.</td></tr>`;
         }
 
+        // 3. Agregamos el <select> en el HTML junto a los botones
         contenedorDinamico.innerHTML = `
           <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <h4 class="text-white m-0">Historial de Transacciones</h4>
-            <div>
-              <button class="btn btn-success fw-bold me-2" onclick="abrirModalPago()"><i class="bi bi-plus-circle"></i> Nuevo Pago</button>
-              <button class="btn btn-outline-warning fw-bold" onclick="exportarPagosCSV()">
+            <div class="d-flex gap-2 align-items-center">
+
+              <select id="filtroCliente" class="form-select bg-dark text-white border-secondary fw-bold" onchange="filtrarPagosPorCliente()">
+                  <option value="TODOS">Todos los clientes</option>
+                  ${opcionesSocios}
+              </select>
+
+              <button class="btn btn-success fw-bold text-nowrap" onclick="abrirModalPago()"><i class="bi bi-plus-circle"></i> Nuevo Pago</button>
+              <button class="btn btn-outline-warning fw-bold text-nowrap" onclick="exportarPagosCSV()">
                 <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
               </button>
             </div>
@@ -553,7 +563,7 @@ async function procesarPago() {
     const data = await res.json();
 
     if(res.ok && data.status === 'ok') {
-      alert(`¡Pago procesado correctamente!\n\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
+      alert(`¡Pago procesado correctamente!\\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
 
       if(modalPagoInstance) modalPagoInstance.hide();
       cargarModulo('pagos');
@@ -565,8 +575,26 @@ async function procesarPago() {
     alert("Error de conexión con el servidor al procesar el pago.");
   }
 }
+
 // ==========================================
-// EXPORTAR TABLA A CSV
+// NUEVO: FILTRAR TABLA POR CLIENTE
+// ==========================================
+function filtrarPagosPorCliente() {
+  const seleccionado = document.getElementById('filtroCliente').value;
+  const filas = document.querySelectorAll('.fila-pago');
+
+  filas.forEach(fila => {
+    // Si la opción es 'TODOS' o coincide con el 'data-socio' de la fila, se muestra
+    if (seleccionado === 'TODOS' || fila.getAttribute('data-socio') === seleccionado) {
+      fila.style.display = '';
+    } else {
+      fila.style.display = 'none';
+    }
+  });
+}
+
+// ==========================================
+// EXPORTAR TABLA A CSV (INTELIGENTE)
 // ==========================================
 function exportarPagosCSV() {
   const tabla = document.querySelector('.table');
@@ -578,24 +606,33 @@ function exportarPagosCSV() {
   let csv = [];
   const filas = tabla.querySelectorAll('tr');
 
-  for (let i = 0; i < filas.length; i++) {
-    let fila = [], columnas = filas[i].querySelectorAll('th, td');
-    for (let j = 0; j < columnas.length; j++) {
-      // Limpiar texto para evitar saltos de línea y errores en Excel
-      let texto = columnas[j].innerText.replace(/(\r\n|\n|\r)/gm, "").trim();
-      fila.push('"' + texto + '"'); // Envolver en comillas para que no se rompan las columnas
-    }
-    csv.push(fila.join(','));
+  // Asignarle un nombre dinámico al archivo según a quién estamos filtrando
+  const filtro = document.getElementById('filtroCliente');
+  let nombreArchivo = "Historial_Pagos";
+  if (filtro && filtro.value !== 'TODOS') {
+    nombreArchivo += "_" + filtro.value.replace(/\\s+/g, '_');
+  } else {
+    nombreArchivo += "_General";
   }
 
-  // Crear el archivo con formato UTF-8 (para que se vean las tildes y la $)
-  const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.join('\n');
+  for (let i = 0; i < filas.length; i++) {
+    // MAGIA: Solo exportamos las filas que NO están ocultas por el filtro
+    if (filas[i].style.display !== 'none') {
+      let fila = [], columnas = filas[i].querySelectorAll('th, td');
+      for (let j = 0; j < columnas.length; j++) {
+        let texto = columnas[j].innerText.replace(/(\\r\\n|\\n|\\r)/gm, "").trim();
+        fila.push('"' + texto + '"');
+      }
+      csv.push(fila.join(','));
+    }
+  }
+
+  const csvContent = "data:text/csv;charset=utf-8,\\uFEFF" + csv.join('\\n');
   const encodedUri = encodeURI(csvContent);
 
-  // Forzar la descarga
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "Historial_Pagos_IronFitness.csv");
+  link.setAttribute("download", nombreArchivo + ".csv");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
