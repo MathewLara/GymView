@@ -226,7 +226,8 @@ function salir() {
 }
 
 async function cancelarSuscripcion() {
-  const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu plan?\n\nTu estado pasará a Inactivo y deberás renovar para volver a ingresar.");
+  // 1. Mensaje de confirmación acorde a la nueva lógica
+  const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu suscripción?\n\nNo perderás tu dinero. Tu plan no se renovará automáticamente, pero mantendrás acceso completo hasta tu fecha de corte.");
   if (!confirmacion) return;
 
   const sesion = localStorage.getItem('usuarioLogueado');
@@ -237,6 +238,7 @@ async function cancelarSuscripcion() {
   const btn = document.getElementById('btnCancelarSuscripcion');
 
   try {
+    // 2. Estado de carga
     if(btn) {
       btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
       btn.disabled = true;
@@ -245,13 +247,28 @@ async function cancelarSuscripcion() {
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, { method: 'PUT' });
 
     if(res.ok) {
-      alert("¡Suscripción cancelada exitosamente!");
-      cargarDatos(idUsar);
+      alert("¡Suscripción cancelada exitosamente!\nPodrás seguir ingresando al gimnasio hasta tu fecha de vencimiento.");
+      cargarDatos(idUsar); // Refresca los datos del dashboard
+
+      // 3A. Si fue exitoso, cambiamos el diseño del botón para que diga "Cancelada" y se quede bloqueado.
+      if(btn) {
+        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Suscripción Cancelada';
+        btn.classList.replace('btn-outline-danger', 'btn-secondary');
+      }
     } else {
       alert("Error al procesar la cancelación.");
-      if(btn) btn.disabled = false;
+      // 3B. Si el backend rechaza la petición, restauramos el botón a la normalidad para que puedan volver a intentar.
+      if(btn) {
+        btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
+        btn.disabled = false;
+      }
     }
   } catch (error) {
-    alert("Error de conexión.");
+    alert("Error de conexión al intentar cancelar.");
+    // 3C. Si se cae el internet o falla el fetch, restauramos el botón.
+    if(btn) {
+      btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
+      btn.disabled = false;
+    }
   }
 }
