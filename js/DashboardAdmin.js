@@ -270,10 +270,14 @@ async function cargarModulo(modulo, elementoHTML) {
             ? '<span class="badge bg-success text-white"><i class="bi bi-check-all"></i> ENTREGADO</span>'
             : '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> PENDIENTE</span>';
 
-          // 3. Configuramos el botón (si está entregado, se desactiva)
-          const botonAccion = esEntregado
+          // 3. Configuramos los botones (Entregar e Imprimir)
+          const botonEntregar = esEntregado
             ? '<button class="btn btn-sm btn-secondary fw-bold" disabled><i class="bi bi-check2"></i> Listo</button>'
             : `<button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})"><i class="bi bi-box-seam"></i> Entregar</button>`;
+
+          const botonImprimir = `<button class="btn btn-sm btn-info fw-bold text-white ms-1" onclick="imprimirFactura(${p.idFactura}, '${nombreReal}', '${p.numeroFactura}', '${p.fechaEmision}', ${p.totalPagado})"><i class="bi bi-printer"></i> Imprimir</button>`;
+
+          const botonesFila = `<div class="d-flex flex-nowrap">${botonEntregar}${botonImprimir}</div>`;
 
           // 4. Limpiamos el nombre (eliminamos espacios extra)
           // Busca esta línea y asegúrate de que use directamente p.nombreCliente
@@ -786,5 +790,90 @@ async function marcarComoEntregado(idFactura) {
   } catch (error) {
     console.error("Error al actualizar:", error);
     alert("Error de conexión con el servidor de ventas.");
+  }
+}
+// ==========================================
+// FUNCIÓN PARA IMPRIMIR FACTURA
+// ==========================================
+async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
+  try {
+    // 1. Pedimos los productos al backend (Recuerda usar localhost si estás probando local)
+    const res = await fetch(`http://localhost:8080/Gimnasio/api/ventas/${idFactura}/detalles`);
+
+    if (!res.ok) throw new Error("Error al traer detalles");
+    const detalles = await res.json();
+
+    // 2. Armamos las filas de la tabla de productos
+    let filasProductos = detalles.map(d => `
+      <tr>
+        <td>${d.descripcion}</td>
+        <td style="text-align: center;">${d.cantidad}</td>
+        <td style="text-align: right;">$${d.precioUnitario.toFixed(2)}</td>
+        <td style="text-align: right;">$${d.subtotalLinea.toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    // 3. Creamos el diseño del ticket/factura
+    let htmlTicket = `
+      <html>
+      <head>
+        <title>Factura ${numero}</title>
+        <style>
+          body { font-family: 'Courier New', Courier, monospace; padding: 20px; max-width: 400px; margin: 0 auto; color: #000; }
+          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
+          .header h2 { margin: 0; font-size: 22px; font-weight: bold; }
+          .info p { margin: 4px 0; font-size: 14px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+          th { border-bottom: 1px solid #000; padding-bottom: 5px; text-align: left; }
+          td { padding: 5px 0; }
+          .total-box { border-top: 2px dashed #000; margin-top: 15px; padding-top: 10px; text-align: right; font-size: 18px; font-weight: bold; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #555; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2>IRON FITNESS</h2>
+          <p>Comprobante de Tienda Web</p>
+        </div>
+        <div class="info">
+          <p><strong>Factura N°:</strong> ${numero}</p>
+          <p><strong>Fecha:</strong> ${fecha}</p>
+          <p><strong>Cliente:</strong> ${cliente}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th style="text-align: center;">Cant.</th>
+              <th style="text-align: right;">P.U.</th>
+              <th style="text-align: right;">Subt.</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filasProductos}
+          </tbody>
+        </table>
+        <div class="total-box">
+          TOTAL PAGADO: $${parseFloat(total).toFixed(2)}
+        </div>
+        <div class="footer">
+          <p>¡Gracias por tu compra y a darle con todo al entrenamiento!</p>
+        </div>
+        <script>
+          // Esto abre automáticamente el diálogo de impresión al cargar
+          window.onload = function() { window.print(); }
+        </script>
+      </body>
+      </html>
+    `;
+
+    // 4. Abrimos una ventana nueva oculta y le metemos el HTML
+    let ventanaImpresion = window.open('', '_blank', 'width=600,height=600');
+    ventanaImpresion.document.write(htmlTicket);
+    ventanaImpresion.document.close();
+
+  } catch (error) {
+    console.error(error);
+    alert("Hubo un error al intentar generar la factura. Revisa la consola (F12).");
   }
 }
