@@ -168,12 +168,15 @@ async function guardarAlumno() {
 
   if(!idCliente) { alert("Debes seleccionar un alumno válido."); return; }
 
+  // Aseguramos que los valores sean números reales para que Java no explote (Error 500)
+  const idClienteNum = parseInt(idCliente);
+  const idRutinaNum = (idRutina && idRutina !== "") ? parseInt(idRutina) : 0;
+
   const payload = {
-    idCliente: parseInt(idCliente),
+    idCliente: idClienteNum,
     idEntrenador: idEntrenador,
-    // CAMBIO AQUÍ: Enviamos 0 en lugar de null para que Java no explote
-    idRutinaAsignada: idRutina ? parseInt(idRutina) : 0,
-    notas: notas
+    idRutinaAsignada: idRutinaNum,
+    notas: notas || ""
   };
 
   try {
