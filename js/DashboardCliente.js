@@ -1,29 +1,25 @@
 // ==========================================
 // 1. INICIALIZACIÓN Y VARIABLES GLOBALES
 // ==========================================
-let membresiaActiva = true; // Variable que actúa como candado de seguridad
+let membresiaActiva = true;
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard del Cliente inicializado.");
 
-  // Leer sesión desde localStorage
   const sesion = localStorage.getItem('usuarioLogueado');
   const usuario = sesion ? JSON.parse(sesion) : { usuario: 'Socio', idUsuario: 1 };
 
-  // Llenar datos básicos del header
   const headerUser = document.getElementById('header-user');
   const lblId = document.getElementById('lbl-id');
   if(headerUser) headerUser.textContent = usuario.usuario || "Socio";
   if(lblId) lblId.textContent = usuario.idUsuario || usuario.id || "0";
 
-  // Generar Código QR
   const idUsar = usuario.idUsuario || usuario.id || 1;
   const imgQr = document.getElementById('img-qr');
   if(imgQr) {
     imgQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=IRON_${idUsar}`;
   }
 
-  // Cargar datos
   cargarDatos(idUsar);
 });
 
@@ -37,12 +33,10 @@ async function cargarDatos(id) {
     if(res.ok) {
       const data = await res.json();
 
-      // A. Llenar sección de Perfil
       document.getElementById('p-nombre').textContent = data.nombreCompleto;
       document.getElementById('p-email').textContent = data.email;
       document.getElementById('p-telefono').textContent = data.telefono;
 
-      // B. Llenar sección de Membresía
       document.getElementById('header-plan').textContent = data.nombrePlan || "Sin Plan";
       document.getElementById('m-plan').textContent = data.nombrePlan || "Sin Plan";
       document.getElementById('m-precio').textContent = data.precioPlan ? "$" + data.precioPlan : "$0.00";
@@ -51,21 +45,23 @@ async function cargarDatos(id) {
       const badge = document.getElementById('m-estado');
       badge.textContent = data.estadoMembresia || "Inactivo";
 
-      // 🔴 AQUÍ APLICAMOS EL BLOQUEO SI ESTÁ VENCIDO 🔴
+      // 🛡️ LÓGICA DE BLOQUEO POR VENCIMIENTO
       if(data.estadoMembresia === 'Vencido' || !data.estadoMembresia) {
         badge.className = 'badge bg-danger fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-x-circle text-danger';
 
-        membresiaActiva = false; // Cerramos el candado
-        mostrarAlertaBloqueo();  // Disparamos la alerta visual
+        membresiaActiva = false;
+        mostrarAlertaBloqueo();
       } else {
         badge.className = 'badge bg-success fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-shield-check text-success';
 
-        membresiaActiva = true; // Abrimos el candado
+        membresiaActiva = true;
+        // Si pagó, quitamos la alerta si existe
+        const alerta = document.getElementById('alerta-bloqueo');
+        if(alerta) alerta.remove();
       }
 
-      // C. Llenar tabla de Historial de Asistencias
       const tabla = document.getElementById('tabla-asistencias');
       if (tabla) {
         tabla.innerHTML = data.historialAsistencias && data.historialAsistencias.length ?
@@ -81,7 +77,6 @@ async function cargarDatos(id) {
           '<tr><td colspan="2" class="text-center text-muted">Sin registros</td></tr>';
       }
 
-      // D. GENERAR RUTINA INTERACTIVA (Checkboxes)
       const divRutina = document.getElementById('rutina-container');
       if(data.nombreRutina) {
         const hoy = new Date().toISOString().split('T')[0];
@@ -104,8 +99,7 @@ async function cargarDatos(id) {
             </div>`;
         }).join('');
 
-        if(data.nombreRutina) {
-          divRutina.innerHTML = `
+        divRutina.innerHTML = `
           <div class="card-panel border-start border-4 border-warning mb-3">
             <h2>${data.nombreRutina}</h2>
             <p class="text-white-50">Coach: ${data.entrenador||'Staff'}</p>
@@ -116,21 +110,20 @@ async function cargarDatos(id) {
           </button>
         `;
 
-          if (data.rutinaTerminadaHoy) {
-            const btn = document.getElementById('btnFinalizar');
-            if (btn) {
-              btn.disabled = true;
-              btn.textContent = "¡YA ENTRENASTE HOY!";
-              btn.classList.replace('btn-success', 'btn-secondary');
-            }
-            document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-              chk.checked = true;
-              chk.parentElement.classList.add('ejercicio-completado');
-            });
+        if (data.rutinaTerminadaHoy) {
+          const btn = document.getElementById('btnFinalizar');
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = "¡YA ENTRENASTE HOY!";
+            btn.classList.replace('btn-success', 'btn-secondary');
           }
+          document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+            chk.checked = true;
+            chk.parentElement.classList.add('ejercicio-completado');
+          });
         }
-      } else {
-        if (divRutina) divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
+      } else if (divRutina) {
+        divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
       }
     }
   } catch(e) {
@@ -142,7 +135,7 @@ async function cargarDatos(id) {
 // 3. FUNCIÓN DE BLOQUEO VISUAL E INTERFAZ
 // ==========================================
 function mostrarAlertaBloqueo() {
-  if (document.getElementById('alerta-bloqueo')) return; // Evitar duplicados
+  if (document.getElementById('alerta-bloqueo')) return;
 
   const vistaInicio = document.getElementById('vista-inicio');
   const alerta = document.createElement('div');
@@ -150,24 +143,22 @@ function mostrarAlertaBloqueo() {
   alerta.className = 'alert alert-danger border-danger text-center shadow-lg mb-4 mt-3 rounded-4 p-4';
   alerta.innerHTML = `
         <i class="bi bi-lock-fill text-danger" style="font-size: 3rem;"></i>
-        <h4 class="fw-bold text-danger mt-2">SISTEMA BLOQUEADO</h4>
-        <p class="text-dark fw-semibold mb-3">Tu membresía se encuentra vencida. No tienes acceso a las rutinas ni al ingreso del gimnasio.</p>
-        <button class="btn btn-danger fw-bold shadow fs-5 w-100 py-2" onclick="window.location.href='catalogo.html'">
-            <i class="bi bi-cart-check-fill"></i> Renovar Membresía Ahora
+        <h4 class="fw-bold text-danger mt-2">ACCESO RESTRINGIDO</h4>
+        <p class="text-dark fw-semibold mb-3">Tu membresía está vencida. Revisa los detalles de tu plan abajo para renovar.</p>
+
+        <button class="btn btn-danger fw-bold shadow fs-5 w-100 py-2" onclick="irAMembresia()">
+            <i class="bi bi-card-checklist"></i> Ver mi Membresía
         </button>
     `;
 
-  // Inyectar la alerta arriba de todo
   if(vistaInicio) vistaInicio.prepend(alerta);
 
-  // Hacer borroso el QR para indicar que no funciona en los torniquetes
   const qrContainer = document.getElementById('img-qr');
   if(qrContainer) {
     qrContainer.style.filter = "blur(10px) grayscale(100%)";
     qrContainer.style.opacity = "0.3";
   }
 
-  // Poner el candado rojo en el menú lateral
   const links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
     if(link.innerText.toLowerCase().includes('rutina')) {
@@ -177,31 +168,42 @@ function mostrarAlertaBloqueo() {
   });
 }
 
+// Función auxiliar para llevar al usuario al apartado de membresía
+function irAMembresia() {
+  // Aseguramos que estamos en la vista de inicio
+  ver('inicio', document.querySelector('.nav-link[onclick*="inicio"]'));
+
+  // Hacemos scroll suave hasta la tarjeta de membresía (el elemento con ID m-plan o similar)
+  const seccionMembresia = document.getElementById('m-plan').closest('.card');
+  if(seccionMembresia) {
+    seccionMembresia.scrollIntoView({ behavior: 'smooth' });
+    // Efecto visual de parpadeo para resaltar la sección
+    seccionMembresia.classList.add('border-warning');
+    setTimeout(() => seccionMembresia.classList.remove('border-warning'), 2000);
+  }
+}
+
 // ==========================================
 // 4. NAVEGACIÓN SPA Y SEGURIDAD ESTRICTA
 // ==========================================
 function ver(seccion, elemento) {
-  // 🛡️ BLOQUEO DE SEGURIDAD: Si está vencida y quiere salir de inicio, lo rebotamos
+  // Permitimos ver el 'inicio' aunque esté vencido (ahí está la membresía)
   if (!membresiaActiva && seccion !== 'inicio') {
-    alert("⚠️ ACCESO DENEGADO\n\nTu plan está vencido. Por favor, renueva tu membresía para acceder a tus rutinas y entrenamientos.");
+    alert("⚠️ SECCIÓN BLOQUEADA\n\nTu plan está vencido. Por favor, renueva tu membresía en el panel de Inicio.");
     return;
   }
 
-  // Ocultar todas las vistas
   document.getElementById('vista-inicio').style.display = 'none';
   const vistaRutina = document.getElementById('vista-rutina');
   if (vistaRutina) vistaRutina.style.display = 'none';
 
-  // Mostrar la seleccionada
   const vista = document.getElementById('vista-' + seccion);
   if(vista) vista.style.display = 'block';
 
-  // Actualizar menú lateral
   const links = document.querySelectorAll('.nav-link');
   links.forEach(l => l.classList.remove('active'));
   if(elemento) elemento.classList.add('active');
 
-  // Si es móvil, cerrar el menú al hacer clic
   if (window.innerWidth <= 767) {
     document.querySelector('.sidebar').classList.remove('mostrar');
     document.querySelector('.overlay').classList.remove('mostrar');
@@ -214,7 +216,7 @@ function toggleMenu() {
 }
 
 // ==========================================
-// 5. CERRAR SESIÓN
+// 5. ACCIONES DE SESIÓN Y CANCELACIÓN
 // ==========================================
 function salir() {
   if(confirm("¿Cerrar sesión?")) {
@@ -224,9 +226,6 @@ function salir() {
   }
 }
 
-// ==========================================
-// 6. CANCELAR SUSCRIPCIÓN
-// ==========================================
 async function cancelarSuscripcion() {
   const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu plan?\n\nTu estado pasará a Inactivo y deberás renovar para volver a ingresar.");
   if (!confirmacion) return;
@@ -247,23 +246,13 @@ async function cancelarSuscripcion() {
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, { method: 'PUT' });
 
     if(res.ok) {
-      alert("¡Suscripción cancelada exitosamente en el sistema!");
-      // Al recargar los datos, como ya se canceló, la pantalla se va a bloquear sola
+      alert("¡Suscripción cancelada exitosamente!");
       cargarDatos(idUsar);
-
-      if(btn) {
-        btn.classList.replace('btn-outline-danger', 'btn-secondary');
-        btn.innerHTML = '<i class="bi bi-info-circle"></i> Plan Cancelado';
-      }
     } else {
-      alert("Hubo un error al intentar cancelar la suscripción en la base de datos.");
-      if(btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
-      }
+      alert("Error al procesar la cancelación.");
+      if(btn) btn.disabled = false;
     }
   } catch (error) {
-    console.error("Error conectando al servidor:", error);
-    alert("Error de red. Intenta nuevamente.");
+    alert("Error de conexión.");
   }
 }
