@@ -302,8 +302,7 @@ async function cargarModulo(modulo, elementoHTML) {
               <td class="text-white small">${p.fechaEmision}</td>
               <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
               <td>${badgeEstado}</td>
-              <td>${botonesFila}</td>
-            </tr>
+              <td>${botonesFila}</td> </tr>
           `;
         }).join('');
 
@@ -702,8 +701,6 @@ async function procesarPago() {
 // ==========================================
 function filtrarPagosPorCliente() {
   const seleccionado = document.getElementById('filtroCliente').value;
-
-  // Obtenemos el texto del nuevo buscador (si existe)
   const inputBuscador = document.getElementById('buscador-pagos');
   const buscadorTexto = inputBuscador ? inputBuscador.value.toLowerCase().trim() : '';
 
@@ -711,13 +708,13 @@ function filtrarPagosPorCliente() {
   let total = 0;
 
   filas.forEach(fila => {
-    const socioFila = fila.getAttribute('data-socio');
-    const reciboFila = fila.cells[0].innerText; // Columna de N° Recibo
+    const socioFila = (fila.getAttribute('data-socio') || 'Socio').toLowerCase();
+    const reciboFila = fila.cells[0].innerText.toLowerCase();
     const montoFila = parseFloat(fila.getAttribute('data-monto')) || 0;
 
-    // Evaluamos ambas condiciones
-    const pasaSelect = (seleccionado === 'TODOS' || socioFila === seleccionado);
-    const pasaBuscador = (buscadorTexto === '' || socioFila.toLowerCase().includes(buscadorTexto) || reciboFila.toLowerCase().includes(buscadorTexto));
+    // Evaluamos si pasa el filtro del desplegable y del buscador
+    const pasaSelect = (seleccionado === 'TODOS' || fila.getAttribute('data-socio') === seleccionado);
+    const pasaBuscador = (buscadorTexto === '' || socioFila.includes(buscadorTexto) || reciboFila.includes(buscadorTexto));
 
     if (pasaSelect && pasaBuscador) {
       fila.style.display = '';
