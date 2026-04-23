@@ -276,7 +276,8 @@ async function cargarModulo(modulo, elementoHTML) {
             : `<button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})"><i class="bi bi-box-seam"></i> Entregar</button>`;
 
           // 4. Limpiamos el nombre (eliminamos espacios extra)
-          const nombreReal = p.nombreCliente && p.nombreCliente.trim() !== '' ? p.nombreCliente : 'Cliente Web';
+          // Busca esta línea y asegúrate de que use directamente p.nombreCliente
+          const nombreReal = p.nombreCliente ? p.nombreCliente : 'Cliente Desconocido';
 
           return `
             <tr>
