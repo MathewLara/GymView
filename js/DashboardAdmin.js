@@ -90,7 +90,7 @@ async function cargarModulo(modulo, elementoHTML) {
         const todosLosUsuarios = await res.json();
 
         let usuariosFiltrados = [];
-        let tituloTabla = ""; // <-- ESTA ES LA LÍNEA QUE SE HABÍA BORRADO
+        let tituloTabla = "";
 
         if (modulo === 'clientes') {
           usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Cliente');
@@ -167,26 +167,9 @@ async function cargarModulo(modulo, elementoHTML) {
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">\n' +
-      '                <div>\n' +
-      '                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-currency-dollar text-warning"></i> Historial de Ventas</h4>\n' +
-      '                  <p class="text-muted small m-0">Gestione y exporte los recibos de sus clientes</p>\n' +
-      '                </div>\n' +
-      '                <div class="d-flex gap-2 align-items-center flex-wrap">\n' +
-      '                  \n' +
-      '                  <div class="input-group" style="width: 250px;">\n' +
-      '                    <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>\n' +
-      '                    <input type="text" id="buscador-pagos" class="form-control bg-black text-white border-secondary" placeholder="Buscar socio..." onkeyup="filtrarPagosPorCliente()">\n' +
-      '                  </div>\n' +
-      '\n' +
-      '                  <select id="filtroCliente" class="form-select bg-black text-white border-secondary" style="width: auto;" onchange="filtrarPagosPorCliente()">\n' +
-      '                      <option value="TODOS">Todos (Select)</option>\n' +
-      '                      ${opcionesSocios}\n' +
-      '                  </select>\n' +
-      '                  <button class="btn btn-warning fw-bold text-nowrap" onclick="abrirModalPago()"><i class="bi bi-plus-lg"></i> Nuevo</button>\n' +
-      '                  <button class="btn btn-outline-info fw-bold text-nowrap" onclick="exportarPagosCSV()"><i class="bi bi-file-earmark-excel"></i> Exportar</button>\n' +
-      '                </div>\n' +
-      '              </div>';
+
+    // CORRECCIÓN: Se eliminó el código basura duplicado que tenías aquí.
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
@@ -223,6 +206,12 @@ async function cargarModulo(modulo, elementoHTML) {
                   <p class="text-muted small m-0">Gestione y exporte los recibos de sus clientes</p>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
+
+                  <div class="input-group" style="width: 250px;">
+                    <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
+                    <input type="text" id="buscador-pagos" class="form-control bg-black text-white border-secondary" placeholder="Buscar socio o N° recibo..." onkeyup="filtrarPagosPorCliente()">
+                  </div>
+
                   <select id="filtroCliente" class="form-select bg-black text-white border-secondary" style="min-width: 200px;" onchange="filtrarPagosPorCliente()">
                       <option value="TODOS">Todos los clientes</option>
                       ${opcionesSocios}
@@ -780,6 +769,7 @@ function exportarPagosCSV() {
   link.click();
   document.body.removeChild(link);
 }
+
 // ==========================================
 // FUNCIÓN PARA ENTREGAR PEDIDOS DE TIENDA
 // ==========================================
@@ -804,6 +794,7 @@ async function marcarComoEntregado(idFactura) {
     alert("Error de conexión con el servidor de ventas.");
   }
 }
+
 // ==========================================
 // FUNCIÓN PARA IMPRIMIR FACTURA
 // ==========================================
@@ -889,6 +880,7 @@ async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
     alert("Hubo un error al intentar generar la factura. Revisa la consola (F12).");
   }
 }
+
 // ==========================================
 // FUNCIÓN DE BÚSQUEDA EN TIEMPO REAL (TABLAS)
 // ==========================================
