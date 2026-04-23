@@ -262,27 +262,28 @@ async function cargarModulo(modulo, elementoHTML) {
         const pedidos = await res.json();
 
         let filas = pedidos.map(p => {
-          // 1. Verificamos el estado que ahora nos manda el backend
+          // 1. PRIMERO definimos el nombreReal para que todo lo de abajo pueda usarlo
+          const nombreReal = p.nombreCliente ? p.nombreCliente : 'Cliente Desconocido';
+
+          // 2. Verificamos el estado que ahora nos manda el backend
           const esEntregado = p.estadoEntrega === 'ENTREGADO';
 
-          // 2. Configuramos el badge (etiqueta visual) según el estado
+          // 3. Configuramos el badge (etiqueta visual) según el estado
           const badgeEstado = esEntregado
             ? '<span class="badge bg-success text-white"><i class="bi bi-check-all"></i> ENTREGADO</span>'
             : '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> PENDIENTE</span>';
 
-          // 3. Configuramos los botones (Entregar e Imprimir)
+          // 4. Configuramos los botones (Entregar e Imprimir). Aquí ya funciona nombreReal.
           const botonEntregar = esEntregado
             ? '<button class="btn btn-sm btn-secondary fw-bold" disabled><i class="bi bi-check2"></i> Listo</button>'
             : `<button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})"><i class="bi bi-box-seam"></i> Entregar</button>`;
 
           const botonImprimir = `<button class="btn btn-sm btn-info fw-bold text-white ms-1" onclick="imprimirFactura(${p.idFactura}, '${nombreReal}', '${p.numeroFactura}', '${p.fechaEmision}', ${p.totalPagado})"><i class="bi bi-printer"></i> Imprimir</button>`;
 
+          // Agrupamos los dos botones
           const botonesFila = `<div class="d-flex flex-nowrap">${botonEntregar}${botonImprimir}</div>`;
 
-          // 4. Limpiamos el nombre (eliminamos espacios extra)
-          // Busca esta línea y asegúrate de que use directamente p.nombreCliente
-          const nombreReal = p.nombreCliente ? p.nombreCliente : 'Cliente Desconocido';
-
+          // 5. Retornamos la fila armada (CORREGIDO: usamos botonesFila en la última columna)
           return `
             <tr>
               <td class="text-light fw-bold">#${p.idFactura}</td>
@@ -291,7 +292,7 @@ async function cargarModulo(modulo, elementoHTML) {
               <td class="text-white small">${p.fechaEmision}</td>
               <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
               <td>${badgeEstado}</td>
-              <td>${botonAccion}</td>
+              <td>${botonesFila}</td>
             </tr>
           `;
         }).join('');
