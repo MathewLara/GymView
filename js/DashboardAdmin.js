@@ -13,7 +13,7 @@ function cerrarSesion() {
 async function cargarModulo(modulo, elementoHTML) {
   const tituloMap = {
     'resumen': 'Panel de Control Gerencial',
-    'pagos': 'Historial de Facturación',
+    'pagos': 'Gestión de Ingresos y Facturación',
     'reportes': 'Reportes Gerenciales'
   };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
@@ -26,6 +26,98 @@ async function cargarModulo(modulo, elementoHTML) {
 
   const vistaResumen = document.getElementById('vista-resumen');
   const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
+
+  if (modulo === 'resumen') {
+    vistaResumen.style.display = 'block';
+    contenedorDinamico.innerHTML = '';
+    actualizarKPIs();
+  }
+
+  else if (modulo === 'pagos') {
+    vistaResumen.style.display = 'none';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
+
+    try {
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
+
+      if (res.ok) {
+        const pagos = await res.json();
+        const nombresPlanes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
+
+        // Extraer socios únicos para el filtro
+        const sociosUnicos = [...new Set(pagos.map(p => p.socio || 'Socio'))].sort();
+        const opcionesSocios = sociosUnicos.map(s => `<option value="${s}">${s}</option>`).join('');
+
+        let filas = pagos.map(p => `
+          <tr class="fila-pago" data-socio="${p.socio || 'Socio'}" data-monto="${p.monto}">
+            <td class="text-light fw-bold">#REC-${1000 + (p.id_pago || 0)}</td>
+            <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Socio'}</td>
+            <td class="text-info">${nombresPlanes[p.id_plan] || 'Membresía'}</td>
+            <td class="text-success fw-bold">+$${parseFloat(p.monto).toFixed(2)}</td>
+            <td class="text-white small">${p.fecha}</td>
+            <td><span class="badge bg-secondary">${p.metodo}</span></td>
+            <td><span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check-all"></i> PAGADO</span></td>
+          </tr>
+        `).join('');
+
+        if (filas === '') {
+          filas = `<tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron registros de pagos.</td></tr>`;
+        }
+
+        contenedorDinamico.innerHTML = `
+          <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-currency-dollar text-warning"></i> Historial de Ventas</h4>
+                  <p class="text-muted small m-0">Gestione y exporte los recibos de sus clientes</p>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <select id="filtroCliente" class="form-select bg-black text-white border-secondary" style="min-width: 200px;" onchange="filtrarPagosPorCliente()">
+                      <option value="TODOS">Todos los clientes</option>
+                      ${opcionesSocios}
+                  </select>
+                  <button class="btn btn-warning fw-bold" onclick="abrirModalPago()"><i class="bi bi-plus-lg"></i> Nuevo</button>
+                  <button class="btn btn-outline-info fw-bold" onclick="exportarPagosCSV()">
+                    <i class="bi bi-file-earmark-excel"></i> Exportar Informe
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table id="tabla-pagos" class="table table-dark table-hover align-middle mb-0">
+                  <thead class="bg-black text-warning">
+                    <tr>
+                      <th class="py-3">N° RECIBO</th>
+                      <th class="py-3">CLIENTE / SOCIO</th>
+                      <th class="py-3">CONCEPTO</th>
+                      <th class="py-3">IMPORTE</th>
+                      <th class="py-3">FECHA</th>
+                      <th class="py-3">MÉTODO</th>
+                      <th class="py-3">ESTADO</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filas}</tbody>
+                  <tfoot id="tfoot-resumen" class="bg-black">
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold py-3">TOTAL FILTRADO:</td>
+                        <td id="total-monto-tabla" class="text-success fw-bold fs-5 py-3">$0.00</td>
+                        <td colspan="3"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+        // Calcular total inicial
+        filtrarPagosPorCliente();
+      }
+    } catch (error) {
+      console.error(error);
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de conexión con el módulo financiero.</div>';
+    }
+  }
 
   // ==========================================
   // VISTA RESUMEN (DASHBOARD INICIAL)
@@ -577,62 +669,83 @@ async function procesarPago() {
 }
 
 // ==========================================
-// NUEVO: FILTRAR TABLA POR CLIENTE
+// FILTRADO DINÁMICO Y CÁLCULO DE TOTALES
 // ==========================================
 function filtrarPagosPorCliente() {
   const seleccionado = document.getElementById('filtroCliente').value;
   const filas = document.querySelectorAll('.fila-pago');
+  let total = 0;
 
   filas.forEach(fila => {
-    // Si la opción es 'TODOS' o coincide con el 'data-socio' de la fila, se muestra
-    if (seleccionado === 'TODOS' || fila.getAttribute('data-socio') === seleccionado) {
+    const socioFila = fila.getAttribute('data-socio');
+    const montoFila = parseFloat(fila.getAttribute('data-monto')) || 0;
+
+    if (seleccionado === 'TODOS' || socioFila === seleccionado) {
       fila.style.display = '';
+      total += montoFila;
     } else {
       fila.style.display = 'none';
     }
   });
+
+  document.getElementById('total-monto-tabla').innerText = `$ ${total.toFixed(2)}`;
 }
 
 // ==========================================
-// EXPORTAR TABLA A CSV (INTELIGENTE)
+// EXPORTAR INFORME PROFESIONAL (CSV ESTRUCTURADO)
 // ==========================================
 function exportarPagosCSV() {
-  const tabla = document.querySelector('.table');
-  if (!tabla) {
-    alert("No hay datos cargados para exportar.");
-    return;
-  }
+  const filtro = document.getElementById('filtroCliente').value;
+  const admin = JSON.parse(localStorage.getItem('usuarioLogueado'))?.usuario || "Administrador";
+  const fechaHoy = new Date().toLocaleString();
 
-  let csv = [];
-  const filas = tabla.querySelectorAll('tr');
+  let csvRows = [];
 
-  // Asignarle un nombre dinámico al archivo según a quién estamos filtrando
-  const filtro = document.getElementById('filtroCliente');
-  let nombreArchivo = "Historial_Pagos";
-  if (filtro && filtro.value !== 'TODOS') {
-    nombreArchivo += "_" + filtro.value.replace(/\\s+/g, '_');
-  } else {
-    nombreArchivo += "_General";
-  }
+  // 1. ENCABEZADO PROFESIONAL DEL INFORME
+  csvRows.push('"IRON FITNESS GYM - REPORTE GERENCIAL DE INGRESOS"');
+  csvRows.push(`"Fecha de generación:","${fechaHoy}"`);
+  csvRows.push(`"Generado por:","${admin}"`);
+  csvRows.push(`"Filtro aplicado:","${filtro === 'TODOS' ? 'Consolidado General' : 'Cliente: ' + filtro}"`);
+  csvRows.push(""); // Espacio en blanco
 
-  for (let i = 0; i < filas.length; i++) {
-    // MAGIA: Solo exportamos las filas que NO están ocultas por el filtro
-    if (filas[i].style.display !== 'none') {
-      let fila = [], columnas = filas[i].querySelectorAll('th, td');
-      for (let j = 0; j < columnas.length; j++) {
-        let texto = columnas[j].innerText.replace(/(\\r\\n|\\n|\\r)/gm, "").trim();
-        fila.push('"' + texto + '"');
-      }
-      csv.push(fila.join(','));
+  // 2. CABECERAS DE LA TABLA
+  csvRows.push('"N° RECIBO","CLIENTE","CONCEPTO","IMPORTE","FECHA","METODO","ESTADO"');
+
+  // 3. DATOS FILTRADOS
+  const filas = document.querySelectorAll('.fila-pago');
+  let totalSuma = 0;
+  let contadorFila = 0;
+
+  filas.forEach(fila => {
+    if (fila.style.display !== 'none') {
+      const cols = fila.querySelectorAll('td');
+      const dataFila = Array.from(cols).map(c => `"${c.innerText.trim()}"`);
+      csvRows.push(dataFila.join(','));
+
+      // Sumar para el pie del informe
+      const monto = parseFloat(fila.getAttribute('data-monto')) || 0;
+      totalSuma += monto;
+      contadorFila++;
     }
-  }
+  });
 
-  const csvContent = "data:text/csv;charset=utf-8,\\uFEFF" + csv.join('\\n');
-  const encodedUri = encodeURI(csvContent);
+  // 4. RESUMEN FINAL (PIE DE PÁGINA)
+  csvRows.push("");
+  csvRows.push(`"RESUMEN DEL PERIODO"`);
+  csvRows.push(`"Total Transacciones:","${contadorFila}"`);
+  csvRows.push(`"MONTO TOTAL RECAUDADO:","$${totalSuma.toFixed(2)}"`);
+  csvRows.push("");
+  csvRows.push('"--- Fin del Reporte ---"');
+
+  // 5. GENERAR DESCARGA
+  const csvString = csvRows.join('\n');
+  const blob = new Blob(["\ufeff", csvString], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", nombreArchivo + ".csv");
+  link.setAttribute("href", url);
+  const nombreArchivo = `Reporte_Pagos_${filtro.replace(/\s+/g, '_')}_${new Date().getTime()}.csv`;
+  link.setAttribute("download", nombreArchivo);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
