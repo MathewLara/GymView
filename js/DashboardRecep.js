@@ -1,11 +1,19 @@
 let escanerCamara = null;
+let modalUsuarioInstance;
+let tomSelectSocioRecep = null; // Variable para la barra de búsqueda del modal de pagos
 
+// ==========================================
+// FUNCIÓN PARA CERRAR SESIÓN
+// ==========================================
 function cerrarSesion() {
   localStorage.removeItem('tokenGimnasio');
   localStorage.removeItem('usuarioLogueado');
   window.location.href = 'index.html';
 }
 
+// ==========================================
+// NAVEGACIÓN DINÁMICA DEL DASHBOARD (SPA)
+// ==========================================
 async function cargarModulo(modulo, elementoHTML) {
 
   const tituloMap = {
@@ -65,7 +73,7 @@ async function cargarModulo(modulo, elementoHTML) {
                 </tr>`;
           }).join('');
         } else if (tbody) {
-          tbody.innerHTML = '<tr><td colspan=\"5\" class=\"text-center py-4 text-muted\"><i class=\"bi bi-clock-history fs-4 d-block mb-2\"></i>Esperando movimientos en puerta...</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-clock-history fs-4 d-block mb-2"></i>Esperando movimientos en puerta...</td></tr>';
         }
       }
     } catch (error) {
@@ -99,7 +107,7 @@ async function cargarModulo(modulo, elementoHTML) {
     iniciarEscanerQR();
 
     // ==========================================
-    // 3. VISTA DE CLIENTES Y ENTRENADORES (CRUD)
+    // 3. VISTA DE CLIENTES Y ENTRENADORES (CRUD CON BÚSQUEDA)
     // ==========================================
   } else if (['clientes', 'entrenadores'].includes(modulo)) {
     vistaResumen.style.display = 'none';
@@ -141,13 +149,19 @@ async function cargarModulo(modulo, elementoHTML) {
         if (filas === '') filas = `<tr><td colspan="6" class="text-center py-4 text-white">No hay registros.</td></tr>`;
 
         contenedorDinamico.innerHTML = `
-          <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
             <h4 class="text-white m-0">${tituloTabla}</h4>
-            <button class="btn btn-warning fw-bold" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i> Agregar</button>
+            <div class="d-flex gap-2 w-100" style="max-width: 450px;">
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Buscar por nombre o correo..." onkeyup="filtrarTablaGenerica('tabla-usuarios-recep', this.value, [1, 2])">
+              </div>
+              <button class="btn btn-warning fw-bold text-nowrap" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i> Agregar</button>
+            </div>
           </div>
           <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
             <div class="table-responsive">
-              <table class="table table-dark table-hover mb-0 align-middle">
+              <table id="tabla-usuarios-recep" class="table table-dark table-hover mb-0 align-middle">
                 <thead class="text-white border-secondary">
                   <tr>
                     <th>ID</th>
@@ -169,7 +183,7 @@ async function cargarModulo(modulo, elementoHTML) {
     }
 
     // ==========================================
-    // 4. VISTA DE PAGOS (CONECTADA A BDD)
+    // 4. VISTA DE PAGOS (CON BÚSQUEDA Y TOTALES)
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
@@ -182,8 +196,11 @@ async function cargarModulo(modulo, elementoHTML) {
         const pagos = await res.json();
         const nombresPlanes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
 
+        const sociosUnicos = [...new Set(pagos.map(p => p.socio || 'Socio'))].sort();
+        const opcionesSocios = sociosUnicos.map(s => `<option value="${s}">${s}</option>`).join('');
+
         let filas = pagos.map(p => `
-          <tr>
+          <tr class="fila-pago-recep" data-socio="${p.socio || 'Socio'}" data-monto="${p.monto}">
             <td class="text-light fw-bold">#${1000 + p.id_pago}</td>
             <td class="text-white">${p.socio}</td>
             <td class="text-info">${nombresPlanes[p.id_plan] || 'Membresía'}</td>
@@ -198,13 +215,22 @@ async function cargarModulo(modulo, elementoHTML) {
         contenedorDinamico.innerHTML = `
           <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <h4 class="text-white m-0">Historial de Caja (Recepción)</h4>
-            <button class="btn btn-success fw-bold" onclick="abrirModalPago()">
-              <i class="bi bi-cash-coin"></i> Nuevo Pago
-            </button>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              <div class="input-group" style="width: 250px;">
+                <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
+                <input type="text" id="buscador-pagos-recep" class="form-control bg-black text-white border-secondary" placeholder="Buscar socio..." onkeyup="filtrarPagosRecep()">
+              </div>
+              <select id="filtroClienteRecep" class="form-select bg-black text-white border-secondary" style="width: auto;" onchange="filtrarPagosRecep()">
+                  <option value="TODOS">Todos los clientes</option>
+                  ${opcionesSocios}
+              </select>
+              <button class="btn btn-success fw-bold text-nowrap" onclick="abrirModalPago()"><i class="bi bi-cash-coin"></i> Nuevo Pago</button>
+              <button class="btn btn-outline-info fw-bold text-nowrap" onclick="exportarPagosRecepCSV()"><i class="bi bi-file-earmark-excel"></i> Exportar</button>
+            </div>
           </div>
           <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
             <div class="table-responsive">
-              <table class="table table-dark table-hover mb-0 align-middle">
+              <table id="tabla-pagos-recep" class="table table-dark table-hover mb-0 align-middle">
                 <thead class="text-white border-secondary">
                   <tr>
                     <th>N° RECIBO</th>
@@ -216,16 +242,25 @@ async function cargarModulo(modulo, elementoHTML) {
                   </tr>
                 </thead>
                 <tbody>${filas}</tbody>
+                <tfoot id="tfoot-resumen-recep" class="bg-black">
+                  <tr>
+                      <td colspan="3" class="text-end fw-bold py-3">TOTAL CAJA:</td>
+                      <td id="total-monto-recep" class="text-success fw-bold fs-5 py-3">$0.00</td>
+                      <td colspan="2"></td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
         `;
+        filtrarPagosRecep(); // Llama a la suma inicial
       }
     } catch (e) {
       contenedorDinamico.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con la base de datos de pagos.</h5>';
     }
   }
 }
+
 // ==========================================
 // FUNCIONES DE CÁMARA QR
 // ==========================================
@@ -277,7 +312,6 @@ async function procesarAcceso(valorAEnviar) {
 // ==========================================
 // FUNCIONES DEL MODAL DE USUARIOS
 // ==========================================
-let modalUsuarioInstance;
 document.addEventListener('DOMContentLoaded', () => {
   cargarModulo('resumen');
   modalUsuarioInstance = new bootstrap.Modal(document.getElementById('modalUsuario'));
@@ -348,11 +382,21 @@ async function guardarUsuario() {
 }
 
 // ==========================================
-// FUNCIONES DEL MODAL DE PAGOS (CONECTADO A BDD)
+// FUNCIONES DEL MODAL DE PAGOS (CON BÚSQUEDA INTELIGENTE)
 // ==========================================
 async function abrirModalPago() {
   const selectSocio = document.getElementById('pagoSocio');
+
+  // 1. Destruimos la barra anterior para recargarla limpia
+  if (tomSelectSocioRecep) {
+    tomSelectSocioRecep.destroy();
+    tomSelectSocioRecep = null;
+  }
   selectSocio.innerHTML = '<option value="" disabled selected>Cargando socios...</option>';
+
+  const modalPagoInstance = new bootstrap.Modal(document.getElementById('modalPago'));
+  document.getElementById('formPago').reset();
+  modalPagoInstance.show();
 
   try {
     const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
@@ -361,9 +405,16 @@ async function abrirModalPago() {
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
 
       if(clientes.length > 0) {
-        selectSocio.innerHTML = '<option value="" disabled selected>Seleccione un socio activo...</option>';
+        selectSocio.innerHTML = '<option value="">🔍 Buscar socio por nombre...</option>';
         clientes.forEach(c => {
           selectSocio.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido} (@${c.usuario})</option>`;
+        });
+
+        // 2. Activamos la barra de búsqueda TomSelect
+        tomSelectSocioRecep = new TomSelect("#pagoSocio", {
+          create: false,
+          sortField: { field: "text", direction: "asc" },
+          placeholder: "🔍 Escriba el nombre o usuario..."
         });
       } else {
         selectSocio.innerHTML = '<option value="" disabled selected>No hay socios activos</option>';
@@ -372,10 +423,6 @@ async function abrirModalPago() {
   } catch(e) {
     selectSocio.innerHTML = '<option value="" disabled selected>Error de red al cargar socios</option>';
   }
-
-  const modalPagoInstance = new bootstrap.Modal(document.getElementById('modalPago'));
-  document.getElementById('formPago').reset();
-  modalPagoInstance.show();
 }
 
 async function procesarPago() {
@@ -388,7 +435,6 @@ async function procesarPago() {
     return;
   }
 
-  // Precios estandarizados según el HTML del plan
   const precios = { "1": 5.00, "2": 30.00, "3": 50.00, "4": 300.00 };
   const montoCalculado = precios[plan];
 
@@ -415,7 +461,6 @@ async function procesarPago() {
       const modalInstance = bootstrap.Modal.getInstance(modalElement);
       if(modalInstance) modalInstance.hide();
 
-      // Refrescamos la vista actual (Pagos o Dashboard principal)
       const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
       if(moduloActivo.includes('pago')) cargarModulo('pagos');
       else cargarModulo('resumen');
@@ -426,4 +471,85 @@ async function procesarPago() {
   } catch(e) {
     alert("Error de conexión con el servidor al procesar el pago.");
   }
+}
+
+// ==========================================
+// FILTROS Y BÚSQUEDAS (NUEVO)
+// ==========================================
+function filtrarTablaGenerica(idTabla, textoBusqueda, indicesColumnas) {
+  const tabla = document.getElementById(idTabla);
+  if (!tabla) return;
+  const filas = tabla.querySelectorAll('tbody tr');
+  const texto = textoBusqueda.toLowerCase().trim();
+
+  filas.forEach(fila => {
+    if (fila.cells.length === 1 && fila.innerText.includes("No hay")) return;
+    let coincide = false;
+    indicesColumnas.forEach(indice => {
+      if (fila.cells[indice] && fila.cells[indice].innerText.toLowerCase().includes(texto)) coincide = true;
+    });
+    fila.style.display = coincide ? '' : 'none';
+  });
+}
+
+function filtrarPagosRecep() {
+  const seleccionado = document.getElementById('filtroClienteRecep').value;
+  const inputBuscador = document.getElementById('buscador-pagos-recep');
+  const buscadorTexto = inputBuscador ? inputBuscador.value.toLowerCase().trim() : '';
+
+  const filas = document.querySelectorAll('.fila-pago-recep');
+  let total = 0;
+
+  filas.forEach(fila => {
+    const socioFila = (fila.getAttribute('data-socio') || 'Socio').toLowerCase();
+    const reciboFila = fila.cells[0].innerText.toLowerCase();
+    const montoFila = parseFloat(fila.getAttribute('data-monto')) || 0;
+
+    const pasaSelect = (seleccionado === 'TODOS' || fila.getAttribute('data-socio') === seleccionado);
+    const pasaBuscador = (buscadorTexto === '' || socioFila.includes(buscadorTexto) || reciboFila.includes(buscadorTexto));
+
+    if (pasaSelect && pasaBuscador) {
+      fila.style.display = '';
+      total += montoFila;
+    } else {
+      fila.style.display = 'none';
+    }
+  });
+
+  document.getElementById('total-monto-recep').innerText = `$ ${total.toFixed(2)}`;
+}
+
+function exportarPagosRecepCSV() {
+  const filtro = document.getElementById('filtroClienteRecep').value;
+  const recepcionista = JSON.parse(localStorage.getItem('usuarioLogueado'))?.usuario || "Recepcionista";
+  const fechaHoy = new Date().toLocaleString();
+
+  let csvRows = [];
+  csvRows.push('"IRON FITNESS GYM - REPORTE DE CAJA (RECEPCION)"');
+  csvRows.push(`"Fecha:","${fechaHoy}"`);
+  csvRows.push(`"Generado por:","${recepcionista}"`);
+  csvRows.push(`"Filtro aplicado:","${filtro === 'TODOS' ? 'General' : 'Cliente: ' + filtro}"`);
+  csvRows.push("");
+  csvRows.push('"N° RECIBO","CLIENTE","CONCEPTO","IMPORTE","FECHA","METODO"');
+
+  const filas = document.querySelectorAll('.fila-pago-recep');
+  let totalSuma = 0;
+
+  filas.forEach(fila => {
+    if (fila.style.display !== 'none') {
+      const cols = fila.querySelectorAll('td');
+      const dataFila = Array.from(cols).map(c => `"${c.innerText.trim()}"`);
+      csvRows.push(dataFila.join(','));
+      totalSuma += parseFloat(fila.getAttribute('data-monto')) || 0;
+    }
+  });
+
+  csvRows.push("");
+  csvRows.push(`"TOTAL RECAUDADO:","$${totalSuma.toFixed(2)}"`);
+
+  const blob = new Blob(["\ufeff", csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.setAttribute("href", URL.createObjectURL(blob));
+  link.setAttribute("download", `Caja_Recepcion_${new Date().getTime()}.csv`);
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
