@@ -57,7 +57,6 @@ async function cargarDatos(id) {
         document.getElementById('icono-estado').className = 'bi bi-shield-check text-success';
 
         membresiaActiva = true;
-        // Si pagó, quitamos la alerta si existe
         const alerta = document.getElementById('alerta-bloqueo');
         if(alerta) alerta.remove();
       }
@@ -145,7 +144,6 @@ function mostrarAlertaBloqueo() {
         <i class="bi bi-lock-fill text-danger" style="font-size: 3rem;"></i>
         <h4 class="fw-bold text-danger mt-2">ACCESO RESTRINGIDO</h4>
         <p class="text-dark fw-semibold mb-3">Tu membresía está vencida. Revisa los detalles de tu plan abajo para renovar.</p>
-
         <button class="btn btn-danger fw-bold shadow fs-5 w-100 py-2" onclick="irAMembresia()">
             <i class="bi bi-card-checklist"></i> Ver mi Membresía
         </button>
@@ -168,18 +166,35 @@ function mostrarAlertaBloqueo() {
   });
 }
 
-// Función auxiliar para llevar al usuario al apartado de membresía
+// ==========================================
+// 🔴 VERSIÓN BLINDADA DE irAMembresia() 🔴
+// ==========================================
 function irAMembresia() {
-  // Aseguramos que estamos en la vista de inicio
-  ver('inicio', document.querySelector('.nav-link[onclick*="inicio"]'));
+  // 1. Forzamos la vista de inicio pase lo que pase
+  const vistaInicio = document.getElementById('vista-inicio');
+  const vistaRutina = document.getElementById('vista-rutina');
+  if (vistaInicio) vistaInicio.style.display = 'block';
+  if (vistaRutina) vistaRutina.style.display = 'none';
 
-  // Hacemos scroll suave hasta la tarjeta de membresía (el elemento con ID m-plan o similar)
-  const seccionMembresia = document.getElementById('m-plan').closest('.card');
+  // 2. Buscamos el texto del plan de membresía
+  const seccionMembresia = document.getElementById('m-plan');
   if(seccionMembresia) {
-    seccionMembresia.scrollIntoView({ behavior: 'smooth' });
-    // Efecto visual de parpadeo para resaltar la sección
-    seccionMembresia.classList.add('border-warning');
-    setTimeout(() => seccionMembresia.classList.remove('border-warning'), 2000);
+    // Buscamos la tarjeta completa que lo envuelve
+    const tarjeta = seccionMembresia.closest('.card') || seccionMembresia.parentElement;
+
+    // Hacemos el deslizamiento suave hacia abajo
+    tarjeta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Le damos un resplandor rojo llamativo por 2 segundos para que el cliente sepa qué mirar
+    tarjeta.style.transition = "box-shadow 0.4s ease-in-out";
+    tarjeta.style.boxShadow = "0 0 30px rgba(220, 53, 69, 0.9)";
+
+    setTimeout(() => {
+      tarjeta.style.boxShadow = "none";
+    }, 2000);
+  } else {
+    // Si no la encuentra, manda la pantalla al inicio de todo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
@@ -187,7 +202,6 @@ function irAMembresia() {
 // 4. NAVEGACIÓN SPA Y SEGURIDAD ESTRICTA
 // ==========================================
 function ver(seccion, elemento) {
-  // Permitimos ver el 'inicio' aunque esté vencido (ahí está la membresía)
   if (!membresiaActiva && seccion !== 'inicio') {
     alert("⚠️ SECCIÓN BLOQUEADA\n\nTu plan está vencido. Por favor, renueva tu membresía en el panel de Inicio.");
     return;
