@@ -261,22 +261,35 @@ async function cargarModulo(modulo, elementoHTML) {
       if (res.ok) {
         const pedidos = await res.json();
 
-        let filas = pedidos.map(p => `
-          <tr>
-            <td class="text-light fw-bold">#${p.idFactura}</td>
-            <td class="text-warning fw-bold"><i class="bi bi-person-badge"></i> ${p.nombreCliente || 'Cliente Web'}</td>
+        let filas = pedidos.map(p => {
+          // 1. Verificamos el estado que ahora nos manda el backend
+          const esEntregado = p.estadoEntrega === 'ENTREGADO';
 
-            <td class="text-white">${p.numeroFactura}</td>
-            <td class="text-white small">${p.fechaEmision}</td>
-            <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
-            <td><span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> PENDIENTE</span></td>
-            <td>
-              <button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})">
-                <i class="bi bi-box-seam"></i> Entregar
-              </button>
-            </td>
-          </tr>
-        `).join('');
+          // 2. Configuramos el badge (etiqueta visual) según el estado
+          const badgeEstado = esEntregado
+            ? '<span class="badge bg-success text-white"><i class="bi bi-check-all"></i> ENTREGADO</span>'
+            : '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> PENDIENTE</span>';
+
+          // 3. Configuramos el botón (si está entregado, se desactiva)
+          const botonAccion = esEntregado
+            ? '<button class="btn btn-sm btn-secondary fw-bold" disabled><i class="bi bi-check2"></i> Listo</button>'
+            : `<button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})"><i class="bi bi-box-seam"></i> Entregar</button>`;
+
+          // 4. Limpiamos el nombre (eliminamos espacios extra)
+          const nombreReal = p.nombreCliente && p.nombreCliente.trim() !== '' ? p.nombreCliente : 'Cliente Web';
+
+          return `
+            <tr>
+              <td class="text-light fw-bold">#${p.idFactura}</td>
+              <td class="text-warning fw-bold"><i class="bi bi-person-badge"></i> ${nombreReal}</td>
+              <td class="text-white">${p.numeroFactura}</td>
+              <td class="text-white small">${p.fechaEmision}</td>
+              <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
+              <td>${badgeEstado}</td>
+              <td>${botonAccion}</td>
+            </tr>
+          `;
+        }).join('');
 
         if (filas === '') {
           filas = `<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-check2-circle fs-1 d-block mb-3"></i>No hay pedidos pendientes por entregar. ¡Todo al día!</td></tr>`;
