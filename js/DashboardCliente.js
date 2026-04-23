@@ -42,10 +42,27 @@ async function cargarDatos(id) {
       document.getElementById('m-precio').textContent = data.precioPlan ? "$" + data.precioPlan : "$0.00";
       document.getElementById('m-fecha').textContent = data.fechaVencimiento || "N/A";
 
+      // ... tu código anterior ...
       const badge = document.getElementById('m-estado');
       badge.textContent = data.estadoMembresia || "Inactivo";
 
-      // 🛡️ LÓGICA DE BLOQUEO POR VENCIMIENTo
+      // ✅ AÑADIR ESTO AQUÍ: LÓGICA VISUAL DEL BOTÓN SEGÚN LA BASE DE DATOS
+      const btnCancelar = document.getElementById('btnCancelarSuscripcion');
+      if (data.cancelado) {
+        if (btnCancelar) {
+          btnCancelar.innerHTML = '<i class="bi bi-check-circle-fill"></i> Suscripción Cancelada';
+          btnCancelar.className = 'btn btn-secondary btn-sm w-100 fw-bold';
+          btnCancelar.disabled = true;
+        }
+      } else {
+        if (btnCancelar) {
+          btnCancelar.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
+          btnCancelar.className = 'btn btn-outline-danger btn-sm w-100 fw-bold';
+          btnCancelar.disabled = false;
+        }
+      }
+
+      // 🛡️ LÓGICA DE BLOQUEO POR VENCIMIENTO
       if(data.estadoMembresia === 'Vencido' || !data.estadoMembresia) {
         badge.className = 'badge bg-danger fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-x-circle text-danger';
@@ -226,7 +243,6 @@ function salir() {
 }
 
 async function cancelarSuscripcion() {
-  // 1. Mensaje de confirmación acorde a la nueva lógica
   const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu suscripción?\n\nNo perderás tu dinero. Tu plan no se renovará automáticamente, pero mantendrás acceso completo hasta tu fecha de corte.");
   if (!confirmacion) return;
 
@@ -236,18 +252,36 @@ async function cancelarSuscripcion() {
 
   const idUsar = usuario.idUsuario || usuario.id;
   const btn = document.getElementById('btnCancelarSuscripcion');
-  if (data.cancelado) {
-    // Si la base de datos dice que ya está cancelado, bloqueamos el botón
-    if (btn) {
-      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Suscripción Cancelada';
-      btn.className = 'btn btn-secondary btn-sm w-100 fw-bold';
+
+  try {
+    // Ponemos el botón en estado "Cargando"
+    if(btn) {
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
       btn.disabled = true;
     }
-  } else {
-    // Si no está cancelado, nos aseguramos de que el botón sea el normal
-    if (btn) {
+
+    // ✅ ESTA ES LA PETICIÓN AL SERVIDOR QUE SE HABÍA BORRADO
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, {
+      method: 'PUT'
+    });
+
+    if(res.ok) {
+      alert("¡Suscripción cancelada exitosamente!\nPodrás seguir ingresando al gimnasio hasta tu fecha de vencimiento.");
+      // Recargamos los datos para que el botón se bloquee automáticamente
+      cargarDatos(idUsar);
+    } else {
+      alert("Error al procesar la cancelación.");
+      // Si falla, regresamos el botón a la normalidad
+      if(btn) {
+        btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
+        btn.disabled = false;
+      }
+    }
+  } catch (error) {
+    alert("Error de conexión al intentar cancelar.");
+    // Si hay error de internet, regresamos el botón a la normalidad
+    if(btn) {
       btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
-      btn.className = 'btn btn-outline-danger btn-sm w-100 fw-bold';
       btn.disabled = false;
     }
   }
