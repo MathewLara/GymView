@@ -256,4 +256,3 @@ async function cancelarSuscripcion() {
     alert("Error de conexión.");
   }
 }
-f
