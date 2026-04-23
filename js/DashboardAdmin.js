@@ -82,32 +82,7 @@ async function cargarModulo(modulo, elementoHTML) {
     // ==========================================
   } else if (['clientes', 'entrenadores', 'recepcionistas', 'administradores'].includes(modulo)) {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = `
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
-            <h4 class="text-white m-0">${tituloTabla}</h4>
-
-            <div class="d-flex gap-2 w-100" style="max-width: 450px;">
-              <div class="input-group">
-                <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Buscar por nombre o usuario..." onkeyup="filtrarTablaGenerica('tabla-usuarios', this.value, [1, 2])">
-              </div>
-              <button class="btn btn-warning fw-bold text-nowrap" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i> Nuevo</button>
-            </div>
-          </div>
-
-          <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
-            <div class="table-responsive">
-              <table id="tabla-usuarios" class="table table-dark table-hover mb-0 align-middle">
-                <thead class="text-white border-secondary">
-                  <tr>
-                    <th>ID</th><th>USUARIO</th><th>NOMBRE COMPLETO</th><th>CORREO</th><th>TELÉFONO</th><th>ROL</th><th>ESTADO</th><th>ACCIONES</th>
-                  </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-              </table>
-            </div>
-          </div>
-        `;
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
@@ -115,7 +90,7 @@ async function cargarModulo(modulo, elementoHTML) {
         const todosLosUsuarios = await res.json();
 
         let usuariosFiltrados = [];
-        let tituloTabla = "";
+        let tituloTabla = ""; // <-- ESTA ES LA LÍNEA QUE SE HABÍA BORRADO
 
         if (modulo === 'clientes') {
           usuariosFiltrados = todosLosUsuarios.filter(u => u.rol === 'Cliente');
@@ -159,23 +134,22 @@ async function cargarModulo(modulo, elementoHTML) {
         }
 
         contenedorDinamico.innerHTML = `
-          <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
             <h4 class="text-white m-0">${tituloTabla}</h4>
-            <button class="btn btn-warning fw-bold" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i> Agregar</button>
+            <div class="d-flex gap-2 w-100" style="max-width: 450px;">
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Buscar por nombre o usuario..." onkeyup="filtrarTablaGenerica('tabla-usuarios', this.value, [1, 2])">
+              </div>
+              <button class="btn btn-warning fw-bold text-nowrap" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i> Agregar</button>
+            </div>
           </div>
           <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
             <div class="table-responsive">
-              <table class="table table-dark table-hover mb-0 align-middle">
+              <table id="tabla-usuarios" class="table table-dark table-hover mb-0 align-middle">
                 <thead class="text-white border-secondary">
                   <tr>
-                    <th>ID</th>
-                    <th>USUARIO</th>
-                    <th>NOMBRE COMPLETO</th>
-                    <th>CORREO</th>
-                    <th>TELÉFONO</th>
-                    <th>ROL</th>
-                    <th>ESTADO</th>
-                    <th>ACCIONES</th>
+                    <th>ID</th><th>USUARIO</th><th>NOMBRE COMPLETO</th><th>CORREO</th><th>TELÉFONO</th><th>ROL</th><th>ESTADO</th><th>ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody>${filas}</tbody>
@@ -297,34 +271,7 @@ async function cargarModulo(modulo, elementoHTML) {
     // ==========================================
   } else if (modulo === 'pedidos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = `
-          <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
-            <div class="card-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <div>
-                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-cart-check text-warning"></i> Entregas de Tienda</h4>
-                  <p class="text-muted small m-0">Aquí aparecen los productos que los clientes ya pagaron online y vienen a retirar</p>
-                </div>
-
-                <div class="input-group" style="max-width: 350px;">
-                  <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
-                  <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Buscar por cliente o factura..." onkeyup="filtrarTablaGenerica('tabla-pedidos', this.value, [1, 2])">
-                </div>
-              </div>
-
-              <div class="table-responsive">
-                <table id="tabla-pedidos" class="table table-dark table-hover align-middle mb-0">
-                  <thead class="bg-black text-warning">
-                    <tr>
-                      <th class="py-3">ID BASE</th><th class="py-3">CLIENTE</th> <th class="py-3">N° FACTURA</th><th class="py-3">FECHA COMPRA</th><th class="py-3">TOTAL PAGADO</th><th class="py-3">ESTADO</th><th class="py-3">ACCIÓN</th>
-                    </tr>
-                  </thead>
-                  <tbody>${filas}</tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        `;
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes');
@@ -333,28 +280,20 @@ async function cargarModulo(modulo, elementoHTML) {
         const pedidos = await res.json();
 
         let filas = pedidos.map(p => {
-          // 1. PRIMERO definimos el nombreReal para que todo lo de abajo pueda usarlo
           const nombreReal = p.nombreCliente ? p.nombreCliente : 'Cliente Desconocido';
-
-          // 2. Verificamos el estado que ahora nos manda el backend
           const esEntregado = p.estadoEntrega === 'ENTREGADO';
-
-          // 3. Configuramos el badge (etiqueta visual) según el estado
           const badgeEstado = esEntregado
             ? '<span class="badge bg-success text-white"><i class="bi bi-check-all"></i> ENTREGADO</span>'
             : '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> PENDIENTE</span>';
 
-          // 4. Configuramos los botones (Entregar e Imprimir). Aquí ya funciona nombreReal.
           const botonEntregar = esEntregado
             ? '<button class="btn btn-sm btn-secondary fw-bold" disabled><i class="bi bi-check2"></i> Listo</button>'
             : `<button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})"><i class="bi bi-box-seam"></i> Entregar</button>`;
 
           const botonImprimir = `<button class="btn btn-sm btn-info fw-bold text-white ms-1" onclick="imprimirFactura(${p.idFactura}, '${nombreReal}', '${p.numeroFactura}', '${p.fechaEmision}', ${p.totalPagado})"><i class="bi bi-printer"></i> Imprimir</button>`;
 
-          // Agrupamos los dos botones
           const botonesFila = `<div class="d-flex flex-nowrap">${botonEntregar}${botonImprimir}</div>`;
 
-          // 5. Retornamos la fila armada (CORREGIDO: usamos botonesFila en la última columna)
           return `
             <tr>
               <td class="text-light fw-bold">#${p.idFactura}</td>
@@ -369,7 +308,7 @@ async function cargarModulo(modulo, elementoHTML) {
         }).join('');
 
         if (filas === '') {
-          filas = `<tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-check2-circle fs-1 d-block mb-3"></i>No hay pedidos pendientes por entregar. ¡Todo al día!</td></tr>`;
+          filas = `<tr><td colspan="7" class="text-center py-5 text-muted">No hay pedidos pendientes.</td></tr>`;
         }
 
         contenedorDinamico.innerHTML = `
@@ -378,20 +317,17 @@ async function cargarModulo(modulo, elementoHTML) {
               <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div>
                   <h4 class="text-white m-0 fw-bold"><i class="bi bi-cart-check text-warning"></i> Entregas de Tienda</h4>
-                  <p class="text-muted small m-0">Aquí aparecen los productos que los clientes ya pagaron online y vienen a retirar</p>
+                </div>
+                <div class="input-group" style="max-width: 350px;">
+                  <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Buscar cliente o factura..." onkeyup="filtrarTablaGenerica('tabla-pedidos', this.value, [1, 2])">
                 </div>
               </div>
-
               <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle mb-0">
+                <table id="tabla-pedidos" class="table table-dark table-hover align-middle mb-0">
                   <thead class="bg-black text-warning">
                     <tr>
-                      <th class="py-3">ID BASE</th>
-                      <th class="py-3">CLIENTE</th> <th class="py-3">N° FACTURA</th>
-                      <th class="py-3">FECHA COMPRA</th>
-                      <th class="py-3">TOTAL PAGADO</th>
-                      <th class="py-3">ESTADO</th>
-                      <th class="py-3">ACCIÓN</th>
+                      <th class="py-3">ID BASE</th><th class="py-3">CLIENTE</th><th class="py-3">N° FACTURA</th><th class="py-3">FECHA COMPRA</th><th class="py-3">TOTAL</th><th class="py-3">ESTADO</th><th class="py-3">ACCIÓN</th>
                     </tr>
                   </thead>
                   <tbody>${filas}</tbody>
@@ -400,12 +336,9 @@ async function cargarModulo(modulo, elementoHTML) {
             </div>
           </div>
         `;
-      } else {
-        throw new Error("No se pudieron cargar los pedidos");
       }
     } catch (error) {
       console.error(error);
-      contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger">Error al conectar con la base de datos de ventas.</div>';
     }
 
     // ==========================================
@@ -965,23 +898,18 @@ async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
 function filtrarTablaGenerica(idTabla, textoBusqueda, indicesColumnas) {
   const tabla = document.getElementById(idTabla);
   if (!tabla) return;
-
   const filas = tabla.querySelectorAll('tbody tr');
   const texto = textoBusqueda.toLowerCase().trim();
 
   filas.forEach(fila => {
-    // Evitamos ocultar el mensaje de "No hay registros" si existe
-    if (fila.cells.length === 1 && fila.innerText.includes("No hay")) return;
-
+    if (fila.cells.length === 1) return;
     let coincide = false;
-    // Revisamos solo las columnas donde queremos buscar (ej: Nombre, Usuario)
     indicesColumnas.forEach(indice => {
       if (fila.cells[indice]) {
         const contenido = fila.cells[indice].innerText.toLowerCase();
         if (contenido.includes(texto)) coincide = true;
       }
     });
-
     fila.style.display = coincide ? '' : 'none';
   });
 }
