@@ -131,7 +131,7 @@ async function cargarDatos(id) {
 }
 
 // ==========================================
-// 3. FUNCIÓN DE BLOQUEO VISUAL E INTERFAZ
+// 3. FUNCIÓN DE BLOQUEO VISUAL Y EVENTOS MODERNOS
 // ==========================================
 function mostrarAlertaBloqueo() {
   if (document.getElementById('alerta-bloqueo')) return;
@@ -140,23 +140,60 @@ function mostrarAlertaBloqueo() {
   const alerta = document.createElement('div');
   alerta.id = 'alerta-bloqueo';
   alerta.className = 'alert alert-danger border-danger text-center shadow-lg mb-4 mt-3 rounded-4 p-4';
+
+  // Le quitamos el onclick viejo y le ponemos un ID al botón
   alerta.innerHTML = `
         <i class="bi bi-lock-fill text-danger" style="font-size: 3rem;"></i>
         <h4 class="fw-bold text-danger mt-2">ACCESO RESTRINGIDO</h4>
         <p class="text-dark fw-semibold mb-3">Tu membresía está vencida. Revisa los detalles de tu plan abajo para renovar.</p>
-        <button class="btn btn-danger fw-bold shadow fs-5 w-100 py-2" onclick="irAMembresia()">
+        <button id="btn-ir-membresia" class="btn btn-danger fw-bold shadow fs-5 w-100 py-2">
             <i class="bi bi-card-checklist"></i> Ver mi Membresía
         </button>
     `;
 
   if(vistaInicio) vistaInicio.prepend(alerta);
 
+  // 🎯 EVENT LISTENER MODERNO Y PROFESIONAL
+  // Encontramos el botón y le inyectamos la lógica directamente
+  const btnMembresia = document.getElementById('btn-ir-membresia');
+  if (btnMembresia) {
+    btnMembresia.addEventListener('click', () => {
+      console.log("Desplazando hacia la membresía...");
+
+      const vistaInicio = document.getElementById('vista-inicio');
+      const vistaRutina = document.getElementById('vista-rutina');
+      if (vistaInicio) vistaInicio.style.display = 'block';
+      if (vistaRutina) vistaRutina.style.display = 'none';
+
+      const ancla = document.getElementById('m-plan') || document.getElementById('m-estado') || document.querySelector('.card-panel');
+
+      if (ancla) {
+        const tarjeta = ancla.closest('.card') || ancla.parentElement;
+        tarjeta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Efecto de brillo rojo profesional
+        tarjeta.style.transition = "all 0.5s ease";
+        tarjeta.style.boxShadow = "0 0 40px rgba(220, 53, 69, 0.8)";
+        tarjeta.style.border = "2px solid #dc3545";
+
+        setTimeout(() => {
+          tarjeta.style.boxShadow = "none";
+          tarjeta.style.border = "1px solid rgba(255,255,255,0.1)";
+        }, 3000);
+      } else {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }
+    });
+  }
+
+  // Efectos de bloqueo para el QR
   const qrContainer = document.getElementById('img-qr');
   if(qrContainer) {
     qrContainer.style.filter = "blur(10px) grayscale(100%)";
     qrContainer.style.opacity = "0.3";
   }
 
+  // Candado en el menú
   const links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
     if(link.innerText.toLowerCase().includes('rutina')) {
@@ -165,47 +202,6 @@ function mostrarAlertaBloqueo() {
     }
   });
 }
-
-// ==========================================
-// 🔴 VERSIÓN GLOBAL Y BLINDADA DE irAMembresia()
-// ==========================================
-window.irAMembresia = function() {
-  console.log("Intentando desplazar a membresía...");
-
-  // 1. Asegurarnos de que estamos en la vista de inicio
-  const vistaInicio = document.getElementById('vista-inicio');
-  const vistaRutina = document.getElementById('vista-rutina');
-
-  if (vistaInicio) vistaInicio.style.display = 'block';
-  if (vistaRutina) vistaRutina.style.display = 'none';
-
-  // 2. Intentar buscar el elemento por varios IDs posibles para no fallar
-  const ancla = document.getElementById('m-plan') ||
-    document.getElementById('m-estado') ||
-    document.querySelector('.card-panel');
-
-  if (ancla) {
-    // Buscamos la tarjeta (card) que contiene ese texto
-    const tarjeta = ancla.closest('.card') || ancla.parentElement;
-
-    // Desplazamiento suave
-    tarjeta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    // Efecto visual de resplandor para que el cliente no se pierda
-    tarjeta.style.transition = "all 0.5s ease";
-    tarjeta.style.boxShadow = "0 0 40px rgba(255, 193, 7, 0.8)"; // Brillo amarillo/warning
-    tarjeta.style.border = "2px solid #ffc107";
-
-    setTimeout(() => {
-      tarjeta.style.boxShadow = "none";
-      tarjeta.style.border = "1px solid rgba(255,255,255,0.1)";
-    }, 3000);
-  } else {
-    console.error("No se encontró el elemento de membresía en el HTML.");
-    // Si falla todo, al menos lo mandamos abajo
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-  }
-};
 
 // ==========================================
 // 4. NAVEGACIÓN SPA Y SEGURIDAD ESTRICTA
