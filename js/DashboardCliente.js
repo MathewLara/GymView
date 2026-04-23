@@ -279,25 +279,50 @@ function salir() {
 }
 
 // ==========================================
-// 7. CANCELAR SUSCRIPCIÓN (Mock Visual)
+// 7. CANCELAR SUSCRIPCIÓN (CONECTADO A BD)
 // ==========================================
-function cancelarSuscripcion() {
-  const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu plan?\n\nTranquilo: podrás seguir ingresando al gimnasio normalmente hasta que se cumplan los días que ya pagaste.");
+async function cancelarSuscripcion() {
+  const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu plan?\n\nTu estado pasará a Inactivo y deberás renovar para volver a ingresar.");
 
-  if (confirmacion) {
-    const btn = document.getElementById('btnCancelarSuscripcion');
+  if (!confirmacion) return;
+
+  const sesion = localStorage.getItem('usuarioLogueado');
+  const usuario = sesion ? JSON.parse(sesion) : null;
+  if(!usuario) return;
+
+  const idUsar = usuario.idUsuario || usuario.id;
+  const btn = document.getElementById('btnCancelarSuscripcion');
+
+  try {
     if(btn) {
-      btn.classList.replace('btn-outline-danger', 'btn-secondary');
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
       btn.disabled = true;
-      btn.innerHTML = '<i class="bi bi-info-circle"></i> Cancelación Programada';
     }
 
-    alert("¡Suscripción cancelada exitosamente!\n\nTu acceso seguirá activo en el sistema, pero no te cobraremos el próximo mes.");
+    // Llamamos al nuevo endpoint de tu backend
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, {
+      method: 'PUT'
+    });
 
-    const badge = document.getElementById('m-estado');
-    if(badge && (badge.textContent === "Activo" || badge.classList.contains('bg-success'))) {
-      badge.textContent = "Activo (No se renovará)";
-      badge.className = 'badge bg-warning text-dark fs-6 mb-4';
+    if(res.ok) {
+      alert("¡Suscripción cancelada exitosamente en el sistema!");
+
+      // Recargamos los datos del servidor para que la tarjeta se ponga roja (Vencida) inmediatamente
+      cargarDatos(idUsar);
+
+      if(btn) {
+        btn.classList.replace('btn-outline-danger', 'btn-secondary');
+        btn.innerHTML = '<i class="bi bi-info-circle"></i> Plan Cancelado';
+      }
+    } else {
+      alert("Hubo un error al intentar cancelar la suscripción en la base de datos.");
+      if(btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
+      }
     }
+  } catch (error) {
+    console.error("Error conectando al servidor:", error);
+    alert("Error de red. Intenta nuevamente.");
   }
 }
