@@ -30,101 +30,6 @@ async function cargarModulo(modulo, elementoHTML) {
   if (modulo === 'resumen') {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
-    actualizarKPIs();
-  }
-
-  else if (modulo === 'pagos') {
-    vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
-
-    try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
-
-      if (res.ok) {
-        const pagos = await res.json();
-        const nombresPlanes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
-
-        // Extraer socios únicos para el filtro
-        const sociosUnicos = [...new Set(pagos.map(p => p.socio || 'Socio'))].sort();
-        const opcionesSocios = sociosUnicos.map(s => `<option value="${s}">${s}</option>`).join('');
-
-        let filas = pagos.map(p => `
-          <tr class="fila-pago" data-socio="${p.socio || 'Socio'}" data-monto="${p.monto}">
-            <td class="text-light fw-bold">#REC-${1000 + (p.id_pago || 0)}</td>
-            <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Socio'}</td>
-            <td class="text-info">${nombresPlanes[p.id_plan] || 'Membresía'}</td>
-            <td class="text-success fw-bold">+$${parseFloat(p.monto).toFixed(2)}</td>
-            <td class="text-white small">${p.fecha}</td>
-            <td><span class="badge bg-secondary">${p.metodo}</span></td>
-            <td><span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check-all"></i> PAGADO</span></td>
-          </tr>
-        `).join('');
-
-        if (filas === '') {
-          filas = `<tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron registros de pagos.</td></tr>`;
-        }
-
-        contenedorDinamico.innerHTML = `
-          <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
-            <div class="card-body p-4">
-              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <div>
-                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-currency-dollar text-warning"></i> Historial de Ventas</h4>
-                  <p class="text-muted small m-0">Gestione y exporte los recibos de sus clientes</p>
-                </div>
-                <div class="d-flex gap-2 align-items-center">
-                  <select id="filtroCliente" class="form-select bg-black text-white border-secondary" style="min-width: 200px;" onchange="filtrarPagosPorCliente()">
-                      <option value="TODOS">Todos los clientes</option>
-                      ${opcionesSocios}
-                  </select>
-                  <button class="btn btn-warning fw-bold" onclick="abrirModalPago()"><i class="bi bi-plus-lg"></i> Nuevo</button>
-                  <button class="btn btn-outline-info fw-bold" onclick="exportarPagosCSV()">
-                    <i class="bi bi-file-earmark-excel"></i> Exportar Informe
-                  </button>
-                </div>
-              </div>
-
-              <div class="table-responsive">
-                <table id="tabla-pagos" class="table table-dark table-hover align-middle mb-0">
-                  <thead class="bg-black text-warning">
-                    <tr>
-                      <th class="py-3">N° RECIBO</th>
-                      <th class="py-3">CLIENTE / SOCIO</th>
-                      <th class="py-3">CONCEPTO</th>
-                      <th class="py-3">IMPORTE</th>
-                      <th class="py-3">FECHA</th>
-                      <th class="py-3">MÉTODO</th>
-                      <th class="py-3">ESTADO</th>
-                    </tr>
-                  </thead>
-                  <tbody>${filas}</tbody>
-                  <tfoot id="tfoot-resumen" class="bg-black">
-                    <tr>
-                        <td colspan="3" class="text-end fw-bold py-3">TOTAL FILTRADO:</td>
-                        <td id="total-monto-tabla" class="text-success fw-bold fs-5 py-3">$0.00</td>
-                        <td colspan="3"></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </div>
-        `;
-        // Calcular total inicial
-        filtrarPagosPorCliente();
-      }
-    } catch (error) {
-      console.error(error);
-      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de conexión con el módulo financiero.</div>';
-    }
-  }
-
-  // ==========================================
-  // VISTA RESUMEN (DASHBOARD INICIAL)
-  // ==========================================
-  if (modulo === 'resumen') {
-    vistaResumen.style.display = 'block';
-    contenedorDinamico.innerHTML = '';
 
     document.getElementById('kpi-cuentas').innerText = '...';
     document.getElementById('kpi-ingresos1').innerText = '...';
@@ -258,11 +163,11 @@ async function cargarModulo(modulo, elementoHTML) {
     }
 
     // ==========================================
-    // MÓDULO DE PAGOS (AHORA CON FILTRO DE CLIENTE)
+    // MÓDULO DE PAGOS
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando historial de pagos...</p></div>';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
@@ -271,71 +176,80 @@ async function cargarModulo(modulo, elementoHTML) {
         const pagos = await res.json();
         const nombresPlanes = { 1: 'Plan Diario', 2: 'Plan Mensual Estándar', 3: 'Plan VIP Mensual', 4: 'Plan Anual' };
 
-        // 1. Extraemos una lista de todos los socios únicos para el desplegable
-        const sociosUnicos = [...new Set(pagos.map(p => p.socio || 'Usuario'))];
+        const sociosUnicos = [...new Set(pagos.map(p => p.socio || 'Socio'))].sort();
         const opcionesSocios = sociosUnicos.map(s => `<option value="${s}">${s}</option>`).join('');
 
-        // 2. Le agregamos un 'data-socio' a cada fila para poder ocultarla fácilmente
         let filas = pagos.map(p => `
-          <tr class="fila-pago" data-socio="${p.socio || 'Usuario'}">
-            <td class="text-light fw-bold">#${1000 + (p.id_pago || 0)}</td>
-            <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Usuario'}</td>
+          <tr class="fila-pago" data-socio="${p.socio || 'Socio'}" data-monto="${p.monto}">
+            <td class="text-light fw-bold">#REC-${1000 + (p.id_pago || 0)}</td>
+            <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio || 'Socio'}</td>
             <td class="text-info">${nombresPlanes[p.id_plan] || 'Membresía'}</td>
             <td class="text-success fw-bold">+$${parseFloat(p.monto).toFixed(2)}</td>
-            <td class="text-white">${p.fecha}</td>
+            <td class="text-white small">${p.fecha}</td>
             <td><span class="badge bg-secondary">${p.metodo}</span></td>
-            <td><span class="badge bg-success"><i class="bi bi-check-circle"></i> Aprobado</span></td>
+            <td><span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check-all"></i> PAGADO</span></td>
           </tr>
         `).join('');
 
         if (filas === '') {
-          filas = `<tr><td colspan="7" class="text-center py-4 text-white">No hay transacciones registradas.</td></tr>`;
+          filas = `<tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron registros de pagos.</td></tr>`;
         }
 
-        // 3. Agregamos el <select> en el HTML junto a los botones
         contenedorDinamico.innerHTML = `
-          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <h4 class="text-white m-0">Historial de Transacciones</h4>
-            <div class="d-flex gap-2 align-items-center">
+          <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-currency-dollar text-warning"></i> Historial de Ventas</h4>
+                  <p class="text-muted small m-0">Gestione y exporte los recibos de sus clientes</p>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <select id="filtroCliente" class="form-select bg-black text-white border-secondary" style="min-width: 200px;" onchange="filtrarPagosPorCliente()">
+                      <option value="TODOS">Todos los clientes</option>
+                      ${opcionesSocios}
+                  </select>
+                  <button class="btn btn-warning fw-bold" onclick="abrirModalPago()"><i class="bi bi-plus-lg"></i> Nuevo</button>
+                  <button class="btn btn-outline-info fw-bold" onclick="exportarPagosCSV()">
+                    <i class="bi bi-file-earmark-excel"></i> Exportar Informe
+                  </button>
+                </div>
+              </div>
 
-              <select id="filtroCliente" class="form-select bg-dark text-white border-secondary fw-bold" onchange="filtrarPagosPorCliente()">
-                  <option value="TODOS">Todos los clientes</option>
-                  ${opcionesSocios}
-              </select>
-
-              <button class="btn btn-success fw-bold text-nowrap" onclick="abrirModalPago()"><i class="bi bi-plus-circle"></i> Nuevo Pago</button>
-              <button class="btn btn-outline-warning fw-bold text-nowrap" onclick="exportarPagosCSV()">
-                <i class="bi bi-file-earmark-arrow-down"></i> Exportar CSV
-              </button>
-            </div>
-          </div>
-          <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
-            <div class="table-responsive">
-              <table class="table table-dark table-hover mb-0 align-middle">
-                <thead class="text-white border-secondary">
-                  <tr>
-                    <th>N° RECIBO</th>
-                    <th>SOCIO</th>
-                    <th>MEMBRESÍA</th>
-                    <th>MONTO</th>
-                    <th>FECHA</th>
-                    <th>MÉTODO DE PAGO</th>
-                    <th>ESTADO</th>
-                  </tr>
-                </thead>
-                <tbody>${filas}</tbody>
-              </table>
+              <div class="table-responsive">
+                <table id="tabla-pagos" class="table table-dark table-hover align-middle mb-0">
+                  <thead class="bg-black text-warning">
+                    <tr>
+                      <th class="py-3">N° RECIBO</th>
+                      <th class="py-3">CLIENTE / SOCIO</th>
+                      <th class="py-3">CONCEPTO</th>
+                      <th class="py-3">IMPORTE</th>
+                      <th class="py-3">FECHA</th>
+                      <th class="py-3">MÉTODO</th>
+                      <th class="py-3">ESTADO</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filas}</tbody>
+                  <tfoot id="tfoot-resumen" class="bg-black">
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold py-3">TOTAL FILTRADO:</td>
+                        <td id="total-monto-tabla" class="text-success fw-bold fs-5 py-3">$0.00</td>
+                        <td colspan="3"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
         `;
+        filtrarPagosPorCliente();
       }
     } catch (error) {
       console.error(error);
-      contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error al conectar con la base de datos financiera.</div>';
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de conexión con el módulo financiero.</div>';
     }
 
     // ==========================================
-    // MÓDULO DE REPORTES GERENCIALES (CHART.JS)
+    // MÓDULO DE REPORTES GERENCIALES
     // ==========================================
   } else if (modulo === 'reportes') {
     vistaResumen.style.display = 'none';
@@ -350,7 +264,6 @@ async function cargarModulo(modulo, elementoHTML) {
         contenedorDinamico.innerHTML = `
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="text-white m-0">Reportes y Análisis Gerencial</h4>
-
             <div class="dropdown">
               <button class="btn btn-warning dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-download"></i> Exportar Reportes
@@ -478,10 +391,11 @@ async function cargarModulo(modulo, elementoHTML) {
 }
 
 // ==========================================
-// INICIALIZACIÓN
+// INICIALIZACIÓN Y VARIABLES GLOBALES
 // ==========================================
 let modalUsuarioInstance;
 let modalPagoInstance;
+let tomSelectSocio = null; // Variable para controlar la barra de búsqueda mágica
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard cargado.");
@@ -492,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// FUNCIONES GLOBALES (USUARIOS Y PAGOS)
+// FUNCIONES GLOBALES (USUARIOS)
 // ==========================================
 
 async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
@@ -587,12 +501,22 @@ async function guardarUsuario() {
   }
 }
 
+// ==========================================
+// FUNCIONES DE PAGO (BÚSQUEDA INTELIGENTE)
+// ==========================================
+
 async function abrirModalPago() {
   const selectSocio = document.getElementById('pagoSocio');
 
   if (!selectSocio) {
     alert("¡Falta el HTML del Modal de Pagos! Asegúrate de pegarlo en DashboardAdmin.html");
     return;
+  }
+
+  // 1. Destruimos la barra de búsqueda anterior si existe (para limpiar los datos)
+  if (tomSelectSocio) {
+    tomSelectSocio.destroy();
+    tomSelectSocio = null;
   }
 
   selectSocio.innerHTML = '<option value="" disabled selected>Cargando socios...</option>';
@@ -612,10 +536,22 @@ async function abrirModalPago() {
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
 
       if(clientes.length > 0) {
-        selectSocio.innerHTML = '<option value="" disabled selected>Seleccione un socio activo...</option>';
+        // Importante dejar el value vacío para que la barra actúe como Placeholder
+        selectSocio.innerHTML = '<option value="">🔍 Buscar socio por nombre...</option>';
         clientes.forEach(c => {
           selectSocio.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido} (@${c.usuario})</option>`;
         });
+
+        // 2. ¡MAGIA! Convertimos el selector aburrido en una barra inteligente
+        tomSelectSocio = new TomSelect("#pagoSocio", {
+          create: false,
+          sortField: {
+            field: "text",
+            direction: "asc"
+          },
+          placeholder: "🔍 Escriba el nombre o usuario..."
+        });
+
       } else {
         selectSocio.innerHTML = '<option value="" disabled selected>No hay socios activos</option>';
       }
@@ -655,7 +591,7 @@ async function procesarPago() {
     const data = await res.json();
 
     if(res.ok && data.status === 'ok') {
-      alert(`¡Pago procesado correctamente!\\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
+      alert(`¡Pago procesado correctamente!\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
 
       if(modalPagoInstance) modalPagoInstance.hide();
       cargarModulo('pagos');
@@ -701,17 +637,14 @@ function exportarPagosCSV() {
 
   let csvRows = [];
 
-  // 1. ENCABEZADO PROFESIONAL DEL INFORME
   csvRows.push('"IRON FITNESS GYM - REPORTE GERENCIAL DE INGRESOS"');
   csvRows.push(`"Fecha de generación:","${fechaHoy}"`);
   csvRows.push(`"Generado por:","${admin}"`);
   csvRows.push(`"Filtro aplicado:","${filtro === 'TODOS' ? 'Consolidado General' : 'Cliente: ' + filtro}"`);
-  csvRows.push(""); // Espacio en blanco
+  csvRows.push("");
 
-  // 2. CABECERAS DE LA TABLA
   csvRows.push('"N° RECIBO","CLIENTE","CONCEPTO","IMPORTE","FECHA","METODO","ESTADO"');
 
-  // 3. DATOS FILTRADOS
   const filas = document.querySelectorAll('.fila-pago');
   let totalSuma = 0;
   let contadorFila = 0;
@@ -722,14 +655,12 @@ function exportarPagosCSV() {
       const dataFila = Array.from(cols).map(c => `"${c.innerText.trim()}"`);
       csvRows.push(dataFila.join(','));
 
-      // Sumar para el pie del informe
       const monto = parseFloat(fila.getAttribute('data-monto')) || 0;
       totalSuma += monto;
       contadorFila++;
     }
   });
 
-  // 4. RESUMEN FINAL (PIE DE PÁGINA)
   csvRows.push("");
   csvRows.push(`"RESUMEN DEL PERIODO"`);
   csvRows.push(`"Total Transacciones:","${contadorFila}"`);
@@ -737,7 +668,6 @@ function exportarPagosCSV() {
   csvRows.push("");
   csvRows.push('"--- Fin del Reporte ---"');
 
-  // 5. GENERAR DESCARGA
   const csvString = csvRows.join('\n');
   const blob = new Blob(["\ufeff", csvString], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
