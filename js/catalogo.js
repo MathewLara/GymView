@@ -123,9 +123,27 @@ const carritoController = {
       return;
     }
 
-    const usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado'));
-    const idUsuario = usuarioLogueado ? (usuarioLogueado.idUsuario || usuarioLogueado.id_usuario || 0) : 0;
+    // 1. NUEVA VALIDACIÓN: Verificar si el usuario está logueado antes de cobrar
+    const usuarioTexto = localStorage.getItem('usuarioLogueado');
 
+    if (!usuarioTexto) {
+      alert("¡Alto ahí! Para realizar una compra, primero debes iniciar sesión.");
+      window.location.href = 'login.html'; // Redirigir al login
+      return;
+    }
+
+    const usuarioLogueado = JSON.parse(usuarioTexto);
+    const idUsuario = usuarioLogueado.idUsuario || usuarioLogueado.id_usuario;
+
+    // 2. Validación extra por si el JSON está corrupto
+    if (!idUsuario) {
+      alert("Tu sesión es inválida o expiró. Por favor, inicia sesión nuevamente.");
+      localStorage.removeItem('usuarioLogueado');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // 3. Crear la orden de compra con el ID real del usuario
     const ordenCompra = {
       idUsuario: idUsuario,
       total: this.calcularTotal(),
@@ -160,7 +178,10 @@ const carritoController = {
         const modal = bootstrap.Modal.getInstance(modalEl);
         modal.hide();
 
-        alert("✅ ¡Pedido confirmado! Tu factura ha sido generada en el sistema.");
+        alert("✅ ¡Pedido confirmado! Tu factura ha sido generada correctamente.");
+
+        // Opcional: Redirigirlo a su dashboard para que vea su nueva compra
+        // window.location.href = 'DashboardCliente.html';
       } else {
         alert("❌ Error: " + (data.mensaje || "El servidor rechazó la venta."));
       }
