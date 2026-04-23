@@ -21,6 +21,7 @@ async function cargarModulo(modulo, elementoHTML) {
     'acceso': 'Control de Acceso (Escáner QR)',
     'clientes': 'Directorio de Socios',
     'pagos': 'Gestión de Caja y Pagos',
+    'pedidos': 'Entregas de Tienda Online',
     'entrenadores': 'Horarios de Entrenadores'
   };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Recepción';
@@ -258,6 +259,84 @@ async function cargarModulo(modulo, elementoHTML) {
     } catch (e) {
       contenedorDinamico.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al conectar con la base de datos de pagos.</h5>';
     }
+
+    // ==========================================
+    // 5. NUEVO: MÓDULO DE PEDIDOS DE TIENDA
+    // ==========================================
+  } else if (modulo === 'pedidos') {
+    vistaResumen.style.display = 'none';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
+
+    try {
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes');
+
+      if (res.ok) {
+        const pedidos = await res.json();
+
+        let filas = pedidos.map(p => {
+          const nombreReal = p.nombreCliente ? p.nombreCliente : 'Cliente Desconocido';
+          const esEntregado = p.estadoEntrega === 'ENTREGADO';
+          const badgeEstado = esEntregado
+            ? '<span class="badge bg-success text-white"><i class="bi bi-check-all"></i> ENTREGADO</span>'
+            : '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> PENDIENTE</span>';
+
+          // Botones específicos para recepción
+          const botonEntregar = esEntregado
+            ? '<button class="btn btn-sm btn-secondary fw-bold" disabled><i class="bi bi-check2"></i> Listo</button>'
+            : `<button class="btn btn-sm btn-success fw-bold" onclick="marcarComoEntregado(${p.idFactura})"><i class="bi bi-box-seam"></i> Entregar</button>`;
+
+          const botonImprimir = `<button class="btn btn-sm btn-info fw-bold text-white ms-1" onclick="imprimirFactura(${p.idFactura}, '${nombreReal}', '${p.numeroFactura}', '${p.fechaEmision}', ${p.totalPagado})"><i class="bi bi-printer"></i> Imprimir</button>`;
+
+          const botonesFila = `<div class="d-flex flex-nowrap">${botonEntregar}${botonImprimir}</div>`;
+
+          return `
+            <tr>
+              <td class="text-light fw-bold">#${p.idFactura}</td>
+              <td class="text-warning fw-bold"><i class="bi bi-person-badge"></i> ${nombreReal}</td>
+              <td class="text-white">${p.numeroFactura}</td>
+              <td class="text-white small">${p.fechaEmision}</td>
+              <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
+              <td>${badgeEstado}</td>
+              <td>${botonesFila}</td>
+            </tr>
+          `;
+        }).join('');
+
+        if (filas === '') {
+          filas = `<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-check2-circle fs-1 d-block mb-3"></i>No hay pedidos pendientes por entregar.</td></tr>`;
+        }
+
+        contenedorDinamico.innerHTML = `
+          <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-cart-check text-warning"></i> Entregas de Tienda</h4>
+                  <p class="text-muted small m-0">Aquí aparecen los productos pagados en línea listos para retirar</p>
+                </div>
+                <div class="input-group" style="max-width: 350px;">
+                  <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Buscar cliente o factura..." onkeyup="filtrarTablaGenerica('tabla-pedidos-recep', this.value, [1, 2])">
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table id="tabla-pedidos-recep" class="table table-dark table-hover align-middle mb-0">
+                  <thead class="bg-black text-warning">
+                    <tr>
+                      <th class="py-3">ID BASE</th><th class="py-3">CLIENTE</th><th class="py-3">N° FACTURA</th><th class="py-3">FECHA COMPRA</th><th class="py-3">TOTAL</th><th class="py-3">ESTADO</th><th class="py-3">ACCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filas}</tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error(error);
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger">Error al conectar con la base de datos de ventas.</div>';
+    }
   }
 }
 
@@ -382,12 +461,11 @@ async function guardarUsuario() {
 }
 
 // ==========================================
-// FUNCIONES DEL MODAL DE PAGOS (CON BÚSQUEDA INTELIGENTE)
+// FUNCIONES DEL MODAL DE PAGOS
 // ==========================================
 async function abrirModalPago() {
   const selectSocio = document.getElementById('pagoSocio');
 
-  // 1. Destruimos la barra anterior para recargarla limpia
   if (tomSelectSocioRecep) {
     tomSelectSocioRecep.destroy();
     tomSelectSocioRecep = null;
@@ -410,7 +488,6 @@ async function abrirModalPago() {
           selectSocio.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido} (@${c.usuario})</option>`;
         });
 
-        // 2. Activamos la barra de búsqueda TomSelect
         tomSelectSocioRecep = new TomSelect("#pagoSocio", {
           create: false,
           sortField: { field: "text", direction: "asc" },
@@ -474,7 +551,110 @@ async function procesarPago() {
 }
 
 // ==========================================
-// FILTROS Y BÚSQUEDAS (NUEVO)
+// NUEVO: FUNCIONES PARA ENTREGAR E IMPRIMIR PEDIDOS
+// ==========================================
+async function marcarComoEntregado(idFactura) {
+  const confirmacion = confirm("¿Confirmas que ya entregaste físicamente los productos al cliente?");
+  if (!confirmacion) return;
+
+  try {
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/entregar`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (res.ok) {
+      alert("¡Excelente! El producto ha sido marcado como entregado en el sistema.");
+      cargarModulo('pedidos');
+    } else {
+      alert("Hubo un error al intentar actualizar el estado del pedido.");
+    }
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    alert("Error de conexión con el servidor de ventas.");
+  }
+}
+
+async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
+  try {
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/detalles`);
+
+    if (!res.ok) throw new Error("Error al traer detalles");
+    const detalles = await res.json();
+
+    let filasProductos = detalles.map(d => `
+      <tr>
+        <td>${d.descripcion}</td>
+        <td style="text-align: center;">${d.cantidad}</td>
+        <td style="text-align: right;">$${d.precioUnitario.toFixed(2)}</td>
+        <td style="text-align: right;">$${d.subtotalLinea.toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    let htmlTicket = `
+      <html>
+      <head>
+        <title>Factura ${numero}</title>
+        <style>
+          body { font-family: 'Courier New', Courier, monospace; padding: 20px; max-width: 400px; margin: 0 auto; color: #000; }
+          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
+          .header h2 { margin: 0; font-size: 22px; font-weight: bold; }
+          .info p { margin: 4px 0; font-size: 14px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+          th { border-bottom: 1px solid #000; padding-bottom: 5px; text-align: left; }
+          td { padding: 5px 0; }
+          .total-box { border-top: 2px dashed #000; margin-top: 15px; padding-top: 10px; text-align: right; font-size: 18px; font-weight: bold; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #555; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2>IRON FITNESS</h2>
+          <p>Comprobante de Tienda Web</p>
+        </div>
+        <div class="info">
+          <p><strong>Factura N°:</strong> ${numero}</p>
+          <p><strong>Fecha:</strong> ${fecha}</p>
+          <p><strong>Cliente:</strong> ${cliente}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th style="text-align: center;">Cant.</th>
+              <th style="text-align: right;">P.U.</th>
+              <th style="text-align: right;">Subt.</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filasProductos}
+          </tbody>
+        </table>
+        <div class="total-box">
+          TOTAL PAGADO: $${parseFloat(total).toFixed(2)}
+        </div>
+        <div class="footer">
+          <p>¡Gracias por tu compra y a darle con todo al entrenamiento!</p>
+        </div>
+        <script>
+          window.onload = function() { window.print(); }
+        </script>
+      </body>
+      </html>
+    `;
+
+    let ventanaImpresion = window.open('', '_blank', 'width=600,height=600');
+    ventanaImpresion.document.write(htmlTicket);
+    ventanaImpresion.document.close();
+
+  } catch (error) {
+    console.error(error);
+    alert("Hubo un error al intentar generar la factura.");
+  }
+}
+
+// ==========================================
+// FILTROS Y BÚSQUEDAS GENÉRICAS
 // ==========================================
 function filtrarTablaGenerica(idTabla, textoBusqueda, indicesColumnas) {
   const tabla = document.getElementById(idTabla);
