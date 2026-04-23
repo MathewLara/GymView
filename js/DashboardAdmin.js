@@ -82,7 +82,32 @@ async function cargarModulo(modulo, elementoHTML) {
     // ==========================================
   } else if (['clientes', 'entrenadores', 'recepcionistas', 'administradores'].includes(modulo)) {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
+    contenedorDinamico.innerHTML = `
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+            <h4 class="text-white m-0">${tituloTabla}</h4>
+
+            <div class="d-flex gap-2 w-100" style="max-width: 450px;">
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Buscar por nombre o usuario..." onkeyup="filtrarTablaGenerica('tabla-usuarios', this.value, [1, 2])">
+              </div>
+              <button class="btn btn-warning fw-bold text-nowrap" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg"></i> Nuevo</button>
+            </div>
+          </div>
+
+          <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
+            <div class="table-responsive">
+              <table id="tabla-usuarios" class="table table-dark table-hover mb-0 align-middle">
+                <thead class="text-white border-secondary">
+                  <tr>
+                    <th>ID</th><th>USUARIO</th><th>NOMBRE COMPLETO</th><th>CORREO</th><th>TELÉFONO</th><th>ROL</th><th>ESTADO</th><th>ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
@@ -168,7 +193,26 @@ async function cargarModulo(modulo, elementoHTML) {
     // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
+    contenedorDinamico.innerHTML = '<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">\n' +
+      '                <div>\n' +
+      '                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-currency-dollar text-warning"></i> Historial de Ventas</h4>\n' +
+      '                  <p class="text-muted small m-0">Gestione y exporte los recibos de sus clientes</p>\n' +
+      '                </div>\n' +
+      '                <div class="d-flex gap-2 align-items-center flex-wrap">\n' +
+      '                  \n' +
+      '                  <div class="input-group" style="width: 250px;">\n' +
+      '                    <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>\n' +
+      '                    <input type="text" id="buscador-pagos" class="form-control bg-black text-white border-secondary" placeholder="Buscar socio..." onkeyup="filtrarPagosPorCliente()">\n' +
+      '                  </div>\n' +
+      '\n' +
+      '                  <select id="filtroCliente" class="form-select bg-black text-white border-secondary" style="width: auto;" onchange="filtrarPagosPorCliente()">\n' +
+      '                      <option value="TODOS">Todos (Select)</option>\n' +
+      '                      ${opcionesSocios}\n' +
+      '                  </select>\n' +
+      '                  <button class="btn btn-warning fw-bold text-nowrap" onclick="abrirModalPago()"><i class="bi bi-plus-lg"></i> Nuevo</button>\n' +
+      '                  <button class="btn btn-outline-info fw-bold text-nowrap" onclick="exportarPagosCSV()"><i class="bi bi-file-earmark-excel"></i> Exportar</button>\n' +
+      '                </div>\n' +
+      '              </div>';
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
@@ -253,7 +297,34 @@ async function cargarModulo(modulo, elementoHTML) {
     // ==========================================
   } else if (modulo === 'pedidos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
+    contenedorDinamico.innerHTML = `
+          <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                  <h4 class="text-white m-0 fw-bold"><i class="bi bi-cart-check text-warning"></i> Entregas de Tienda</h4>
+                  <p class="text-muted small m-0">Aquí aparecen los productos que los clientes ya pagaron online y vienen a retirar</p>
+                </div>
+
+                <div class="input-group" style="max-width: 350px;">
+                  <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Buscar por cliente o factura..." onkeyup="filtrarTablaGenerica('tabla-pedidos', this.value, [1, 2])">
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table id="tabla-pedidos" class="table table-dark table-hover align-middle mb-0">
+                  <thead class="bg-black text-warning">
+                    <tr>
+                      <th class="py-3">ID BASE</th><th class="py-3">CLIENTE</th> <th class="py-3">N° FACTURA</th><th class="py-3">FECHA COMPRA</th><th class="py-3">TOTAL PAGADO</th><th class="py-3">ESTADO</th><th class="py-3">ACCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filas}</tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
 
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes');
@@ -694,18 +765,28 @@ async function procesarPago() {
 }
 
 // ==========================================
-// FILTRADO DINÁMICO Y CÁLCULO DE TOTALES
+// FILTRADO DINÁMICO Y CÁLCULO DE TOTALES (MEJORADO)
 // ==========================================
 function filtrarPagosPorCliente() {
   const seleccionado = document.getElementById('filtroCliente').value;
+
+  // Obtenemos el texto del nuevo buscador (si existe)
+  const inputBuscador = document.getElementById('buscador-pagos');
+  const buscadorTexto = inputBuscador ? inputBuscador.value.toLowerCase().trim() : '';
+
   const filas = document.querySelectorAll('.fila-pago');
   let total = 0;
 
   filas.forEach(fila => {
     const socioFila = fila.getAttribute('data-socio');
+    const reciboFila = fila.cells[0].innerText; // Columna de N° Recibo
     const montoFila = parseFloat(fila.getAttribute('data-monto')) || 0;
 
-    if (seleccionado === 'TODOS' || socioFila === seleccionado) {
+    // Evaluamos ambas condiciones
+    const pasaSelect = (seleccionado === 'TODOS' || socioFila === seleccionado);
+    const pasaBuscador = (buscadorTexto === '' || socioFila.toLowerCase().includes(buscadorTexto) || reciboFila.toLowerCase().includes(buscadorTexto));
+
+    if (pasaSelect && pasaBuscador) {
       fila.style.display = '';
       total += montoFila;
     } else {
@@ -877,4 +958,30 @@ async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
     console.error(error);
     alert("Hubo un error al intentar generar la factura. Revisa la consola (F12).");
   }
+}
+// ==========================================
+// FUNCIÓN DE BÚSQUEDA EN TIEMPO REAL (TABLAS)
+// ==========================================
+function filtrarTablaGenerica(idTabla, textoBusqueda, indicesColumnas) {
+  const tabla = document.getElementById(idTabla);
+  if (!tabla) return;
+
+  const filas = tabla.querySelectorAll('tbody tr');
+  const texto = textoBusqueda.toLowerCase().trim();
+
+  filas.forEach(fila => {
+    // Evitamos ocultar el mensaje de "No hay registros" si existe
+    if (fila.cells.length === 1 && fila.innerText.includes("No hay")) return;
+
+    let coincide = false;
+    // Revisamos solo las columnas donde queremos buscar (ej: Nombre, Usuario)
+    indicesColumnas.forEach(indice => {
+      if (fila.cells[indice]) {
+        const contenido = fila.cells[indice].innerText.toLowerCase();
+        if (contenido.includes(texto)) coincide = true;
+      }
+    });
+
+    fila.style.display = coincide ? '' : 'none';
+  });
 }
