@@ -798,8 +798,8 @@ async function marcarComoEntregado(idFactura) {
 // ==========================================
 async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
   try {
-    // 1. Pedimos los productos al backend (Recuerda usar localhost si estás probando local)
-    const res = await fetch(`http://localhost:8080/Gimnasio/api/ventas/${idFactura}/detalles`);
+    // 1. Pedimos los productos al backend
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/detalles`);
 
     if (!res.ok) throw new Error("Error al traer detalles");
     const detalles = await res.json();
