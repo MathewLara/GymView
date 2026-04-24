@@ -286,3 +286,64 @@ async function cancelarSuscripcion() {
     }
   }
 }
+// ==========================================
+// 6. CONTROL DE RUTINAS Y EJERCICIOS
+// ==========================================
+
+// Guarda el progreso de los checks temporalmente
+function toggleEjercicio(index, idUsuario) {
+  const hoy = new Date().toISOString().split('T')[0];
+  const keyStorage = `rutina_${idUsuario}_${hoy}`;
+  let completados = JSON.parse(localStorage.getItem(keyStorage)) || [];
+
+  const indexPos = completados.indexOf(index);
+  const card = document.getElementById(`card-ej-${index}`);
+
+  if (indexPos === -1) {
+    completados.push(index);
+    if (card) card.classList.add('ejercicio-completado');
+  } else {
+    completados.splice(indexPos, 1);
+    if (card) card.classList.remove('ejercicio-completado');
+  }
+
+  localStorage.setItem(keyStorage, JSON.stringify(completados));
+}
+
+// Envía la confirmación a la base de datos (y al entrenador)
+async function finalizarRutina() {
+  const sesion = localStorage.getItem('usuarioLogueado');
+  const usuario = sesion ? JSON.parse(sesion) : { idUsuario: 1 };
+  const idUsar = usuario.idUsuario || usuario.id || 1;
+
+  const btn = document.getElementById('btnFinalizar');
+  if(btn) {
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Registrando...';
+    btn.disabled = true;
+  }
+
+  try {
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/completar`, {
+      method: 'POST'
+    });
+
+    if (res.ok) {
+      alert("¡Excelente trabajo! Has completado tu entrenamiento de hoy. Tu entrenador ya fue notificado.");
+      // Recargamos los datos para que el botón se bloquee visualmente
+      cargarDatos(idUsar);
+    } else {
+      alert("Hubo un error al registrar el entrenamiento en el servidor.");
+      if(btn) {
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> TERMINAR ENTRENAMIENTO';
+        btn.disabled = false;
+      }
+    }
+  } catch (e) {
+    console.error("Error al finalizar rutina:", e);
+    alert("Error de conexión con el servidor.");
+    if(btn) {
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> TERMINAR ENTRENAMIENTO';
+      btn.disabled = false;
+    }
+  }
+}
