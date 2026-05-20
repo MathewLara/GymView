@@ -1,7 +1,7 @@
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
-const TIEMPO_EXPIRACION = 10000; // 10 segundos (Cambiar a 30 * 60 * 1000)
+const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
@@ -15,7 +15,7 @@ function verificarInactividad() {
       localStorage.removeItem('loginTime');
 
       // 2. MOSTRAMOS EL MENSAJE
-      alert("⚠️ Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
+      alert("Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
 
       // 3. EXPULSAMOS AL USUARIO FORZOSAMENTE
       // Nota: Si tu página de login se llama diferente, cambia 'index.html' por tu archivo (ej. 'login.html')
