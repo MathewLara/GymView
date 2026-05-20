@@ -1,4 +1,38 @@
 // ==========================================
+// CONTROL DE SEGURIDAD: INACTIVIDAD DE 30 MIN
+// ==========================================
+const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
+
+function verificarInactividad() {
+  const loginTime = localStorage.getItem('loginTime');
+  if (loginTime) {
+    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+    if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
+      alert("⚠️ Tu sesión ha expirado por 30 minutos de inactividad. Por seguridad, debes iniciar sesión nuevamente.");
+      // Usamos la función cerrarSesion que ya existe en tus archivos
+      cerrarSesion();
+    }
+  }
+}
+
+function reiniciarTemporizador() {
+  // Solo si el usuario está logueado actualizamos su hora
+  if (localStorage.getItem('usuarioLogueado')) {
+    localStorage.setItem('loginTime', Date.now().toString());
+  }
+}
+
+// Detectamos si el usuario se mueve, da clic, teclea o hace scroll para reiniciar el contador
+window.addEventListener('mousemove', reiniciarTemporizador);
+window.addEventListener('click', reiniciarTemporizador);
+window.addEventListener('keydown', reiniciarTemporizador);
+window.addEventListener('scroll', reiniciarTemporizador);
+
+// Revisamos cada 1 minuto (60,000 ms) si el tiempo se agotó
+setInterval(verificarInactividad, 60000);
+// Revisión inmediata al entrar a la página
+verificarInactividad();
+// ==========================================
 // 1. INICIALIZACIÓN Y VARIABLES GLOBALES
 // ==========================================
 let membresiaActiva = true;

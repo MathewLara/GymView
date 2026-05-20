@@ -1,27 +1,40 @@
 // ==========================================
-// 0. AUTO-REDIRECCIÓN (EL "ESCUDO")
+// 0. AUTO-REDIRECCIÓN (EL "ESCUDO" CON TIEMPO)
 // ==========================================
-// Si el usuario ya tiene sesión iniciada, lo mandamos a su panel y no lo dejamos ver el login.
 document.addEventListener('DOMContentLoaded', () => {
   const sesion = localStorage.getItem('usuarioLogueado');
-  if (sesion) {
-    try {
-      const data = JSON.parse(sesion);
-      const rol = data.idRol || data.id_rol;
+  const loginTime = localStorage.getItem('loginTime');
+  const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos en milisegundos
 
-      switch (rol) {
-        case 1: window.location.href = 'DashboardAdmin.html'; break;
-        case 2: window.location.href = 'DashboardRecep.html'; break;
-        case 3: window.location.href = 'DashboardEntrenador.html'; break;
-        case 4: window.location.href = 'DashboardCliente.html'; break; // Asegúrate de que el nombre del HTML sea correcto
-        default:
-          localStorage.removeItem('usuarioLogueado');
-          break;
-      }
-    } catch(e) {
-      // Si hay error leyendo los datos, limpiamos la caché corrupta
+  if (sesion && loginTime) {
+    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+
+    // Si pasaron más de 30 minutos, destruimos la sesión corrupta o vieja
+    if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
       localStorage.removeItem('usuarioLogueado');
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('loginTime');
+    } else {
+      // Si la sesión sigue viva (menos de 30 min), redirigimos a su panel
+      try {
+        const data = JSON.parse(sesion);
+        const rol = data.idRol || data.id_rol;
+
+        switch (rol) {
+          case 1: window.location.href = 'DashboardAdmin.html'; break;
+          case 2: window.location.href = 'DashboardRecep.html'; break;
+          case 3: window.location.href = 'DashboardEntrenador.html'; break;
+          case 4: window.location.href = 'DashboardCliente.html'; break;
+          default: localStorage.removeItem('usuarioLogueado'); break;
+        }
+      } catch(e) {
+        localStorage.removeItem('usuarioLogueado');
+      }
     }
+  } else {
+    // Limpieza de seguridad por si falta el tiempo o la sesión
+    localStorage.removeItem('usuarioLogueado');
+    localStorage.removeItem('tokenGimnasio');
   }
 });
 
@@ -31,12 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
 const BASE_URL = "https://gimnasio-f7td.onrender.com";
 const API_URL = `${BASE_URL}/Gimnasio/api/auth/login`;
 
-// Referencias a los elementos del DOM
 const loginForm = document.getElementById('loginForm');
 const statusMessage = document.getElementById('statusMessage');
 const btnSubmit = loginForm.querySelector('button');
 
-// Referencias a los inputs y sus contenedores de error
 const inputs = {
   usuario: document.getElementById('username'),
   contrasena: document.getElementById('password')
@@ -50,15 +61,12 @@ const errors = {
 // ==========================================
 // FUNCIONES DE UTILIDAD PARA ERRORES VISUALES
 // ==========================================
-
-// Muestra un mensaje global en la parte superior del formulario
 function showGlobalStatus(message, type = 'danger') {
   statusMessage.textContent = message;
   statusMessage.style.display = 'block';
   statusMessage.className = `alert alert-${type} mt-3`;
 }
 
-// Muestra el texto rojo pequeño DEBAJO del input específico
 function showInputError(key, msg) {
   if (inputs[key] && errors[key]) {
     inputs[key].classList.add('is-invalid');
@@ -66,7 +74,6 @@ function showInputError(key, msg) {
   }
 }
 
-// Limpia los errores previos antes de un nuevo intento de login
 function clearErrors() {
   statusMessage.style.display = 'none';
   Object.keys(inputs).forEach(key => {
@@ -81,22 +88,19 @@ function clearErrors() {
 // LÓGICA DE INICIO DE SESIÓN
 // ==========================================
 loginForm.addEventListener('submit', async function(e) {
-  e.preventDefault(); // Evita recargar la página
+  e.preventDefault();
   clearErrors();
 
-  // Modifica el estado del botón mientras se hace la petición
   const textoOriginal = btnSubmit.innerText;
   btnSubmit.disabled = true;
   btnSubmit.innerText = "Ingresando...";
 
-  // Captura los datos ingresados
   const payload = {
     usuario: inputs.usuario.value,
     contrasena: inputs.contrasena.value
   };
 
   try {
-    // Petición POST al backend
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -105,17 +109,17 @@ loginForm.addEventListener('submit', async function(e) {
 
     const data = await response.json();
 
-    // Si la respuesta del servidor es correcta (Login Exitoso)
     if (response.ok) {
       if (data.token) {
         localStorage.setItem('tokenGimnasio', data.token);
       }
 
-      // CAMBIO CLAVE: Ahora usamos localStorage en lugar de sessionStorage
       localStorage.setItem('usuarioLogueado', JSON.stringify(data));
+      // NUEVO: Guardamos el tiempo exacto en el que inició sesión
+      localStorage.setItem('loginTime', Date.now().toString());
+
       showGlobalStatus('¡Login Correcto! Entrando...', 'success');
 
-      // Redirección basada en el Rol del usuario
       setTimeout(() => {
         const rol = data.idRol || data.id_rol;
         switch (rol) {
@@ -131,7 +135,6 @@ loginForm.addEventListener('submit', async function(e) {
       }, 1000);
 
     } else {
-      // Manejo de errores de credenciales devueltos por el servidor
       btnSubmit.disabled = false;
       btnSubmit.innerText = textoOriginal;
 
@@ -139,7 +142,6 @@ loginForm.addEventListener('submit', async function(e) {
       const msgLower = errorMsg.toLowerCase();
       let mapped = false;
 
-      // Buscar si el error menciona un campo en específico
       if (msgLower.includes('usuario')) {
         showInputError('usuario', errorMsg);
         mapped = true;
@@ -149,17 +151,14 @@ loginForm.addEventListener('submit', async function(e) {
         mapped = true;
       }
 
-      // Si es un error genérico ("Credenciales incorrectas" afecta a ambos campos)
       if (!mapped || msgLower.includes('credenciales')) {
         showGlobalStatus(errorMsg);
-        // Opcionalmente pintamos ambos de rojo para indicar el fallo
         inputs.usuario.classList.add('is-invalid');
         inputs.contrasena.classList.add('is-invalid');
       }
     }
 
   } catch (error) {
-    // Manejo de errores: Falla de conexión con el servidor
     console.error(error);
     btnSubmit.disabled = false;
     btnSubmit.innerText = textoOriginal;
