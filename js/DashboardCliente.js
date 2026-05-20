@@ -1,7 +1,7 @@
 // ==========================================
 // CONTROL DE SEGURIDAD: INACTIVIDAD DE 30 MIN
 // ==========================================
-const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
+const TIEMPO_EXPIRACION = 10000; // 30 minutos
 
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
@@ -29,7 +29,7 @@ window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
 // Revisamos cada 1 minuto (60,000 ms) si el tiempo se agotó
-setInterval(verificarInactividad, 60000);
+setInterval(verificarInactividad, 2000);
 // Revisión inmediata al entrar a la página
 verificarInactividad();
 // ==========================================
@@ -76,11 +76,11 @@ async function cargarDatos(id) {
       document.getElementById('m-precio').textContent = data.precioPlan ? "$" + data.precioPlan : "$0.00";
       document.getElementById('m-fecha').textContent = data.fechaVencimiento || "N/A";
 
-      // ... tu código anterior ...
+
       const badge = document.getElementById('m-estado');
       badge.textContent = data.estadoMembresia || "Inactivo";
 
-      // ✅ AÑADIR ESTO AQUÍ: LÓGICA VISUAL DEL BOTÓN SEGÚN LA BASE DE DATOS
+
       const btnCancelar = document.getElementById('btnCancelarSuscripcion');
       if (data.cancelado) {
         if (btnCancelar) {
