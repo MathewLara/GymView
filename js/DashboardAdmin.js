@@ -15,11 +15,16 @@ function verificarInactividad() {
       localStorage.removeItem('loginTime');
 
       // 2. MOSTRAMOS EL MENSAJE
-      alert("Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
-
-      // 3. EXPULSAMOS AL USUARIO FORZOSAMENTE
-      // Nota: Si tu página de login se llama diferente, cambia 'index.html' por tu archivo (ej. 'login.html')
-      window.location.replace('index.html');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sesión Expirada',
+        text: 'Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff'
+      }).then(() => {
+        window.location.replace('index.html');
+      });
     }
   }
 }
@@ -540,20 +545,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 
 async function cambiarEstadoUsuario(id, nuevoEstado, moduloActual) {
-  if(!confirm(`¿Estás seguro de que deseas ${nuevoEstado ? 'activar' : 'desactivar'} este usuario?`)) return;
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: `¿Deseas ${nuevoEstado ? 'activar' : 'desactivar'} este usuario?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, continuar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ffc107',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  });
 
-  try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}/estado?activo=${nuevoEstado}`, {
-      method: 'PUT'
-    });
-    if(res.ok) {
-      cargarModulo(moduloActual);
-    } else {
-      alert('Hubo un error al actualizar el estado.');
+  if (result.isConfirmed) {
+    try {
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}/estado?activo=${nuevoEstado}`, { method: 'PUT' });
+      if(res.ok) {
+        cargarModulo(moduloActual);
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Hubo un error al actualizar el estado.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+      }
+    } catch(e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión al servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     }
-  } catch(e) {
-    console.error(e);
-    alert('Error de conexión al servidor.');
   }
 }
 
@@ -586,7 +600,6 @@ function abrirModalEditar(id, usuario, nombre, apellido, rolTexto, email, telefo
 async function guardarUsuario() {
   const id = document.getElementById('userId').value;
   const isEdit = id !== '';
-
   const uData = {
     nombre: document.getElementById('userNombre').value,
     apellido: document.getElementById('userApellido').value,
@@ -599,36 +612,22 @@ async function guardarUsuario() {
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
-    alert("La contraseña es obligatoria para usuarios nuevos (min 5 caracteres).");
+    Swal.fire({ icon: 'warning', title: 'Atención', text: 'La contraseña es obligatoria (min 5 caracteres).', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     return;
   }
 
-  const url = isEdit
-    ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}`
-    : `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios`;
-  const metodo = isEdit ? 'PUT' : 'POST';
-
+  const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios/${id}` : `https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios`;
   try {
-    const res = await fetch(url, {
-      method: metodo,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(uData)
-    });
-
+    const res = await fetch(url, { method: isEdit ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(uData) });
     if (res.ok) {
       if(modalUsuarioInstance) modalUsuarioInstance.hide();
-      const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
-
-      if(moduloActivo.includes('cliente')) cargarModulo('clientes');
-      else if(moduloActivo.includes('entrenador')) cargarModulo('entrenadores');
-      else if(moduloActivo.includes('recepcionista')) cargarModulo('recepcionistas');
-      else if(moduloActivo.includes('administrador')) cargarModulo('administradores');
-
+      Swal.fire({ icon: 'success', title: 'Éxito', text: 'Usuario guardado correctamente.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+        .then(() => cargarModulo(document.querySelector('.nav-link.active').innerText.trim().toLowerCase()));
     } else {
-      alert('Error al guardar. Verifique que el usuario o correo no estén repetidos.');
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Verifique que los datos no estén duplicados.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     }
   } catch (e) {
-    alert('Error conectando al servidor.');
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión al servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
   }
 }
 
@@ -699,42 +698,24 @@ async function procesarPago() {
   const metodo = document.getElementById('pagoMetodo').value;
 
   if(!socio) {
-    alert("Por favor, selecciona un socio válido para proceder con el cobro.");
+    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, selecciona un socio válido.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     return;
   }
 
   const precios = { "1": 5.00, "2": 30.00, "3": 50.00, "4": 300.00 };
-  const montoCalculado = precios[plan];
-
-  const payload = {
-    idCliente: parseInt(socio),
-    idPlan: parseInt(plan),
-    monto: montoCalculado,
-    metodo: metodo,
-    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
-  };
-
   try {
     const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ idCliente: parseInt(socio), idPlan: parseInt(plan), monto: precios[plan], metodo: metodo, idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1) })
     });
-
-    const data = await res.json();
-
-    if(res.ok && data.status === 'ok') {
-      alert(`¡Pago procesado correctamente!\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
-
-      if(modalPagoInstance) modalPagoInstance.hide();
-      cargarModulo('pagos');
-
+    if(res.ok) {
+      Swal.fire({ icon: 'success', title: 'Pago Exitoso', text: `Monto: $${precios[plan].toFixed(2)}`, confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+        .then(() => { if(modalPagoInstance) modalPagoInstance.hide(); cargarModulo('pagos'); });
     } else {
-      alert("No se pudo procesar: " + (data.mensaje || "Error en el servidor"));
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo procesar el pago.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     }
-  } catch(e) {
-    alert("Error de conexión con el servidor al procesar el pago.");
-  }
+  } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: 'Fallo en la conexión.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' }); }
 }
 
 // ==========================================
@@ -826,24 +807,19 @@ function exportarPagosCSV() {
 // FUNCIÓN PARA ENTREGAR PEDIDOS DE TIENDA
 // ==========================================
 async function marcarComoEntregado(idFactura) {
-  const confirmacion = confirm("¿Confirmas que ya entregaste físicamente los productos al cliente?");
-  if (!confirmacion) return;
-
-  try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/entregar`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (res.ok) {
-      alert("¡Excelente! El producto ha sido marcado como entregado en el sistema.");
-      cargarModulo('pedidos'); // Recargamos el módulo para que el pedido desaparezca
-    } else {
-      alert("Hubo un error al intentar actualizar el estado del pedido.");
+  const result = await Swal.fire({ title: '¿Confirmar entrega?', icon: 'question', showCancelButton: true, confirmButtonColor: '#198754', background: '#1e1e1e', color: '#ffffff' });
+  if (result.isConfirmed) {
+    try {
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/entregar`, { method: 'PUT' });
+      if (res.ok) {
+        Swal.fire({ icon: 'success', title: 'Entregado', text: 'Pedido actualizado.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+          .then(() => cargarModulo('pedidos'));
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Fallo al actualizar estado.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+      }
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Error de red.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     }
-  } catch (error) {
-    console.error("Error al actualizar:", error);
-    alert("Error de conexión con el servidor de ventas.");
   }
 }
 
@@ -929,8 +905,7 @@ async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
 
   } catch (error) {
     console.error(error);
-    alert("Hubo un error al intentar generar la factura. Revisa la consola (F12).");
-  }
+    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar la factura.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });  }
 }
 
 // ==========================================
