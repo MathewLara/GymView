@@ -7,50 +7,32 @@ function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
-
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
       localStorage.removeItem('usuarioLogueado');
       localStorage.removeItem('tokenGimnasio');
       localStorage.removeItem('loginTime');
+
       Swal.fire({
         icon: 'warning',
-        title: '¡Sesión Expirada!',
-        text: 'Por seguridad, debes iniciar sesión nuevamente tras 30 minutos de inactividad.',
+        title: 'Sesión Expirada',
+        text: 'Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.',
         confirmButtonText: 'Entendido',
         confirmButtonColor: '#ffc107',
         background: '#1e1e1e',
         color: '#ffffff'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          salir();
-        }
+      }).then(() => {
         window.location.replace('index.html');
-
       });
-      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
-      localStorage.removeItem('usuarioLogueado');
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('loginTime');
-
-      // 2. MOSTRAMOS EL MENSAJE
-      alert("Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
-
-      // 3. EXPULSAMOS AL USUARIO FORZOSAMENTE
-      // Nota: Si tu página de login se llama diferente, cambia 'index.html' por tu archivo (ej. 'login.html')
-      window.location.replace('index.html');
     }
   }
 }
 
 function reiniciarTemporizador() {
-  // Solo si el usuario está logueado actualizamos su hora
   if (localStorage.getItem('usuarioLogueado')) {
     localStorage.setItem('loginTime', Date.now().toString());
   }
 }
 
-// Escuchamos cualquier movimiento para reiniciar el tiempo
 window.addEventListener('mousemove', reiniciarTemporizador);
 window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
@@ -313,16 +295,40 @@ window.toggleMenu = function() {
 // 5. ACCIONES DE SESIÓN Y CANCELACIÓN
 // ==========================================
 function salir() {
-  if(confirm("¿Cerrar sesión?")) {
-    localStorage.removeItem('tokenGimnasio');
-    localStorage.removeItem('usuarioLogueado');
-    window.location.href = 'index.html';
-  }
+  Swal.fire({
+    icon: 'question',
+    title: '¿Cerrar sesión?',
+    text: '¿Estás seguro de que deseas salir?',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, salir',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ffc107',
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('usuarioLogueado');
+      window.location.href = 'index.html';
+    }
+  });
 }
 
 async function cancelarSuscripcion() {
-  const confirmacion = confirm("¿Estás seguro de que deseas cancelar tu suscripción?\n\nNo perderás tu dinero. Tu plan no se renovará automáticamente, pero mantendrás acceso completo hasta tu fecha de corte.");
-  if (!confirmacion) return;
+  const { isConfirmed } = await Swal.fire({
+    icon: 'warning',
+    title: '¿Cancelar suscripción?',
+    text: 'No perderás tu dinero. Tu plan no se renovará automáticamente, pero mantendrás acceso completo hasta tu fecha de corte.',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, cancelar',
+    cancelButtonText: 'No, mantener',
+    confirmButtonColor: '#ffc107',
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  });
+  if (!isConfirmed) return;
 
   const sesion = localStorage.getItem('usuarioLogueado');
   const usuario = sesion ? JSON.parse(sesion) : null;
@@ -338,7 +344,6 @@ async function cancelarSuscripcion() {
       btn.disabled = true;
     }
 
-    // ✅ ESTA ES LA PETICIÓN AL SERVIDOR QUE SE HABÍA BORRADO
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, {
       method: 'PUT'
     });
