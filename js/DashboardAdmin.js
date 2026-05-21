@@ -127,7 +127,8 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+      const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
       if (res.ok) {
         const todosLosUsuarios = await res.json();
 
@@ -587,7 +588,8 @@ async function guardarUsuario() {
     idRol: parseInt(document.getElementById('userRol').value),
     contrasena: document.getElementById('userPass').value,
     email: document.getElementById('userEmail').value,
-    telefono: document.getElementById('userTelefono').value
+    telefono: document.getElementById('userTelefono').value,
+    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
@@ -653,7 +655,8 @@ async function abrirModalPago() {
   modalPagoInstance.show();
 
   try {
-    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+    const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
     if(res.ok) {
       const usuarios = await res.json();
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
