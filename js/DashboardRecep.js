@@ -114,7 +114,10 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/dashboard');
+      // INYECCIÓN: Rescatamos la empresa para el panel de resumen
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/dashboard?idEmpresa=${idEmpresa}`);
+
       if(res.ok) {
         const data = await res.json();
 
@@ -181,7 +184,10 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+      // INYECCIÓN: Rescatamos la empresa para listar usuarios en recepción
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresa}`);
+
       if (res.ok) {
         const todosLosUsuarios = await res.json();
 
@@ -257,7 +263,9 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando historial de caja...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos');
+      // INYECCIÓN: Rescatamos la empresa para listar los pagos
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
         const pagos = await res.json();
@@ -334,7 +342,9 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes');
+      // INYECCIÓN: Rescatamos la empresa para listar los pedidos pendientes
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
         const pedidos = await res.json();
@@ -440,7 +450,9 @@ async function registrarIngresoManual() {
 async function procesarAcceso(valorAEnviar) {
   const alertaDiv = document.getElementById('alertaEscaner');
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/acceso?id=${valorAEnviar}`, { method: 'POST' });
+    // INYECCIÓN: Rescatamos la empresa para procesar el acceso en la puerta correcta
+    const idEmpresa = localStorage.getItem('id_empresa') || 1;
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/acceso?id=${valorAEnviar}&idEmpresa=${idEmpresa}`, { method: 'POST' });
     const data = await res.json();
 
     if(data.status === 'ok') {
@@ -498,7 +510,9 @@ async function guardarUsuario() {
     idRol: parseInt(document.getElementById('userRol').value),
     contrasena: document.getElementById('userPass').value,
     email: document.getElementById('userEmail').value,
-    telefono: document.getElementById('userTelefono').value
+    telefono: document.getElementById('userTelefono').value,
+    // INYECCIÓN: Agregamos a qué gimnasio pertenece este usuario nuevo
+    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
@@ -546,7 +560,10 @@ async function abrirModalPago() {
   modalPagoInstance.show();
 
   try {
-    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+    // INYECCIÓN: Rescatamos la empresa para el select de clientes
+    const idEmpresa = localStorage.getItem('id_empresa') || 1;
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresa}`);
+
     if(res.ok) {
       const usuarios = await res.json();
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
@@ -588,7 +605,14 @@ async function procesarPago() {
     const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idCliente: parseInt(socio), idPlan: parseInt(plan), monto: montoCalculado, metodo: metodo })
+      // INYECCIÓN: Le decimos al backend para qué gimnasio es el dinero
+      body: JSON.stringify({
+        idCliente: parseInt(socio),
+        idPlan: parseInt(plan),
+        monto: montoCalculado,
+        metodo: metodo,
+        idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
+      })
     });
 
     const data = await res.json();
