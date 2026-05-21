@@ -11,21 +11,44 @@ function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
-
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
       localStorage.removeItem('usuarioLogueado');
       localStorage.removeItem('tokenGimnasio');
       localStorage.removeItem('loginTime');
-
-      // 2. MOSTRAMOS EL MENSAJE
-      alert("Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
-
-      // 3. EXPULSAMOS AL USUARIO FORZOSAMENTE
-      // Nota: Si tu página de login se llama diferente, cambia 'index.html' por tu archivo (ej. 'login.html')
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sesión Expirada',
+        text: 'Por seguridad, debes iniciar sesión nuevamente tras 30 minutos de inactividad.',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff'
+      }).then(() => {
+        cerrarSesion();
+      });
       window.location.replace('index.html');
+
     }
   }
+}
+function salir() {
+  Swal.fire({
+    icon: 'question',
+    title: '¿Cerrar sesión?',
+    text: '¿Seguro que deseas salir del sistema?',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, salir',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ffc107',
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then((result) => {
+    if(result.isConfirmed) {
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('usuarioLogueado');
+      window.location.href = 'index.html';
+    }
+  });
 }
 
 function reiniciarTemporizador() {
@@ -44,6 +67,7 @@ window.addEventListener('scroll', reiniciarTemporizador);
 // Revisamos cada 2 segundos
 setInterval(verificarInactividad, 6000);
 verificarInactividad();
+
 // ==========================================
 // FUNCIÓN PARA CERRAR SESIÓN
 // ==========================================
@@ -478,7 +502,7 @@ async function guardarUsuario() {
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
-    alert("La contraseña es obligatoria (min 5 caracteres).");
+    Swal.fire({ icon: 'warning', title: 'Atención', text: 'La contraseña es obligatoria (mín 5 caracteres).', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     return;
   }
 
@@ -490,15 +514,18 @@ async function guardarUsuario() {
     if (res.ok) {
       modalUsuarioInstance.hide();
       const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
-      if(moduloActivo.includes('cliente') || moduloActivo.includes('socio')) cargarModulo('clientes');
-      else if(moduloActivo.includes('entrenador')) cargarModulo('entrenadores');
-      else cargarModulo('resumen');
-      alert("Operación exitosa.");
+
+      Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Operación realizada correctamente.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+        .then(() => {
+          if(moduloActivo.includes('cliente') || moduloActivo.includes('socio')) cargarModulo('clientes');
+          else if(moduloActivo.includes('entrenador')) cargarModulo('entrenadores');
+          else cargarModulo('resumen');
+        });
     } else {
-      alert('Error. Verifique que el usuario o correo no estén repetidos.');
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Verifique que el usuario o correo no estén repetidos.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     }
   } catch (e) {
-    alert('Error conectando al servidor.');
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Error conectando al servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
   }
 }
 
@@ -550,71 +577,63 @@ async function procesarPago() {
   const metodo = document.getElementById('pagoMetodo').value;
 
   if(!socio) {
-    alert("Por favor, selecciona un socio válido para proceder con el cobro.");
+    Swal.fire({ icon: 'warning', title: 'Selección requerida', text: 'Por favor, selecciona un socio válido.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     return;
   }
 
   const precios = { "1": 5.00, "2": 30.00, "3": 50.00, "4": 300.00 };
   const montoCalculado = precios[plan];
 
-  const payload = {
-    idCliente: parseInt(socio),
-    idPlan: parseInt(plan),
-    monto: montoCalculado,
-    metodo: metodo
-  };
-
   try {
     const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ idCliente: parseInt(socio), idPlan: parseInt(plan), monto: montoCalculado, metodo: metodo })
     });
 
     const data = await res.json();
-
     if(res.ok && data.status === 'ok') {
-      alert(`¡Pago procesado correctamente!\n\nMonto cobrado: $${montoCalculado.toFixed(2)}`);
-
-      const modalElement = document.getElementById('modalPago');
-      const modalInstance = bootstrap.Modal.getInstance(modalElement);
-      if(modalInstance) modalInstance.hide();
-
-      const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
-      if(moduloActivo.includes('pago')) cargarModulo('pagos');
-      else cargarModulo('resumen');
-
+      Swal.fire({ icon: 'success', title: '¡Pago procesado!', text: `Monto cobrado: $${montoCalculado.toFixed(2)}`, confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+        .then(() => {
+          const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalPago'));
+          if(modalInstance) modalInstance.hide();
+          const moduloActivo = document.querySelector('#sidebarMenu .nav-link.active').innerText.trim().toLowerCase();
+          moduloActivo.includes('pago') ? cargarModulo('pagos') : cargarModulo('resumen');
+        });
     } else {
-      alert("No se pudo procesar: " + data.mensaje);
+      Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     }
-  } catch(e) {
-    alert("Error de conexión con el servidor al procesar el pago.");
-  }
+  } catch(e) { Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión con el servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' }); }
 }
 
 // ==========================================
 // NUEVO: FUNCIONES PARA ENTREGAR E IMPRIMIR PEDIDOS
 // ==========================================
 async function marcarComoEntregado(idFactura) {
-  const confirmacion = confirm("¿Confirmas que ya entregaste físicamente los productos al cliente?");
-  if (!confirmacion) return;
-
-  try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/entregar`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (res.ok) {
-      alert("¡Excelente! El producto ha sido marcado como entregado en el sistema.");
-      cargarModulo('pedidos');
-    } else {
-      alert("Hubo un error al intentar actualizar el estado del pedido.");
+  Swal.fire({
+    icon: 'question',
+    title: '¿Confirmar entrega?',
+    text: '¿Ya entregaste físicamente los productos al cliente?',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, entregar',
+    confirmButtonColor: '#198754',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/entregar`, { method: 'PUT' });
+        if (res.ok) {
+          Swal.fire({ icon: 'success', title: 'Entregado', text: 'Producto marcado como entregado.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+            .then(() => cargarModulo('pedidos'));
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Hubo un error al actualizar.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+        }
+      } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión con el servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+      }
     }
-  } catch (error) {
-    console.error("Error al actualizar:", error);
-    alert("Error de conexión con el servidor de ventas.");
-  }
+  });
 }
 
 async function imprimirFactura(idFactura, cliente, numero, fecha, total) {

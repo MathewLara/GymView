@@ -38,8 +38,17 @@ const carritoController = {
 
     this.guardar();
     this.actualizarUI();
-    // Modal toast visual en lugar de alert molesto en móviles (Opcional, usando alert por ahora)
-    alert(`✅ ${productoRef.nombre} agregado al carrito.`);
+
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: `${productoRef.nombre} agregado`,
+      showConfirmButton: false,
+      timer: 2000,
+      background: '#1e1e1e',
+      color: '#ffffff'
+    });
   },
 
   eliminar: function(idProducto) {
@@ -50,12 +59,24 @@ const carritoController = {
   },
 
   vaciar: function() {
-    if(confirm("¿Estás seguro de vaciar el carrito?")) {
-      this.state.items = [];
-      this.guardar();
-      this.renderizarModal();
-      this.actualizarUI();
-    }
+    Swal.fire({
+      icon: 'question',
+      title: '¿Vaciar carrito?',
+      text: 'Se eliminarán todos los productos seleccionados.',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, vaciar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc3545',
+      background: '#1e1e1e',
+      color: '#ffffff'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.state.items = [];
+        this.guardar();
+        this.renderizarModal();
+        this.actualizarUI();
+      }
+    });
   },
 
   guardar: function() {
@@ -92,7 +113,6 @@ const carritoController = {
     this.state.items.forEach(item => {
       const subtotal = item.precio * item.cantidad;
       const row = document.createElement('div');
-      // Gap y flex ajustado para pantallas pequeñas
       row.className = 'd-flex align-items-center justify-content-between border-bottom border-secondary py-3 animate-fade-in gap-2';
       row.innerHTML = `
         <div class="d-flex align-items-center" style="min-width: 0;">
@@ -119,39 +139,31 @@ const carritoController = {
 
   procesarPago: async function() {
     if (this.state.items.length === 0) {
-      alert("El carrito está vacío");
+      Swal.fire({ icon: 'warning', title: 'Carrito vacío', text: 'Agrega productos antes de pagar.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
       return;
     }
 
-    // 1. NUEVA VALIDACIÓN: Verificar si el usuario está logueado antes de cobrar
     const usuarioTexto = localStorage.getItem('usuarioLogueado');
-
     if (!usuarioTexto) {
-      alert("¡Alto ahí! Para realizar una compra, primero debes iniciar sesión.");
-      window.location.href = 'login.html'; // Redirigir al login
+      Swal.fire({ icon: 'info', title: 'Inicia sesión', text: 'Debes iniciar sesión para comprar.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+        .then(() => window.location.href = 'login.html');
       return;
     }
 
     const usuarioLogueado = JSON.parse(usuarioTexto);
     const idUsuario = usuarioLogueado.idUsuario || usuarioLogueado.id_usuario;
 
-    // 2. Validación extra por si el JSON está corrupto
     if (!idUsuario) {
-      alert("Tu sesión es inválida o expiró. Por favor, inicia sesión nuevamente.");
-      localStorage.removeItem('usuarioLogueado');
-      window.location.href = 'login.html';
+      Swal.fire({ icon: 'error', title: 'Sesión inválida', text: 'Por favor, inicia sesión nuevamente.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+        .then(() => { localStorage.removeItem('usuarioLogueado'); window.location.href = 'login.html'; });
       return;
     }
 
-    // 3. Crear la orden de compra con el ID real del usuario
     const ordenCompra = {
       idUsuario: idUsuario,
       total: this.calcularTotal(),
       productos: this.state.items.map(item => ({
-        id: item.id,
-        nombre: item.nombre,
-        precio: item.precio,
-        cantidad: item.cantidad
+        id: item.id, nombre: item.nombre, precio: item.precio, cantidad: item.cantidad
       }))
     };
 
@@ -168,27 +180,18 @@ const carritoController = {
       });
 
       const data = await response.json();
-
       if (response.ok) {
         this.state.items = [];
         this.guardar();
         this.actualizarUI();
+        bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
 
-        const modalEl = document.getElementById('modalCarrito');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-
-        alert("✅ ¡Pedido confirmado! Tu factura ha sido generada correctamente.");
-
-        // Opcional: Redirigirlo a su dashboard para que vea su nueva compra
-        // window.location.href = 'DashboardCliente.html';
+        Swal.fire({ icon: 'success', title: '¡Pedido confirmado!', text: 'Factura generada correctamente.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
       } else {
-        alert("❌ Error: " + (data.mensaje || "El servidor rechazó la venta."));
+        Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje || "El servidor rechazó la venta.", confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
       }
-
     } catch (error) {
-      console.error(error);
-      alert("❌ Error de conexión. Verifica que el servidor de la API esté corriendo.");
+      Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo conectar con el servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     } finally {
       btnPagar.disabled = false;
       btnPagar.innerHTML = textoOriginal;
@@ -229,7 +232,6 @@ const catalogoView = {
         container.innerHTML = '<div class="col-12 text-center text-danger mt-5"><h3>Error cargando productos</h3></div>';
       }
     } catch (error) {
-      console.error(error);
       container.innerHTML = '<div class="col-12 text-center text-white-50 mt-5"><h3>Servidor desconectado</h3></div>';
     }
   },
@@ -237,49 +239,28 @@ const catalogoView = {
   render: function(lista) {
     const container = document.getElementById('catalogo-container');
     container.innerHTML = '';
-
     if (!lista || lista.length === 0) {
       container.innerHTML = '<div class="col-12 text-center text-white-50">No hay productos en stock.</div>';
       return;
     }
-
     lista.forEach(item => {
       const id = item.idProducto || item.id;
       const imageUrl = `${CONFIG.API_PRODUCTOS}/${id}/imagen`;
-
-      let accionesHtml = '';
-      let badgeHtml = '';
-
-      if (item.tipo === 'venta') {
-        badgeHtml = `<span class="badge bg-warning text-dark mb-2">Tienda</span>`;
-        accionesHtml = `
-          <div class="d-flex justify-content-between align-items-end mt-3">
-            <span class="fs-4 fw-bold text-warning">$${item.precio.toFixed(2)}</span>
-            <button class="btn btn-warning fw-bold text-dark rounded-pill px-3" onclick="carritoController.agregar(${id})">
-              <i class="bi bi-cart-plus me-1"></i> Agregar
-            </button>
-          </div>
-        `;
-      } else {
-        badgeHtml = `<span class="badge border border-light text-light mb-2">Uso Interno</span>`;
-        accionesHtml = `
-           <div class="mt-3 pt-2 border-top border-secondary text-white-50 small">
-             <i class="bi bi-info-circle me-1"></i> Solo disponible en gimnasio
-           </div>
-        `;
-      }
-
-      // CAMBIO: col-12 (Móvil) col-sm-6 (Tablet) col-lg-4 (Escritorio)
       const card = `
         <div class="col-12 col-sm-6 col-lg-4 animate-fade-in">
           <div class="product-card">
-            <img src="${imageUrl}" class="card-img-top" alt="${item.nombre}"
-                 onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
+            <img src="${imageUrl}" class="card-img-top" alt="${item.nombre}" onerror="this.src='https://via.placeholder.com/400x300?text=Sin+Imagen'">
             <div class="card-body">
-              ${badgeHtml}
+              ${item.tipo === 'venta' ? `<span class="badge bg-warning text-dark mb-2">Tienda</span>` : `<span class="badge border border-light text-light mb-2">Uso Interno</span>`}
               <h5 class="card-title text-white">${item.nombre}</h5>
-              <p class="card-text text-white-50 small flex-grow-1">${item.descripcion}</p>
-              ${accionesHtml}
+              <p class="card-text text-white-50 small">${item.descripcion}</p>
+              ${item.tipo === 'venta' ? `
+                <div class="d-flex justify-content-between align-items-end mt-3">
+                  <span class="fs-4 fw-bold text-warning">$${item.precio.toFixed(2)}</span>
+                  <button class="btn btn-warning fw-bold text-dark rounded-pill px-3" onclick="carritoController.agregar(${id})">
+                    <i class="bi bi-cart-plus me-1"></i> Agregar
+                  </button>
+                </div>` : `<div class="mt-3 text-white-50 small"><i class="bi bi-info-circle me-1"></i> Solo en gimnasio</div>`}
             </div>
           </div>
         </div>
@@ -289,21 +270,4 @@ const catalogoView = {
   }
 };
 
-function filtrarProductos(categoria) {
-  document.querySelectorAll('.nav-link').forEach(t => t.classList.remove('active'));
-
-  const tabId = categoria === 'todos' ? 'pills-todos-tab' :
-    categoria === 'venta' ? 'pills-venta-tab' : 'pills-uso-tab';
-
-  document.getElementById(tabId)?.classList.add('active');
-
-  if (categoria === 'todos') {
-    catalogoView.render(inventarioGlobal);
-  } else {
-    catalogoView.render(inventarioGlobal.filter(i => i.tipo === categoria));
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  catalogoView.init();
-});
+document.addEventListener('DOMContentLoaded', () => { catalogoView.init(); });

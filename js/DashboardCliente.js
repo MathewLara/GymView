@@ -13,6 +13,25 @@ function verificarInactividad() {
       localStorage.removeItem('usuarioLogueado');
       localStorage.removeItem('tokenGimnasio');
       localStorage.removeItem('loginTime');
+      Swal.fire({
+        icon: 'warning',
+        title: '¡Sesión Expirada!',
+        text: 'Por seguridad, debes iniciar sesión nuevamente tras 30 minutos de inactividad.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          salir();
+        }
+        window.location.replace('index.html');
+
+      });
+      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
+      localStorage.removeItem('usuarioLogueado');
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('loginTime');
 
       // 2. MOSTRAMOS EL MENSAJE
       alert("Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
@@ -104,7 +123,7 @@ async function cargarDatos(id) {
         }
       }
 
-      // 🛡️ LÓGICA DE BLOQUEO POR VENCIMIENTO
+      // LÓGICA DE BLOQUEO POR VENCIMIENTO
       if(data.estadoMembresia === 'Vencido' || !data.estadoMembresia) {
         badge.className = 'badge bg-danger fs-6 mb-4';
         document.getElementById('icono-estado').className = 'bi bi-x-circle text-danger';
@@ -216,7 +235,6 @@ function mostrarAlertaBloqueo() {
 
   if(vistaInicio) vistaInicio.prepend(alerta);
 
-  // 🎯 EVENT LISTENER MODERNO Y PROFESIONAL CORREGIDO
   const btnMembresia = document.getElementById('btn-ir-membresia');
   if (btnMembresia) {
     btnMembresia.addEventListener('click', () => {
@@ -249,11 +267,19 @@ function mostrarAlertaBloqueo() {
 function ver(seccion, elemento) {
   // 1. Lógica de bloqueo corregida: Solo se permite ir a 'membresia' si está vencido
   if (!membresiaActiva && seccion !== 'membresia') {
-    alert("⚠️ SECCIÓN BLOQUEADA\n\nTu plan está vencido. Por favor, renueva tu membresía para recuperar el acceso.");
+    Swal.fire({
+      icon: 'error',
+      title: 'SECCIÓN BLOQUEADA',
+      text: 'Tu plan está vencido. Por favor, renueva tu membresía para recuperar el acceso.',
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#ffc107',
+      background: '#1e1e1e',
+      color: '#ffffff'
+    });
     return;
   }
 
-  // 2. Ocultar TODAS las vistas correctamente (tu código no ocultaba vista-membresia)
+  // 2. Ocultar TODAS las vistas correctamente
   const vistas = document.querySelectorAll('.vista');
   vistas.forEach(v => v.style.display = 'none');
 
@@ -273,6 +299,16 @@ function ver(seccion, elemento) {
   }
 }
 
+// ==========================================
+// 5. CONTROL DEL MENÚ MÓVIL
+// ==========================================
+window.toggleMenu = function() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.overlay');
+
+  if (sidebar) sidebar.classList.toggle('mostrar');
+  if (overlay) overlay.classList.toggle('mostrar');
+};
 // ==========================================
 // 5. ACCIONES DE SESIÓN Y CANCELACIÓN
 // ==========================================
@@ -308,19 +344,46 @@ async function cancelarSuscripcion() {
     });
 
     if(res.ok) {
-      alert("¡Suscripción cancelada exitosamente!\nPodrás seguir ingresando al gimnasio hasta tu fecha de vencimiento.");
-      // Recargamos los datos para que el botón se bloquee automáticamente
-      cargarDatos(idUsar);
+      Swal.fire({
+        icon: 'success',
+        title: '¡Suscripción cancelada!',
+        text: 'Podrás seguir ingresando al gimnasio hasta tu fecha de vencimiento.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#ffc107', // Amarillo Iron Fitness
+        background: '#1e1e1e',
+        color: '#ffffff'
+      }).then(() => {
+        // Recargamos los datos para que el botón se bloquee automáticamente
+        // DESPUÉS de que el usuario cierre la alerta
+        cargarDatos(idUsar);
+      });
+
     } else {
-      alert("Error al procesar la cancelación.");
-      // Si falla, regresamos el botón a la normalidad
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al cancelar',
+        text: 'Hubo un problema al procesar tu solicitud. Intenta de nuevo.',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff'
+      });
+      // Si falla, regresamos el botón a la normalidad instantáneamente
       if(btn) {
         btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
         btn.disabled = false;
       }
     }
   } catch (error) {
-    alert("Error de conexión al intentar cancelar.");
+    Swal.fire({
+      icon: 'error',
+      title: 'Error de conexión',
+      text: 'Parece que no tienes internet o el servidor no responde. Revisa tu conexión al intentar cancelar.',
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#ffc107',
+      background: '#1e1e1e',
+      color: '#ffffff'
+    });
     // Si hay error de internet, regresamos el botón a la normalidad
     if(btn) {
       btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
@@ -370,11 +433,29 @@ async function finalizarRutina() {
     });
 
     if (res.ok) {
-      alert("¡Excelente trabajo! Has completado tu entrenamiento de hoy. Tu entrenador ya fue notificado.");
-      // Recargamos los datos para que el botón se bloquee visualmente
-      cargarDatos(idUsar);
+      Swal.fire({
+        icon: 'success',
+        title: '¡Excelente trabajo!',
+        text: 'Has completado tu entrenamiento de hoy. Tu entrenador ya fue notificado.',
+        confirmButtonText: '¡Genial!',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff'
+      }).then(() => {
+        cargarDatos(idUsar);
+      });
+
     } else {
-      alert("Hubo un error al registrar el entrenamiento en el servidor.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al registrar',
+        text: 'Hubo un error al registrar el entrenamiento en el servidor. Intenta nuevamente.',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff'
+      });
+
       if(btn) {
         btn.innerHTML = '<i class="bi bi-check-lg"></i> TERMINAR ENTRENAMIENTO';
         btn.disabled = false;
@@ -382,7 +463,17 @@ async function finalizarRutina() {
     }
   } catch (e) {
     console.error("Error al finalizar rutina:", e);
-    alert("Error de conexión con el servidor.");
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Error de conexión',
+      text: 'No pudimos conectar con el servidor. Revisa tu conexión a internet e intenta de nuevo.',
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#ffc107',
+      background: '#1e1e1e',
+      color: '#ffffff'
+    });
+
     if(btn) {
       btn.innerHTML = '<i class="bi bi-check-lg"></i> TERMINAR ENTRENAMIENTO';
       btn.disabled = false;
