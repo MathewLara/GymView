@@ -116,7 +116,9 @@ loginForm.addEventListener('submit', async function(e) {
       }
 
       localStorage.setItem('usuarioLogueado', JSON.stringify(data));
-      // NUEVO: Guardamos el tiempo exacto en el que inició sesión
+
+      localStorage.setItem('id_empresa', data.idEmpresa);
+
       localStorage.setItem('loginTime', Date.now().toString());
 
       showGlobalStatus('¡Login Correcto! Entrando...', 'success');
