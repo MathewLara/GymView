@@ -41,8 +41,8 @@ window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 2 segundos (Cambiar a 60000 cuando termines de probar)
-setInterval(verificarInactividad, 2000);
+// Revisamos cada 2 segundos
+setInterval(verificarInactividad, 6000);
 verificarInactividad();
 // ==========================================
 // FUNCIÓN PARA CERRAR SESIÓN
