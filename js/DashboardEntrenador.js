@@ -12,9 +12,18 @@ function verificarInactividad() {
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      alert("⚠️ Tu sesión ha expirado por 30 minutos de inactividad. Por seguridad, debes iniciar sesión nuevamente.");
-      // Usamos la función cerrarSesion que ya existe en tus archivos
-      cerrarSesion();
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sesión Expirada',
+        text: 'Por seguridad, debes iniciar sesión nuevamente tras 30 minutos de inactividad.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff',
+        allowOutsideClick: false // Obliga al usuario a hacer clic en el botón
+      }).then(() => {
+        cerrarSesion();
+      });
     }
   }
 }
@@ -58,11 +67,24 @@ function toggleMenu() {
 }
 
 function salir() {
-  if(confirm("¿Seguro que deseas cerrar sesión?")) {
-    localStorage.removeItem('tokenGimnasio');
-    localStorage.removeItem('usuarioLogueado');
-    window.location.href = 'index.html';
-  }
+  Swal.fire({
+    icon: 'question',
+    title: '¿Cerrar sesión?',
+    text: '¿Seguro que deseas salir del sistema?',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, salir',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ffc107',
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then((result) => {
+    if(result.isConfirmed) {
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('usuarioLogueado');
+      window.location.href = 'index.html';
+    }
+  });
 }
 
 // ==========================================
@@ -201,9 +223,11 @@ async function guardarAlumno() {
   const idRutina = document.getElementById('selRutinaAsignar').value;
   const notas = document.getElementById('txtNotasAlumno').value;
 
-  if(!idCliente) { alert("Debes seleccionar un alumno válido."); return; }
+  if(!idCliente) {
+    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Debes seleccionar un alumno válido.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+    return;
+  }
 
-  // Aseguramos que los valores sean números reales para que Java no explote (Error 500)
   const idClienteNum = parseInt(idCliente);
   const idRutinaNum = (idRutina && idRutina !== "") ? parseInt(idRutina) : 0;
 
@@ -226,28 +250,50 @@ async function guardarAlumno() {
     });
 
     if(res.ok) {
-      alert(`Alumno ${isEdit ? 'actualizado' : 'vinculado'} exitosamente a tu cartera.`);
-      modalAlumnoInstance.hide();
-      cargarDashboard(idEntrenador); // Recargamos para ver los cambios
+      Swal.fire({
+        icon: 'success',
+        title: '¡Hecho!',
+        text: `Alumno ${isEdit ? 'actualizado' : 'vinculado'} exitosamente a tu cartera.`,
+        confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff'
+      }).then(() => {
+        modalAlumnoInstance.hide();
+        cargarDashboard(idEntrenador);
+      });
     } else {
-      alert("Error al guardar en la base de datos.");
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Error al guardar en la base de datos.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
     }
-  } catch(e) { console.error(e); alert("Error de conexión al servidor."); }
+  } catch(e) {
+    console.error(e);
+    Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No pudimos conectar con el servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+  }
 }
 
-async function eliminarAlumno(idCliente) {
-  if(confirm("¿Estás seguro de que deseas desvincular a este alumno de tu supervisión? (No se borrará su cuenta, solo dejará de ser tu alumno).")) {
-    try {
-      const url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/alumnos/${idCliente}`;
-      const res = await fetch(url, { method: 'DELETE' });
-      if(res.ok) {
-        alert("Alumno desvinculado con éxito.");
-        cargarDashboard(idEntrenador);
-      } else {
-        alert("Error al intentar desvincular al alumno.");
-      }
-    } catch(e) { console.error(e); }
-  }
+function eliminarAlumno(idCliente) {
+  Swal.fire({
+    icon: 'warning',
+    title: '¿Desvincular alumno?',
+    text: 'No se borrará su cuenta, solo dejará de ser tu alumno.',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, desvincular',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#dc3545', // Rojo para peligro
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then(async (result) => {
+    if(result.isConfirmed) {
+      try {
+        const url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/alumnos/${idCliente}`;
+        const res = await fetch(url, { method: 'DELETE' });
+        if(res.ok) {
+          Swal.fire({ icon: 'success', title: 'Desvinculado', text: 'Alumno desvinculado con éxito.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+            .then(() => cargarDashboard(idEntrenador));
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Error al intentar desvincular al alumno.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+        }
+      } catch(e) { console.error(e); }
+    }
+  });
 }
 
 // ==========================================
@@ -317,7 +363,10 @@ async function guardarRutina() {
   if(document.getElementById('ej3').checked) payload.idsEjercicios.push(3);
   if(document.getElementById('ej4').checked) payload.idsEjercicios.push(4);
 
-  if(!payload.nombreRutina || payload.idsEjercicios.length === 0) { alert("Completa el nombre y selecciona al menos un ejercicio."); return; }
+  if(!payload.nombreRutina || payload.idsEjercicios.length === 0) {
+    Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Completa el nombre y selecciona al menos un ejercicio.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+    return;
+  }
 
   let url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina`;
   let metodo = 'POST';
@@ -329,27 +378,57 @@ async function guardarRutina() {
 
   try {
     const res = await fetch(url, { method: metodo, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    if(res.ok) { alert("✅ Rutina guardada con éxito!"); location.reload(); }
-    else alert("Error al guardar la rutina");
+    if(res.ok) {
+      Swal.fire({ icon: 'success', title: '¡Guardada!', text: 'Rutina guardada con éxito.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
+        .then(() => location.reload());
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Error al guardar la rutina', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+    }
   } catch(e) { console.error("Error al comunicarse con el API:", e); }
 }
 
-async function desactivar(id) {
-  if(confirm("¿Mover a la papelera?")) {
-    try {
-      await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
-      location.reload();
-    } catch(e) { console.error(e); }
-  }
+function desactivar(id) {
+  Swal.fire({
+    icon: 'warning',
+    title: '¿Mover a la papelera?',
+    text: 'Podrás restaurarla más tarde si lo necesitas.',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, mover',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#dc3545', // Rojo
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then(async (result) => {
+    if(result.isConfirmed) {
+      try {
+        await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
+        location.reload();
+      } catch(e) { console.error(e); }
+    }
+  });
 }
 
-async function reactivar(id) {
-  if(confirm("¿Restaurar esta rutina?")) {
-    try {
-      await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
-      location.reload();
-    } catch(e) { console.error(e); }
-  }
+function reactivar(id) {
+  Swal.fire({
+    icon: 'question',
+    title: '¿Restaurar rutina?',
+    text: 'Esta rutina volverá a estar disponible para asignarla.',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, restaurar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#198754', // Verde para restaurar
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then(async (result) => {
+    if(result.isConfirmed) {
+      try {
+        await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
+        location.reload();
+      } catch(e) { console.error(e); }
+    }
+  });
 }
 
 // ==========================================

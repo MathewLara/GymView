@@ -11,19 +11,26 @@ async function simularEscaneo() {
 
   // Validación simple de entrada
   if(!id) {
-    alert("Ingresa un ID");
+    Swal.fire({
+      icon: 'warning',
+      title: 'Campo vacío',
+      text: 'Por favor, ingresa un ID de cliente.',
+      confirmButtonColor: '#ffc107',
+      background: '#1e1e1e',
+      color: '#ffffff'
+    });
     return;
   }
 
   try {
-    // Petición al Backend (Asegúrate de que el servidor WildFly esté activo)
+    // Petición al Backend
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/accesos/escanear/${id}`, { method: 'POST' });
 
     if(res.ok) {
       const data = await res.json();
       msg.textContent = data.mensaje;
 
-      // Aplicar efectos visuales basados en la respuesta del servidor (ENTRADA o SALIDA)
+      // Aplicar efectos visuales
       if(data.tipo === "ENTRADA") {
         luz.className = "status-circle entrada";
         icono.textContent = "👋";
@@ -32,7 +39,7 @@ async function simularEscaneo() {
         icono.textContent = "🚪";
       }
 
-      // Resetear visualmente el torniquete al estado "Bloqueado" tras 3 segundos
+      // Resetear visualmente el torniquete tras 3 segundos
       setTimeout(() => {
         luz.className = "status-circle";
         icono.textContent = "🔒";
@@ -40,12 +47,26 @@ async function simularEscaneo() {
       }, 3000);
 
     } else {
-      // Manejo de error cuando el servidor responde negativamente o no encuentra el ID
-      alert("Error en el sistema o ID no registrado. ¿El servidor está corriendo?");
+      // Error cuando el ID no existe o el servidor deniega el acceso
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de acceso',
+        text: 'ID no registrado o membresía vencida. Verifica el estado del cliente.',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff'
+      });
     }
   } catch(e) {
-    // Manejo de errores de conexión o red
+    // Errores de conexión
     console.error("Error de conexión:", e);
-    alert("No se pudo conectar con el servidor.");
+    Swal.fire({
+      icon: 'error',
+      title: 'Error de red',
+      text: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+      confirmButtonColor: '#ffc107',
+      background: '#1e1e1e',
+      color: '#ffffff'
+    });
   }
 }
