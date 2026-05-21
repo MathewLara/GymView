@@ -310,7 +310,8 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes');
+      const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes?idEmpresa=${idEmpresaLogueada}`);
 
       if (res.ok) {
         const pedidos = await res.json();
@@ -384,7 +385,8 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Generando análisis gerencial...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/reportes');
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/reportes?idEmpresa=${idEmpresa}`);
 
       if(res.ok) {
         const data = await res.json();
@@ -400,8 +402,8 @@ async function cargarModulo(modulo, elementoHTML) {
                 <li><a class="dropdown-item text-white" href="#" onclick="window.print()"><i class="bi bi-file-earmark-pdf text-danger"></i> Reporte Visual (PDF)</a></li>
                 <li><hr class="dropdown-divider border-secondary"></li>
                 <li><h6 class="dropdown-header text-warning">Datos Crudos (Backend)</h6></li>
-                <li><a class="dropdown-item text-white" href="https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/reportes/accesos/csv" target="_blank"><i class="bi bi-filetype-csv text-success"></i> Accesos y Auditoría (CSV)</a></li>
-                <li><a class="dropdown-item text-white" href="https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/reportes/ingresos/csv" target="_blank"><i class="bi bi-filetype-csv text-success"></i> Ingresos Económicos (CSV)</a></li>
+                <li><a class="dropdown-item text-white" href="https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/reportes/accesos/csv?idEmpresa=${idEmpresa}" target="_blank"><i class="bi bi-filetype-csv text-success"></i> Accesos y Auditoría (CSV)</a></li>
+                <li><a class="dropdown-item text-white" href="https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/reportes/ingresos/csv?idEmpresa=${idEmpresa}" target="_blank"><i class="bi bi-filetype-csv text-success"></i> Ingresos Económicos (CSV)</a></li>
               </ul>
             </div>
           </div>
