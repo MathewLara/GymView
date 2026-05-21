@@ -1,7 +1,7 @@
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
-const TIEMPO_EXPIRACION = 30 * 60 * 1000;
+const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
 
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
@@ -9,7 +9,7 @@ function verificarInactividad() {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
 
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
+      // 1. DESTRUIMOS LOS DATOS PRIMERO
       localStorage.removeItem('usuarioLogueado');
       localStorage.removeItem('tokenGimnasio');
       localStorage.removeItem('loginTime');
@@ -30,21 +30,20 @@ function verificarInactividad() {
 }
 
 function reiniciarTemporizador() {
-  // Solo si el usuario está logueado actualizamos su hora
   if (localStorage.getItem('usuarioLogueado')) {
     localStorage.setItem('loginTime', Date.now().toString());
   }
 }
 
-// Escuchamos cualquier movimiento para reiniciar el tiempo
 window.addEventListener('mousemove', reiniciarTemporizador);
 window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 2 segundos
-setInterval(verificarInactividad, 6000);
+// Revisamos cada 1 minuto (60000 ms)
+setInterval(verificarInactividad, 60000);
 verificarInactividad();
+
 // ==========================================
 // FUNCIÓN PARA CERRAR SESIÓN
 // ==========================================
@@ -52,6 +51,14 @@ function cerrarSesion() {
   localStorage.removeItem('tokenGimnasio');
   localStorage.removeItem('usuarioLogueado');
   window.location.href = 'index.html';
+}
+
+// ==========================================
+// OBTENER ID DE EMPRESA (MULTI-TENANT)
+// ==========================================
+function obtenerIdEmpresa() {
+  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado')) || {};
+  return usuario.idEmpresa || usuario.id_empresa || 1;
 }
 
 // ==========================================
@@ -87,8 +94,8 @@ async function cargarModulo(modulo, elementoHTML) {
     if (kpiVencidas) kpiVencidas.innerText = '...';
 
     try {
-      // Cargar Resumen (KPIs)
-      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      // USAMOS LA FUNCIÓN MÁGICA
+      const idEmpresa = obtenerIdEmpresa();
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard?idEmpresa=${idEmpresa}`);
 
       if(res.ok) {
@@ -134,8 +141,8 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
     try {
-      const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
-      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
+      const idEmpresa = obtenerIdEmpresa();
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresa}`);
       if (res.ok) {
         const todosLosUsuarios = await res.json();
 
@@ -218,12 +225,10 @@ async function cargarModulo(modulo, elementoHTML) {
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
 
-    // CORRECCIÓN: Se eliminó el código basura duplicado que tenías aquí.
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
 
     try {
-      // Cargar Tabla de Pagos
-      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const idEmpresa = obtenerIdEmpresa();
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
@@ -308,15 +313,15 @@ async function cargarModulo(modulo, elementoHTML) {
       contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de conexión con el módulo financiero.</div>';
     }
     // ==========================================
-    // MÓDULO DE PEDIDOS DE TIENDA (NUEVO)
+    // MÓDULO DE PEDIDOS DE TIENDA
     // ==========================================
   } else if (modulo === 'pedidos') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
 
     try {
-      const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
-      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes?idEmpresa=${idEmpresaLogueada}`);
+      const idEmpresa = obtenerIdEmpresa();
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
         const pedidos = await res.json();
@@ -390,7 +395,7 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Generando análisis gerencial...</p></div>';
 
     try {
-      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const idEmpresa = obtenerIdEmpresa();
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/reportes?idEmpresa=${idEmpresa}`);
 
       if(res.ok) {
@@ -530,7 +535,7 @@ async function cargarModulo(modulo, elementoHTML) {
 // ==========================================
 let modalUsuarioInstance;
 let modalPagoInstance;
-let tomSelectSocio = null; // Variable para controlar la barra de búsqueda mágica
+let tomSelectSocio = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard cargado.");
@@ -608,7 +613,7 @@ async function guardarUsuario() {
     contrasena: document.getElementById('userPass').value,
     email: document.getElementById('userEmail').value,
     telefono: document.getElementById('userTelefono').value,
-    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
+    idEmpresa: obtenerIdEmpresa() // <-- ACÁ INYECTAMOS EL ID SEGURO
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
@@ -643,7 +648,6 @@ async function abrirModalPago() {
     return;
   }
 
-  // 1. Destruimos la barra de búsqueda anterior si existe (para limpiar los datos)
   if (tomSelectSocio) {
     tomSelectSocio.destroy();
     tomSelectSocio = null;
@@ -660,20 +664,18 @@ async function abrirModalPago() {
   modalPagoInstance.show();
 
   try {
-    const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
+    const idEmpresa = obtenerIdEmpresa();
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresa}`);
     if(res.ok) {
       const usuarios = await res.json();
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
 
       if(clientes.length > 0) {
-        // Importante dejar el value vacío para que la barra actúe como Placeholder
         selectSocio.innerHTML = '<option value="">🔍 Buscar socio por nombre...</option>';
         clientes.forEach(c => {
           selectSocio.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido} (@${c.usuario})</option>`;
         });
 
-        // 2. ¡MAGIA! Convertimos el selector aburrido en una barra inteligente
         tomSelectSocio = new TomSelect("#pagoSocio", {
           create: false,
           sortField: {
@@ -707,7 +709,13 @@ async function procesarPago() {
     const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idCliente: parseInt(socio), idPlan: parseInt(plan), monto: precios[plan], metodo: metodo, idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1) })
+      body: JSON.stringify({
+        idCliente: parseInt(socio),
+        idPlan: parseInt(plan),
+        monto: precios[plan],
+        metodo: metodo,
+        idEmpresa: obtenerIdEmpresa() // <-- ACÁ INYECTAMOS EL ID SEGURO
+      })
     });
     if(res.ok) {
       Swal.fire({ icon: 'success', title: 'Pago Exitoso', text: `Monto: $${precios[plan].toFixed(2)}`, confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
@@ -719,7 +727,7 @@ async function procesarPago() {
 }
 
 // ==========================================
-// FILTRADO DINÁMICO Y CÁLCULO DE TOTALES (MEJORADO)
+// FILTRADO DINÁMICO Y CÁLCULO DE TOTALES
 // ==========================================
 function filtrarPagosPorCliente() {
   const seleccionado = document.getElementById('filtroCliente').value;
@@ -734,7 +742,6 @@ function filtrarPagosPorCliente() {
     const reciboFila = fila.cells[0].innerText.toLowerCase();
     const montoFila = parseFloat(fila.getAttribute('data-monto')) || 0;
 
-    // Evaluamos si pasa el filtro del desplegable y del buscador
     const pasaSelect = (seleccionado === 'TODOS' || fila.getAttribute('data-socio') === seleccionado);
     const pasaBuscador = (buscadorTexto === '' || socioFila.includes(buscadorTexto) || reciboFila.includes(buscadorTexto));
 
@@ -828,13 +835,11 @@ async function marcarComoEntregado(idFactura) {
 // ==========================================
 async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
   try {
-    // 1. Pedimos los productos al backend
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/${idFactura}/detalles`);
 
     if (!res.ok) throw new Error("Error al traer detalles");
     const detalles = await res.json();
 
-    // 2. Armamos las filas de la tabla de productos
     let filasProductos = detalles.map(d => `
       <tr>
         <td>${d.descripcion}</td>
@@ -844,7 +849,6 @@ async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
       </tr>
     `).join('');
 
-    // 3. Creamos el diseño del ticket/factura
     let htmlTicket = `
       <html>
       <head>
@@ -891,14 +895,12 @@ async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
           <p>¡Gracias por tu compra y a darle con todo al entrenamiento!</p>
         </div>
         <script>
-          // Esto abre automáticamente el diálogo de impresión al cargar
           window.onload = function() { window.print(); }
         </script>
       </body>
       </html>
     `;
 
-    // 4. Abrimos una ventana nueva oculta y le metemos el HTML
     let ventanaImpresion = window.open('', '_blank', 'width=600,height=600');
     ventanaImpresion.document.write(htmlTicket);
     ventanaImpresion.document.close();
