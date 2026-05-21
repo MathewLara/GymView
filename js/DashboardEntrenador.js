@@ -156,7 +156,10 @@ async function abrirModalAlumno() {
 
   try {
     // Busca los usuarios que sean clientes de la base de datos general
-    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+    // Rescatamos la empresa
+    const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+    // Busca los usuarios que sean clientes pero filtrados por sucursal
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
     if(res.ok) {
       const usuarios = await res.json();
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
