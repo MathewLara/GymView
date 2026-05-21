@@ -82,7 +82,9 @@ async function cargarModulo(modulo, elementoHTML) {
     if (kpiVencidas) kpiVencidas.innerText = '...';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard');
+      // Cargar Resumen (KPIs)
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard?idEmpresa=${idEmpresa}`);
 
       if(res.ok) {
         const data = await res.json();
@@ -215,7 +217,9 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
+      // Cargar Tabla de Pagos
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
         const pagos = await res.json();
@@ -704,7 +708,8 @@ async function procesarPago() {
     idCliente: parseInt(socio),
     idPlan: parseInt(plan),
     monto: montoCalculado,
-    metodo: metodo
+    metodo: metodo,
+    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
   };
 
   try {
