@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
           case 2: window.location.href = 'DashboardRecep.html'; break;
           case 3: window.location.href = 'DashboardEntrenador.html'; break;
           case 4: window.location.href = 'DashboardCliente.html'; break;
+          case 5: window.location.href = 'DashboardProveedor.html'; break;
           default: localStorage.removeItem('usuarioLogueado'); break;
         }
       } catch(e) {
@@ -127,6 +128,7 @@ loginForm.addEventListener('submit', async function(e) {
           case 2: window.location.href = 'DashboardRecep.html'; break;
           case 3: window.location.href = 'DashboardEntrenador.html'; break;
           case 4: window.location.href = 'DashboardCliente.html'; break;
+          case 5: window.location.href = 'DashboardProveedor.html'; break;
           default:
             showGlobalStatus('Error: Rol de usuario desconocido (' + rol + ')', 'warning');
             btnSubmit.disabled = false;
