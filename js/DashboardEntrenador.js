@@ -51,16 +51,34 @@ window.addEventListener('scroll', reiniciarTemporizador);
 setInterval(verificarInactividad, 6000);
 verificarInactividad();
 
-// ID fijo para que funcione directo sin iniciar sesión (Modo Desarrollo)
-const idEntrenador = 1;
+// ==========================================
+// VARIABLES GLOBALES DINÁMICAS
+// ==========================================
+let idEntrenador = null;
+let idEmpresaLogueada = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("Dashboard Entrenador cargado. Modo Desarrollo (Sin Sesión).");
+  console.log("Dashboard Entrenador cargado.");
+
+  // 1. Extraer datos reales de sesión (¡Adiós al ID quemado!)
+  const usuarioStr = localStorage.getItem('usuarioLogueado');
+  if (usuarioStr) {
+    const usuario = JSON.parse(usuarioStr);
+    idEntrenador = usuario.id_usuario || usuario.id;
+  }
+  idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+
+  // Si por alguna razón no hay sesión, redirigir
+  if (!idEntrenador) {
+    window.location.replace('index.html');
+    return;
+  }
 
   const modAl = document.getElementById('modalAlumno');
   if(modAl) modalAlumnoInstance = new bootstrap.Modal(modAl);
 
-  cargarDashboard(idEntrenador);
+  // 2. Pasamos la empresa como parámetro extra
+  cargarDashboard(idEntrenador, idEmpresaLogueada);
 });
 
 // ==========================================
@@ -95,9 +113,9 @@ function salir() {
 // ==========================================
 // CARGA DEL DASHBOARD PRINCIPAL
 // ==========================================
-async function cargarDashboard(id) {
+async function cargarDashboard(id, idEmpresa) {
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/dashboard`);
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/dashboard?idEmpresa=${idEmpresa}`);
     if(res.ok) {
       globalData = await res.json();
 
@@ -175,9 +193,6 @@ async function abrirModalAlumno() {
   modalAlumnoInstance.show();
 
   try {
-    // Busca los usuarios que sean clientes de la base de datos general
-    // Rescatamos la empresa
-    const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
     // Busca los usuarios que sean clientes pero filtrados por sucursal
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
     if(res.ok) {
@@ -266,7 +281,7 @@ async function guardarAlumno() {
         confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff'
       }).then(() => {
         modalAlumnoInstance.hide();
-        cargarDashboard(idEntrenador);
+        cargarDashboard(idEntrenador, idEmpresaLogueada);
       });
     } else {
       Swal.fire({ icon: 'error', title: 'Error', text: 'Error al guardar en la base de datos.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
@@ -296,7 +311,7 @@ function eliminarAlumno(idCliente) {
         const res = await fetch(url, { method: 'DELETE' });
         if(res.ok) {
           Swal.fire({ icon: 'success', title: 'Desvinculado', text: 'Alumno desvinculado con éxito.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
-            .then(() => cargarDashboard(idEntrenador));
+            .then(() => cargarDashboard(idEntrenador, idEmpresaLogueada));
         } else {
           Swal.fire({ icon: 'error', title: 'Error', text: 'Error al intentar desvincular al alumno.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
         }
@@ -462,7 +477,7 @@ function ver(vista, btn) {
 
   if(vista === 'agenda') {
     actualizarFecha();
-    cargarAgenda(idEntrenador);
+    cargarAgenda(idEntrenador, idEmpresaLogueada);
   }
 }
 
@@ -473,9 +488,9 @@ function actualizarFecha() {
   document.getElementById('agenda-mes-ano').textContent = `${m[f.getMonth()]} ${f.getFullYear()}`;
 }
 
-async function cargarAgenda(id) {
+async function cargarAgenda(id, idEmpresa) {
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/agenda`);
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${id}/agenda?idEmpresa=${idEmpresa}`);
     if(res.ok) {
       const agenda = await res.json();
       const cont = document.getElementById('lista-agenda-hoy');
