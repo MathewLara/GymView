@@ -210,8 +210,21 @@ const catalogoView = {
 
   fetchProductos: async function() {
     const container = document.getElementById('catalogo-container');
+
+    // <-- 1. Rescatamos el ID de la empresa
+    let idEmpresaLogueada = localStorage.getItem('id_empresa');
+
+    // Por si un visitante entra al catálogo sin iniciar sesión, le mostramos la empresa 1 por defecto (Iron Fitness)
+    if (!idEmpresaLogueada) {
+      idEmpresaLogueada = 1;
+    }
+
     try {
-      const response = await fetch(CONFIG.API_PRODUCTOS);
+      // <-- 2. Armamos la URL pegándole el ID de la empresa al final
+      const urlConFiltro = `${CONFIG.API_PRODUCTOS}?idEmpresa=${idEmpresaLogueada}`;
+
+      const response = await fetch(urlConFiltro); // <-- 3. Usamos la nueva URL
+
       if (response.ok) {
         inventarioGlobal = await response.json();
         this.render(inventarioGlobal);

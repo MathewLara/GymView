@@ -3,15 +3,19 @@ let tomSelectNuevoAlumno = null; // Variable para el buscador mágico de alumnos
 let modalAlumnoInstance = null;
 
 // ==========================================
-// CONTROL DE SEGURIDAD: INACTIVIDAD DE 30 MIN
+// CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
-const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
+const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
+      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
+      localStorage.removeItem('usuarioLogueado');
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('loginTime');
       Swal.fire({
         icon: 'warning',
         title: 'Sesión Expirada',
@@ -24,6 +28,8 @@ function verificarInactividad() {
       }).then(() => {
         cerrarSesion();
       });
+      window.location.replace('index.html');
+
     }
   }
 }
@@ -35,15 +41,14 @@ function reiniciarTemporizador() {
   }
 }
 
-// Detectamos si el usuario se mueve, da clic, teclea o hace scroll para reiniciar el contador
+// Escuchamos cualquier movimiento para reiniciar el tiempo
 window.addEventListener('mousemove', reiniciarTemporizador);
 window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 1 minuto (60,000 ms) si el tiempo se agotó
-setInterval(verificarInactividad, 60000);
-// Revisión inmediata al entrar a la página
+// Revisamos cada 2 segundos
+setInterval(verificarInactividad, 6000);
 verificarInactividad();
 
 // ID fijo para que funcione directo sin iniciar sesión (Modo Desarrollo)
@@ -171,7 +176,10 @@ async function abrirModalAlumno() {
 
   try {
     // Busca los usuarios que sean clientes de la base de datos general
-    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+    // Rescatamos la empresa
+    const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+    // Busca los usuarios que sean clientes pero filtrados por sucursal
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
     if(res.ok) {
       const usuarios = await res.json();
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
@@ -228,6 +236,7 @@ async function guardarAlumno() {
     return;
   }
 
+  // Aseguramos que los valores sean números reales para que Java no explote (Error 500)
   const idClienteNum = parseInt(idCliente);
   const idRutinaNum = (idRutina && idRutina !== "") ? parseInt(idRutina) : 0;
 

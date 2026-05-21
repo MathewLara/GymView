@@ -3,15 +3,18 @@ let modalUsuarioInstance;
 let tomSelectSocioRecep = null; // Variable para la barra de búsqueda del modal de pagos
 
 // ==========================================
-// CONTROL DE SEGURIDAD: INACTIVIDAD DE 30 MIN
+// CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
-const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
+const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
+      localStorage.removeItem('usuarioLogueado');
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('loginTime');
       Swal.fire({
         icon: 'warning',
         title: 'Sesión Expirada',
@@ -22,6 +25,8 @@ function verificarInactividad() {
       }).then(() => {
         cerrarSesion();
       });
+      window.location.replace('index.html');
+
     }
   }
 }
@@ -53,15 +58,14 @@ function reiniciarTemporizador() {
   }
 }
 
-// Detectamos si el usuario se mueve, da clic, teclea o hace scroll para reiniciar el contador
+// Escuchamos cualquier movimiento para reiniciar el tiempo
 window.addEventListener('mousemove', reiniciarTemporizador);
 window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 1 minuto (60,000 ms) si el tiempo se agotó
-setInterval(verificarInactividad, 60000);
-// Revisión inmediata al entrar a la página
+// Revisamos cada 2 segundos
+setInterval(verificarInactividad, 6000);
 verificarInactividad();
 
 // ==========================================

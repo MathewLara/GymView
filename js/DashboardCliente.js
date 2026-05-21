@@ -1,10 +1,18 @@
-const TIEMPO_EXPIRACION = 1800000; // 30 minutos
+// ==========================================
+// CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
+// ==========================================
+const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
+      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
+      localStorage.removeItem('usuarioLogueado');
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('loginTime');
       Swal.fire({
         icon: 'warning',
         title: '¡Sesión Expirada!',
@@ -17,7 +25,20 @@ function verificarInactividad() {
         if (result.isConfirmed) {
           salir();
         }
+        window.location.replace('index.html');
+
       });
+      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
+      localStorage.removeItem('usuarioLogueado');
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('loginTime');
+
+      // 2. MOSTRAMOS EL MENSAJE
+      alert("Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
+
+      // 3. EXPULSAMOS AL USUARIO FORZOSAMENTE
+      // Nota: Si tu página de login se llama diferente, cambia 'index.html' por tu archivo (ej. 'login.html')
+      window.location.replace('index.html');
     }
   }
 }
@@ -29,15 +50,14 @@ function reiniciarTemporizador() {
   }
 }
 
-// Detectamos si el usuario se mueve, da clic, teclea o hace scroll para reiniciar el contador
+// Escuchamos cualquier movimiento para reiniciar el tiempo
 window.addEventListener('mousemove', reiniciarTemporizador);
 window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 1 minuto (60,000 ms) si el tiempo se agotó
-setInterval(verificarInactividad, 2000);
-// Revisión inmediata al entrar a la página
+// Revisamos cada 2 segundos
+setInterval(verificarInactividad, 6000);
 verificarInactividad();
 // ==========================================
 // 1. INICIALIZACIÓN Y VARIABLES GLOBALES
@@ -318,6 +338,7 @@ async function cancelarSuscripcion() {
       btn.disabled = true;
     }
 
+    // ✅ ESTA ES LA PETICIÓN AL SERVIDOR QUE SE HABÍA BORRADO
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, {
       method: 'PUT'
     });
@@ -353,7 +374,6 @@ async function cancelarSuscripcion() {
         btn.disabled = false;
       }
     }
-
   } catch (error) {
     Swal.fire({
       icon: 'error',
@@ -441,7 +461,6 @@ async function finalizarRutina() {
         btn.disabled = false;
       }
     }
-
   } catch (e) {
     console.error("Error al finalizar rutina:", e);
 

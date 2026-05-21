@@ -1,16 +1,25 @@
 // ==========================================
-// CONTROL DE SEGURIDAD: INACTIVIDAD DE 30 MIN
+// CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
-const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
+const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      alert("⚠️ Tu sesión ha expirado por 30 minutos de inactividad. Por seguridad, debes iniciar sesión nuevamente.");
-      // Usamos la función cerrarSesion que ya existe en tus archivos
-      cerrarSesion();
+      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
+      localStorage.removeItem('usuarioLogueado');
+      localStorage.removeItem('tokenGimnasio');
+      localStorage.removeItem('loginTime');
+
+      // 2. MOSTRAMOS EL MENSAJE
+      alert("Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.");
+
+      // 3. EXPULSAMOS AL USUARIO FORZOSAMENTE
+      // Nota: Si tu página de login se llama diferente, cambia 'index.html' por tu archivo (ej. 'login.html')
+      window.location.replace('index.html');
     }
   }
 }
@@ -22,15 +31,14 @@ function reiniciarTemporizador() {
   }
 }
 
-// Detectamos si el usuario se mueve, da clic, teclea o hace scroll para reiniciar el contador
+// Escuchamos cualquier movimiento para reiniciar el tiempo
 window.addEventListener('mousemove', reiniciarTemporizador);
 window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 1 minuto (60,000 ms) si el tiempo se agotó
-setInterval(verificarInactividad, 60000);
-// Revisión inmediata al entrar a la página
+// Revisamos cada 2 segundos
+setInterval(verificarInactividad, 6000);
 verificarInactividad();
 // ==========================================
 // FUNCIÓN PARA CERRAR SESIÓN
@@ -74,7 +82,9 @@ async function cargarModulo(modulo, elementoHTML) {
     if (kpiVencidas) kpiVencidas.innerText = '...';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard');
+      // Cargar Resumen (KPIs)
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard?idEmpresa=${idEmpresa}`);
 
       if(res.ok) {
         const data = await res.json();
@@ -119,7 +129,8 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+      const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
       if (res.ok) {
         const todosLosUsuarios = await res.json();
 
@@ -206,7 +217,9 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
 
     try {
-      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos');
+      // Cargar Tabla de Pagos
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/pagos?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
         const pagos = await res.json();
@@ -579,7 +592,8 @@ async function guardarUsuario() {
     idRol: parseInt(document.getElementById('userRol').value),
     contrasena: document.getElementById('userPass').value,
     email: document.getElementById('userEmail').value,
-    telefono: document.getElementById('userTelefono').value
+    telefono: document.getElementById('userTelefono').value,
+    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
@@ -645,7 +659,8 @@ async function abrirModalPago() {
   modalPagoInstance.show();
 
   try {
-    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios');
+    const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresaLogueada}`);
     if(res.ok) {
       const usuarios = await res.json();
       const clientes = usuarios.filter(u => u.rol === 'Cliente' && u.activo === true);
@@ -693,7 +708,8 @@ async function procesarPago() {
     idCliente: parseInt(socio),
     idPlan: parseInt(plan),
     monto: montoCalculado,
-    metodo: metodo
+    metodo: metodo,
+    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
   };
 
   try {
