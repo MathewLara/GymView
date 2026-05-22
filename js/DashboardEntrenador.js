@@ -26,10 +26,8 @@ function verificarInactividad() {
         color: '#ffffff',
         allowOutsideClick: false // Obliga al usuario a hacer clic en el botón
       }).then(() => {
-        cerrarSesion();
+        window.location.replace('index.html');
       });
-      window.location.replace('index.html');
-
     }
   }
 }
@@ -392,11 +390,12 @@ async function guardarRutina() {
     return;
   }
 
-  let url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina`;
+  // ✅ CORRECCIÓN: Se añade el idEmpresa a las rutas de crear y modificar
+  let url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina?idEmpresa=${idEmpresaLogueada}`;
   let metodo = 'POST';
 
   if(idRutina) {
-    url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${idRutina}`;
+    url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${idRutina}?idEmpresa=${idEmpresaLogueada}`;
     metodo = 'PUT';
   }
 
@@ -426,6 +425,7 @@ function desactivar(id) {
   }).then(async (result) => {
     if(result.isConfirmed) {
       try {
+        // En desactivar no hace falta la empresa porque solo se actualiza el estado por el ID único de la rutina
         await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
         location.reload();
       } catch(e) { console.error(e); }
@@ -448,7 +448,8 @@ function reactivar(id) {
   }).then(async (result) => {
     if(result.isConfirmed) {
       try {
-        await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}/reactivar`, { method: 'PUT' });
+        // ✅ CORRECCIÓN: Se añade el idEmpresa a la ruta de reactivar
+        await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}/reactivar?idEmpresa=${idEmpresaLogueada}`, { method: 'PUT' });
         location.reload();
       } catch(e) { console.error(e); }
     }
