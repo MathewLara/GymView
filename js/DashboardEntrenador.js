@@ -12,10 +12,11 @@ function verificarInactividad() {
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      // 1. DESTRUIMOS LOS DATOS PRIMERO (Para evitar que hagan clic y sigan navegando)
+      // 1. DESTRUIMOS LOS DATOS PRIMERO
       localStorage.removeItem('usuarioLogueado');
       localStorage.removeItem('tokenGimnasio');
       localStorage.removeItem('loginTime');
+
       Swal.fire({
         icon: 'warning',
         title: 'Sesión Expirada',
@@ -24,7 +25,7 @@ function verificarInactividad() {
         confirmButtonColor: '#ffc107',
         background: '#1e1e1e',
         color: '#ffffff',
-        allowOutsideClick: false // Obliga al usuario a hacer clic en el botón
+        allowOutsideClick: false
       }).then(() => {
         window.location.replace('index.html');
       });
@@ -45,37 +46,32 @@ window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos ca
+// Revisamos cada minuto
 setInterval(verificarInactividad, 60000);
 verificarInactividad();
 
 // ==========================================
 // VARIABLES GLOBALES DINÁMICAS
 // ==========================================
-let idEntrenador = null;
-let idEmpresaLogueada = null;
+let idEntrenador = 1; // Valor por defecto restaurado (Modo desarrollo / Fallback)
+let idEmpresaLogueada = 1;
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard Entrenador cargado.");
 
-  // 1. Extraer datos reales de sesión (¡Adiós al ID quemado!)
+  // Extraer datos reales de sesión cubriendo todas las variables posibles del Backend
   const usuarioStr = localStorage.getItem('usuarioLogueado');
   if (usuarioStr) {
     const usuario = JSON.parse(usuarioStr);
-    idEntrenador = usuario.id_usuario || usuario.id;
+    idEntrenador = usuario.idUsuario || usuario.id_usuario || usuario.id || 1;
   }
-  idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
 
-  // Si por alguna razón no hay sesión, redirigir
-  if (!idEntrenador) {
-    window.location.replace('index.html');
-    return;
-  }
+  idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
 
   const modAl = document.getElementById('modalAlumno');
   if(modAl) modalAlumnoInstance = new bootstrap.Modal(modAl);
 
-  // 2. Pasamos la empresa como parámetro extra
+  // Cargamos el dashboard pasando el id del entrenador y la empresa
   cargarDashboard(idEntrenador, idEmpresaLogueada);
 });
 
@@ -390,7 +386,6 @@ async function guardarRutina() {
     return;
   }
 
-  // ✅ CORRECCIÓN: Se añade el idEmpresa a las rutas de crear y modificar
   let url = `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/${idEntrenador}/crearRutina?idEmpresa=${idEmpresaLogueada}`;
   let metodo = 'POST';
 
@@ -425,7 +420,6 @@ function desactivar(id) {
   }).then(async (result) => {
     if(result.isConfirmed) {
       try {
-        // En desactivar no hace falta la empresa porque solo se actualiza el estado por el ID único de la rutina
         await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}`, { method: 'DELETE' });
         location.reload();
       } catch(e) { console.error(e); }
@@ -448,7 +442,6 @@ function reactivar(id) {
   }).then(async (result) => {
     if(result.isConfirmed) {
       try {
-        // ✅ CORRECCIÓN: Se añade el idEmpresa a la ruta de reactivar
         await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/rutinas/${id}/reactivar?idEmpresa=${idEmpresaLogueada}`, { method: 'PUT' });
         location.reload();
       } catch(e) { console.error(e); }
