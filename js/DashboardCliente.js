@@ -38,7 +38,7 @@ window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 2 segundos
+// Revisamos cada 6 segundos
 setInterval(verificarInactividad, 6000);
 verificarInactividad();
 // ==========================================
@@ -52,6 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const sesion = localStorage.getItem('usuarioLogueado');
   const usuario = sesion ? JSON.parse(sesion) : { usuario: 'Socio', idUsuario: 1 };
 
+  // EXTRAEMOS LA EMPRESA
+  const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+
   const headerUser = document.getElementById('header-user');
   const lblId = document.getElementById('lbl-id');
   if(headerUser) headerUser.textContent = usuario.usuario || "Socio";
@@ -63,15 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
     imgQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=IRON_${idUsar}`;
   }
 
-  cargarDatos(idUsar);
+  // PASAMOS LA EMPRESA COMO PARÁMETRO
+  cargarDatos(idUsar, idEmpresaLogueada);
 });
 
 // ==========================================
 // 2. CARGA DE DATOS DESDE EL BACKEND
 // ==========================================
-async function cargarDatos(id) {
+// SE AÑADIÓ idEmpresa
+async function cargarDatos(id, idEmpresa) {
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${id}/dashboard`);
+    // INYECTAMOS LA EMPRESA EN LA URL
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${id}/dashboard?idEmpresa=${idEmpresa}`);
 
     if(res.ok) {
       const data = await res.json();
@@ -205,7 +211,6 @@ function mostrarAlertaBloqueo() {
   alerta.id = 'alerta-bloqueo';
   alerta.className = 'alert alert-danger border-danger text-center shadow-lg mb-4 mt-3 rounded-4 p-4';
 
-  // Le quitamos el onclick viejo y le ponemos un ID al botón
   alerta.innerHTML = `
         <i class="bi bi-lock-fill text-danger" style="font-size: 3rem;"></i>
         <h4 class="fw-bold text-danger mt-2">ACCESO RESTRINGIDO</h4>
@@ -220,20 +225,17 @@ function mostrarAlertaBloqueo() {
   const btnMembresia = document.getElementById('btn-ir-membresia');
   if (btnMembresia) {
     btnMembresia.addEventListener('click', () => {
-      // En lugar de hacer scroll, usamos la navegación SPA para ir a la vista de Membresía
       const btnMenuMembresia = document.querySelector('a[onclick*="membresia"]');
       ver('membresia', btnMenuMembresia);
     });
   }
 
-  // Efectos de bloqueo para el QR
   const qrContainer = document.getElementById('img-qr');
   if(qrContainer) {
     qrContainer.style.filter = "blur(10px) grayscale(100%)";
     qrContainer.style.opacity = "0.3";
   }
 
-  // Candado en el menú
   const links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
     if(link.innerText.toLowerCase().includes('rutina')) {
@@ -247,7 +249,6 @@ function mostrarAlertaBloqueo() {
 // 4. NAVEGACIÓN SPA Y SEGURIDAD ESTRICTA
 // ==========================================
 function ver(seccion, elemento) {
-  // 1. Lógica de bloqueo corregida: Solo se permite ir a 'membresia' si está vencido
   if (!membresiaActiva && seccion !== 'membresia') {
     Swal.fire({
       icon: 'error',
@@ -261,20 +262,16 @@ function ver(seccion, elemento) {
     return;
   }
 
-  // 2. Ocultar TODAS las vistas correctamente
   const vistas = document.querySelectorAll('.vista');
   vistas.forEach(v => v.style.display = 'none');
 
-  // 3. Mostrar la vista solicitada
   const vista = document.getElementById('vista-' + seccion);
   if(vista) vista.style.display = 'block';
 
-  // 4. Actualizar estado activo en el menú lateral
   const links = document.querySelectorAll('.nav-link');
   links.forEach(l => l.classList.remove('active'));
   if(elemento) elemento.classList.add('active');
 
-  // 5. Ocultar menú en móviles
   if (window.innerWidth <= 767) {
     document.querySelector('.sidebar').classList.remove('mostrar');
     document.querySelector('.overlay').classList.remove('mostrar');
@@ -291,6 +288,7 @@ window.toggleMenu = function() {
   if (sidebar) sidebar.classList.toggle('mostrar');
   if (overlay) overlay.classList.toggle('mostrar');
 };
+
 // ==========================================
 // 5. ACCIONES DE SESIÓN Y CANCELACIÓN
 // ==========================================
@@ -335,16 +333,17 @@ async function cancelarSuscripcion() {
   if(!usuario) return;
 
   const idUsar = usuario.idUsuario || usuario.id;
+  const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1; // EXTRAEMOS LA EMPRESA
   const btn = document.getElementById('btnCancelarSuscripcion');
 
   try {
-    // Ponemos el botón en estado "Cargando"
     if(btn) {
       btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
       btn.disabled = true;
     }
 
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar`, {
+    // INYECTAMOS LA EMPRESA EN LA URL
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar?idEmpresa=${idEmpresaLogueada}`, {
       method: 'PUT'
     });
 
@@ -354,13 +353,11 @@ async function cancelarSuscripcion() {
         title: '¡Suscripción cancelada!',
         text: 'Podrás seguir ingresando al gimnasio hasta tu fecha de vencimiento.',
         confirmButtonText: 'Entendido',
-        confirmButtonColor: '#ffc107', // Amarillo Iron Fitness
+        confirmButtonColor: '#ffc107',
         background: '#1e1e1e',
         color: '#ffffff'
       }).then(() => {
-        // Recargamos los datos para que el botón se bloquee automáticamente
-        // DESPUÉS de que el usuario cierre la alerta
-        cargarDatos(idUsar);
+        cargarDatos(idUsar, idEmpresaLogueada);
       });
 
     } else {
@@ -373,7 +370,6 @@ async function cancelarSuscripcion() {
         background: '#1e1e1e',
         color: '#ffffff'
       });
-      // Si falla, regresamos el botón a la normalidad instantáneamente
       if(btn) {
         btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
         btn.disabled = false;
@@ -389,7 +385,6 @@ async function cancelarSuscripcion() {
       background: '#1e1e1e',
       color: '#ffffff'
     });
-    // Si hay error de internet, regresamos el botón a la normalidad
     if(btn) {
       btn.innerHTML = '<i class="bi bi-x-circle"></i> Cancelar Suscripción';
       btn.disabled = false;
@@ -400,7 +395,6 @@ async function cancelarSuscripcion() {
 // 6. CONTROL DE RUTINAS Y EJERCICIOS
 // ==========================================
 
-// Guarda el progreso de los checks temporalmente
 function toggleEjercicio(index, idUsuario) {
   const hoy = new Date().toISOString().split('T')[0];
   const keyStorage = `rutina_${idUsuario}_${hoy}`;
@@ -420,11 +414,11 @@ function toggleEjercicio(index, idUsuario) {
   localStorage.setItem(keyStorage, JSON.stringify(completados));
 }
 
-// Envía la confirmación a la base de datos (y al entrenador)
 async function finalizarRutina() {
   const sesion = localStorage.getItem('usuarioLogueado');
   const usuario = sesion ? JSON.parse(sesion) : { idUsuario: 1 };
   const idUsar = usuario.idUsuario || usuario.id || 1;
+  const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1; // EXTRAEMOS LA EMPRESA
 
   const btn = document.getElementById('btnFinalizar');
   if(btn) {
@@ -433,7 +427,8 @@ async function finalizarRutina() {
   }
 
   try {
-    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/completar`, {
+    // INYECTAMOS LA EMPRESA EN LA URL
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/completar?idEmpresa=${idEmpresaLogueada}`, {
       method: 'POST'
     });
 
@@ -447,7 +442,7 @@ async function finalizarRutina() {
         background: '#1e1e1e',
         color: '#ffffff'
       }).then(() => {
-        cargarDatos(idUsar);
+        cargarDatos(idUsar, idEmpresaLogueada);
       });
 
     } else {
