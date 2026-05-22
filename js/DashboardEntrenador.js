@@ -47,8 +47,8 @@ window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 2 segundos
-setInterval(verificarInactividad, 6000);
+// Revisamos ca
+setInterval(verificarInactividad, 60000);
 verificarInactividad();
 
 // ==========================================
