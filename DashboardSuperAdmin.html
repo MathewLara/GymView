@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin Dashboard | Control de Gimnasios</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/DashboardSuperAdmin.css">
+</head>
+<body>
+
+<div class="overlay" onclick="toggleMenu()"></div>
+
+<div class="container-fluid overflow-hidden p-0">
+  <div class="row vh-100 g-0">
+
+    <div class="col-md-3 col-lg-2 p-0 sidebar d-flex flex-column bg-black" id="sidebarAdmin">
+      <div class="brand-section position-relative text-center mt-3">
+        <h4 class="text-info fw-bold mb-0"><i class="bi bi-shield-lock-fill"></i> SUPER ADMIN</h4>
+        <button class="btn btn-sm btn-outline-light d-md-none position-absolute end-0 top-50 translate-middle-y me-3" onclick="toggleMenu()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <nav class="nav flex-column flex-grow-1 overflow-auto mt-3" id="sidebarMenu">
+        <a class="nav-link active" href="#" onclick="cargarModuloResponsive('resumen', this)">
+          <i class="bi bi-speedometer2"></i> Resumen Global
+        </a>
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('empresas', this)">
+          <i class="bi bi-building"></i> Gestión de Empresas
+        </a>
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('administradores', this)">
+          <i class="bi bi-person-badge-fill"></i> Administradores
+        </a>
+      </nav>
+
+      <div class="mt-auto p-4 mb-2">
+        <button class="btn btn-outline-danger w-100 fw-bold" onclick="cerrarSesion()">
+          <i class="bi bi-box-arrow-left"></i> Salir
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-0 d-flex flex-column overflow-auto h-100">
+      <div class="header-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-outline-info d-md-none me-3" onclick="toggleMenu()">
+            <i class="bi bi-list fs-4"></i>
+          </button>
+          <h5 class="m-0 text-white" id="page-title">Panel de Control Global</h5>
+        </div>
+
+        <div class="d-flex align-items-center ms-auto ms-sm-0">
+          <span class="me-3 text-light d-none d-sm-inline">Hola, <span class="text-white fw-bold">Super Administrador</span></span>
+          <div class="rounded-circle bg-info d-flex justify-content-center align-items-center fw-bold text-dark flex-shrink-0" style="width: 40px; height: 40px;">
+            SA
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content flex-grow-1">
+        <div id="vista-resumen">
+          <div class="row g-4 mb-4">
+            <div class="col-12 col-sm-6 col-lg-4">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 style="color: #ffffff !important; font-weight: bold; margin-bottom: 5px;">EMPRESAS ACTIVAS</h6>
+                    <h2 style="color: #ffffff !important; font-weight: bold; margin-bottom: 0;" id="kpi-empresas">--</h2>
+                  </div>
+                  <div class="stat-icon text-info"><i class="bi bi-buildings"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 style="color: #ffffff !important; font-weight: bold; margin-bottom: 5px;">ADMINISTRADORES</h6>
+                    <h2 style="color: #ffffff !important; font-weight: bold; margin-bottom: 0;" id="kpi-admins">--</h2>
+                  </div>
+                  <div class="stat-icon text-warning"><i class="bi bi-person-badge"></i></div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+              <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 style="color: #ffffff !important; font-weight: bold; margin-bottom: 5px;">SISTEMA</h6>
+                    <h2 class="text-success" style="font-weight: bold; margin-bottom: 0;">Online</h2>
+                  </div>
+                  <div class="stat-icon text-success"><i class="bi bi-hdd-network"></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="vista-dinamica-contenedor"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEmpresa" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark border-info shadow-lg">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-info fw-bold" id="modalTituloEmpresa"><i class="bi bi-building-add me-2"></i>Nueva Empresa (Gimnasio)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEmpresa">
+          <input type="hidden" id="empresaId">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label text-white">Nombre de la Empresa <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="empresaNombre" maxlength="150" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white">RUC / NIT <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="empresaRuc" maxlength="50" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white">Teléfono</label>
+              <div class="input-group">
+                <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-telephone"></i></span>
+                <input type="text" class="form-control bg-black text-white border-secondary" id="empresaTelefono" maxlength="50">
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label text-white">Dirección Física</label>
+              <div class="input-group">
+                <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-geo-alt"></i></span>
+                <textarea class="form-control bg-black text-white border-secondary" id="empresaDireccion" rows="2"></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-info fw-bold text-dark" onclick="guardarEmpresa()"><i class="bi bi-save"></i> Guardar Empresa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalAdmin" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark border-warning shadow-lg">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning fw-bold" id="modalTituloAdmin"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Administrador</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formAdmin">
+          <input type="hidden" id="adminId">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label text-white fw-bold">Asignar a Empresa (Gimnasio) <span class="text-danger">*</span></label>
+              <select class="form-select bg-black text-warning border-secondary fw-bold" id="adminEmpresa" required>
+                <option value="1">Iron Fitness Gym</option>
+                <option value="2">Titanium Gym</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white">Nombre(s) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="adminNombre" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white">Apellido(s) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="adminApellido" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white">Nombre de Usuario (Para Login) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="adminUsername" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white">Rol Asignado</label>
+              <input type="text" class="form-control bg-secondary text-white border-secondary" value="Administrador" readonly>
+            </div>
+            <div class="col-12 mt-4">
+              <label class="form-label text-white">Contraseña de Acceso <small id="passHintAdmin" class="text-warning fw-bold ms-2"></small></label>
+              <div class="input-group">
+                <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-key"></i></span>
+                <input type="password" class="form-control bg-black text-white border-secondary" id="adminPass" placeholder="Ingrese contraseña segura">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold text-dark" onclick="guardarAdmin()"><i class="bi bi-save"></i> Guardar Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/DashboardSuperAdmin.js"></script>
+</body>
+</html>
