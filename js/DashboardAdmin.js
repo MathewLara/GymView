@@ -4,6 +4,7 @@
 if (!localStorage.getItem('usuarioLogueado')) {
   window.location.replace('index.html');
 }
+
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
@@ -75,7 +76,8 @@ async function cargarModulo(modulo, elementoHTML) {
     'resumen': 'Panel de Control Gerencial',
     'pagos': 'Gestión de Ingresos y Facturación',
     'reportes': 'Reportes Gerenciales',
-    'pedidos': 'Entregas de Tienda Online'
+    'pedidos': 'Entregas de Tienda Online',
+    'planes': 'Gestión de Planes y Membresías'
   };
   document.getElementById('page-title').innerText = tituloMap[modulo] || 'Panel';
 
@@ -88,6 +90,9 @@ async function cargarModulo(modulo, elementoHTML) {
   const vistaResumen = document.getElementById('vista-resumen');
   const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
 
+  // ==========================================
+  // MÓDULO: RESUMEN
+  // ==========================================
   if (modulo === 'resumen') {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
@@ -100,7 +105,6 @@ async function cargarModulo(modulo, elementoHTML) {
     if (kpiVencidas) kpiVencidas.innerText = '...';
 
     try {
-      // USAMOS LA FUNCIÓN MÁGICA
       const idEmpresa = obtenerIdEmpresa();
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/dashboard?idEmpresa=${idEmpresa}`);
 
@@ -139,9 +143,9 @@ async function cargarModulo(modulo, elementoHTML) {
       console.error("Error cargando dashboard:", error);
     }
 
-    // ==========================================
-    // MÓDULO DE USUARIOS (CRUD)
-    // ==========================================
+  // ==========================================
+  // MÓDULO: USUARIOS (CRUD)
+  // ==========================================
   } else if (['clientes', 'entrenadores', 'recepcionistas', 'administradores'].includes(modulo)) {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
@@ -225,12 +229,11 @@ async function cargarModulo(modulo, elementoHTML) {
       contenedorDinamico.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al cargar la base de datos.</h5>';
     }
 
-    // ==========================================
-    // MÓDULO DE PAGOS
-    // ==========================================
+  // ==========================================
+  // MÓDULO: PAGOS
+  // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
-
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
 
     try {
@@ -269,12 +272,10 @@ async function cargarModulo(modulo, elementoHTML) {
                   <p class="text-muted small m-0">Gestione y exporte los recibos de sus clientes</p>
                 </div>
                 <div class="d-flex gap-2 align-items-center">
-
                   <div class="input-group" style="width: 250px;">
                     <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
                     <input type="text" id="buscador-pagos" class="form-control bg-black text-white border-secondary" placeholder="Buscar socio o N° recibo..." onkeyup="filtrarPagosPorCliente()">
                   </div>
-
                   <select id="filtroCliente" class="form-select bg-black text-white border-secondary" style="min-width: 200px;" onchange="filtrarPagosPorCliente()">
                       <option value="TODOS">Todos los clientes</option>
                       ${opcionesSocios}
@@ -318,9 +319,10 @@ async function cargarModulo(modulo, elementoHTML) {
       console.error(error);
       contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de conexión con el módulo financiero.</div>';
     }
-    // ==========================================
-    // MÓDULO DE PEDIDOS DE TIENDA
-    // ==========================================
+
+  // ==========================================
+  // MÓDULO: PEDIDOS DE TIENDA
+  // ==========================================
   } else if (modulo === 'pedidos') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
@@ -355,7 +357,8 @@ async function cargarModulo(modulo, elementoHTML) {
               <td class="text-white small">${p.fechaEmision}</td>
               <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
               <td>${badgeEstado}</td>
-              <td>${botonesFila}</td> </tr>
+              <td>${botonesFila}</td> 
+            </tr>
           `;
         }).join('');
 
@@ -393,9 +396,9 @@ async function cargarModulo(modulo, elementoHTML) {
       console.error(error);
     }
 
-    // ==========================================
-    // MÓDULO DE REPORTES GERENCIALES
-    // ==========================================
+  // ==========================================
+  // MÓDULO: REPORTES GERENCIALES
+  // ==========================================
   } else if (modulo === 'reportes') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Generando análisis gerencial...</p></div>';
@@ -524,6 +527,59 @@ async function cargarModulo(modulo, elementoHTML) {
       contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error al generar reportes gráficos. Verifica la conexión a la base de datos.</div>';
     }
 
+  // ==========================================
+  // MÓDULO: PLANES Y MEMBRESÍAS
+  // ==========================================
+  } else if (modulo === 'planes') {
+    vistaResumen.style.display = 'none';
+
+    // Datos visuales de prueba basados en tu imagen
+    const planesMock = [
+      { id: 1, nombre: 'Plan Smart', precio: '25.00', descripcion: 'Acceso básico a máquinas.', id_empresa: 1, activo: true },
+      { id: 2, nombre: 'Plan Black', precio: '45.00', descripcion: 'Acceso total + Invitado + Spa.', id_empresa: 1, activo: true }
+    ];
+
+    let filas = planesMock.map(p => `
+      <tr>
+        <td class="text-light fw-bold">#${p.id}</td>
+        <td class="fw-bold text-warning"><i class="bi bi-star-fill me-2"></i>${p.nombre}</td>
+        <td class="text-success fw-bold">$${p.precio}</td>
+        <td class="text-white small">${p.descripcion}</td>
+        <td>${p.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-warning me-1" onclick="abrirModalPlan(${p.id}, '${p.nombre}', '${p.precio}', '${p.descripcion}', ${p.id_empresa})"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm ${p.activo ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoPlan(${p.id})">
+            <i class="bi ${p.activo ? 'bi-trash' : 'bi-check-circle'}"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    contenedorDinamico.innerHTML = `
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <h4 class="text-white m-0">Gestión de Planes y Membresías</h4>
+        <div class="d-flex gap-2 w-100" style="max-width: 450px;">
+          <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Buscar plan...">
+          </div>
+          <button class="btn btn-warning fw-bold text-dark text-nowrap" onclick="abrirModalPlan()"><i class="bi bi-plus-lg"></i> Nuevo Plan</button>
+        </div>
+      </div>
+      <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
+        <div class="table-responsive">
+          <table class="table table-dark table-hover mb-0 align-middle">
+            <thead class="text-white border-secondary" style="--primary-color: #ffc107;">
+              <tr>
+                <th>ID</th><th>NOMBRE DEL PLAN</th><th>PRECIO</th><th>DESCRIPCIÓN</th><th>ESTADO</th><th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>${filas}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
   } else {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = `
@@ -564,6 +620,7 @@ if (toggleAdminPass && adminPassInput && toggleAdminIcon) {
 // ==========================================
 let modalUsuarioInstance;
 let modalPagoInstance;
+let modalPlanInstance; // Agregado para el módulo de planes
 let tomSelectSocio = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -572,6 +629,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const modalEl = document.getElementById('modalUsuario');
   if(modalEl) { modalUsuarioInstance = new bootstrap.Modal(modalEl); }
+  
+  // Inicializar modal de planes
+  const mPlan = document.getElementById('modalPlan');
+  if(mPlan) { modalPlanInstance = new bootstrap.Modal(mPlan); }
 });
 
 // ==========================================
@@ -642,7 +703,7 @@ async function guardarUsuario() {
     contrasena: document.getElementById('userPass').value,
     email: document.getElementById('userEmail').value,
     telefono: document.getElementById('userTelefono').value,
-    idEmpresa: obtenerIdEmpresa() // <-- ACÁ INYECTAMOS EL ID SEGURO
+    idEmpresa: obtenerIdEmpresa()
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
@@ -743,7 +804,7 @@ async function procesarPago() {
         idPlan: parseInt(plan),
         monto: precios[plan],
         metodo: metodo,
-        idEmpresa: obtenerIdEmpresa() // <-- ACÁ INYECTAMOS EL ID SEGURO
+        idEmpresa: obtenerIdEmpresa()
       })
     });
     if(res.ok) {
@@ -958,5 +1019,54 @@ function filtrarTablaGenerica(idTabla, textoBusqueda, indicesColumnas) {
       }
     });
     fila.style.display = coincide ? '' : 'none';
+  });
+}
+
+// ==========================================
+// FUNCIONES PARA MÓDULO DE PLANES (INTERFAZ)
+// ==========================================
+function abrirModalPlan(id = null, nombre = '', precio = '', descripcion = '', id_empresa = '') {
+  document.getElementById('formPlan').reset();
+  
+  if(id) {
+    document.getElementById('modalTituloPlan').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Plan #${id}`;
+    document.getElementById('planId').value = id;
+    document.getElementById('planNombre').value = nombre;
+    document.getElementById('planPrecio').value = precio;
+    document.getElementById('planDescripcion').value = descripcion;
+    document.getElementById('planEmpresa').value = id_empresa;
+  } else {
+    document.getElementById('modalTituloPlan').innerHTML = `<i class="bi bi-tag-fill me-2"></i>Nuevo Plan`;
+    document.getElementById('planId').value = '';
+  }
+  
+  if(modalPlanInstance) modalPlanInstance.show();
+}
+
+function guardarPlan() {
+  Swal.fire({ 
+    icon: 'success', 
+    title: 'Éxito', 
+    text: 'Plan guardado correctamente.', 
+    confirmButtonColor: '#ffc107', 
+    background: '#1e1e1e', 
+    color: '#ffffff' 
+  });
+  if(modalPlanInstance) modalPlanInstance.hide();
+}
+
+function cambiarEstadoPlan(id) {
+  // Simulador de desactivación
+  Swal.fire({
+    title: '¿Cambiar estado del plan?',
+    text: "Los clientes actuales no se verán afectados, pero no se podrá vender más.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ffc107',
+    cancelButtonColor: '#dc3545',
+    confirmButtonText: 'Sí, cambiar',
+    cancelButtonText: 'Cancelar',
+    background: '#1e1e1e',
+    color: '#ffffff'
   });
 }
