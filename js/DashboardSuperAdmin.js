@@ -55,19 +55,16 @@ let modalEmpresaInstance;
 let modalAdminInstance;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Inicializamos los modales creados por tu compañera
   const mEmpresa = document.getElementById('modalEmpresa');
   if(mEmpresa) modalEmpresaInstance = new bootstrap.Modal(mEmpresa);
 
   const mAdmin = document.getElementById('modalAdmin');
   if(mAdmin) modalAdminInstance = new bootstrap.Modal(mAdmin);
 
-  // Ponemos el nombre del Super Admin en la cabecera
   const usuario = JSON.parse(sesionSegura);
   const userEl = document.querySelector('.header-bar .text-white.fw-bold');
   if(userEl) userEl.innerText = usuario.nombre || 'Super Administrador';
 
-  // Cargamos la pantalla inicial
   cargarModulo('resumen');
 });
 
@@ -81,7 +78,6 @@ function toggleMenu() {
   if (overlay) overlay.classList.toggle('mostrar');
 }
 
-// ESTA ES LA FUNCIÓN QUE FALTABA Y POR LA CUAL NO TE DEJABA HACER CLIC
 function cargarModuloResponsive(modulo, elemento) {
   cargarModulo(modulo, elemento);
   if (window.innerWidth <= 767) {
@@ -129,9 +125,9 @@ async function cargarModulo(modulo, elementoHTML) {
       }
     } catch(e) { console.log("Error cargando dashboard:", e); }
 
-    // ----------------------------------------------------
-    // MÓDULO 2: EMPRESAS
-    // ----------------------------------------------------
+  // ----------------------------------------------------
+  // MÓDULO 2: EMPRESAS
+  // ----------------------------------------------------
   } else if (modulo === 'empresas') {
     if(vistaResumen) vistaResumen.style.display = 'none';
     if(contenedorDinamico) contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-info"></div><p class="text-white mt-2">Cargando empresas...</p></div>';
@@ -148,7 +144,10 @@ async function cargarModulo(modulo, elementoHTML) {
             <td class="text-warning">${e.total_clientes}</td>
             <td><span class="badge ${e.estado ? 'bg-success' : 'bg-danger'}">${e.estado ? 'Activa' : 'Suspendida'}</span></td>
             <td>
-              <button class="btn btn-sm ${e.estado ? 'btn-outline-danger' : 'btn-outline-success'} me-2" onclick="cambiarEstadoEmpresa(${e.id}, ${!e.estado})">
+              <button class="btn btn-sm btn-outline-info me-1" onclick="abrirModalEditarEmpresa(${e.id}, '${e.nombre}', '${e.ruc}', '${e.telefono || ''}', '${e.direccion || ''}')">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm ${e.estado ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoEmpresa(${e.id}, ${!e.estado})">
                 <i class="bi ${e.estado ? 'bi-x-circle' : 'bi-check-circle'}"></i> ${e.estado ? 'Suspender' : 'Activar'}
               </button>
             </td>
@@ -170,9 +169,9 @@ async function cargarModulo(modulo, elementoHTML) {
       }
     } catch(e) { console.error(e); }
 
-    // ----------------------------------------------------
-    // MÓDULO 3: ADMINISTRADORES
-    // ----------------------------------------------------
+  // ----------------------------------------------------
+  // MÓDULO 3: ADMINISTRADORES
+  // ----------------------------------------------------
   } else if (modulo === 'administradores') {
     if(vistaResumen) vistaResumen.style.display = 'none';
     if(contenedorDinamico) contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando administradores...</p></div>';
@@ -189,6 +188,9 @@ async function cargarModulo(modulo, elementoHTML) {
             <td class="text-info">${a.empresa}</td>
             <td><span class="badge ${a.estado ? 'bg-success' : 'bg-danger'}">${a.estado ? 'Activo' : 'Suspendido'}</span></td>
             <td>
+              <button class="btn btn-sm btn-outline-warning me-1" onclick="abrirModalEditarAdmin(${a.id}, '${a.usuario}', '${a.nombre}', '${a.apellido}', '${a.id_empresa || ''}')">
+                <i class="bi bi-pencil"></i>
+              </button>
               <button class="btn btn-sm ${a.estado ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoAdmin(${a.id}, ${!a.estado})">
                 <i class="bi ${a.estado ? 'bi-person-x' : 'bi-person-check'}"></i> ${a.estado ? 'Suspender' : 'Reactivar'}
               </button>
@@ -219,10 +221,32 @@ async function cargarModulo(modulo, elementoHTML) {
 function abrirModalNuevaEmpresa() {
   const f = document.getElementById('formEmpresa');
   if(f) f.reset();
+  
+  document.getElementById('empresaId').value = '';
+  document.getElementById('modalTituloEmpresa').innerHTML = '<i class="bi bi-building-add me-2"></i>Nueva Empresa (Gimnasio)';
+  
+  if(modalEmpresaInstance) modalEmpresaInstance.show();
+}
+
+function abrirModalEditarEmpresa(id, nombre, ruc, telefono, direccion) {
+  const f = document.getElementById('formEmpresa');
+  if(f) f.reset();
+  
+  document.getElementById('empresaId').value = id;
+  document.getElementById('empresaNombre').value = nombre;
+  document.getElementById('empresaRuc').value = ruc;
+  document.getElementById('empresaTelefono').value = telefono !== 'undefined' && telefono !== 'null' ? telefono : '';
+  document.getElementById('empresaDireccion').value = direccion !== 'undefined' && direccion !== 'null' ? direccion : '';
+  
+  document.getElementById('modalTituloEmpresa').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Empresa #${id}`;
+  
   if(modalEmpresaInstance) modalEmpresaInstance.show();
 }
 
 async function guardarEmpresa() {
+  const id = document.getElementById('empresaId').value; // Tu compañero validará esto para saber si es PUT o POST
+  const isEdit = id !== '';
+
   const data = {
     nombre: document.getElementById('empresaNombre')?.value || 'Nueva Empresa',
     ruc: document.getElementById('empresaRuc')?.value || '00000000',
@@ -231,14 +255,19 @@ async function guardarEmpresa() {
   };
 
   try {
-    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas', {
-      method: 'POST',
+    // Si tu compañero ya hizo el backend de editar, él cambiará la URL aquí para que apunte al PUT si isEdit es true.
+    const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method: method,
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     });
+    
     if(res.ok) {
       if(modalEmpresaInstance) modalEmpresaInstance.hide();
-      Swal.fire({icon: 'success', title: 'Éxito', text: 'Gimnasio creado correctamente.', background: '#1e1e1e', color: '#ffffff'});
+      Swal.fire({icon: 'success', title: 'Éxito', text: isEdit ? 'Gimnasio actualizado.' : 'Gimnasio creado correctamente.', background: '#1e1e1e', color: '#ffffff'});
       cargarModulo('empresas');
     }
   } catch(e) { console.error(e); }
@@ -255,6 +284,11 @@ async function cambiarEstadoEmpresa(id, nuevoEstado) {
 async function abrirModalNuevoAdmin() {
   const f = document.getElementById('formAdmin');
   if(f) f.reset();
+  
+  document.getElementById('adminId').value = '';
+  document.getElementById('modalTituloAdmin').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Nuevo Administrador';
+  const passHint = document.getElementById('passHintAdmin');
+  if(passHint) passHint.innerText = '(Obligatoria)';
 
   const select = document.getElementById('adminEmpresa');
   if(select) {
@@ -269,7 +303,42 @@ async function abrirModalNuevoAdmin() {
   if(modalAdminInstance) modalAdminInstance.show();
 }
 
+async function abrirModalEditarAdmin(id, usuario, nombre, apellido, idEmpresa) {
+  const f = document.getElementById('formAdmin');
+  if(f) f.reset();
+  
+  document.getElementById('adminId').value = id;
+  document.getElementById('adminNombre').value = nombre;
+  document.getElementById('adminApellido').value = apellido;
+  document.getElementById('adminUsername').value = usuario;
+  
+  document.getElementById('modalTituloAdmin').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Administrador #${id}`;
+  const passHint = document.getElementById('passHintAdmin');
+  if(passHint) passHint.innerText = '(Dejar en blanco para no cambiar)';
+
+  const select = document.getElementById('adminEmpresa');
+  if(select) {
+    select.innerHTML = '<option value="" disabled selected>Buscando gimnasios...</option>';
+    try {
+      const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas');
+      const empresas = await res.json();
+      select.innerHTML = '<option value="" disabled>Seleccione el Gimnasio...</option>' +
+        empresas.filter(e => e.estado).map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+      
+      // Si la API nos devolvió el ID de la empresa, lo seleccionamos
+      if(idEmpresa && idEmpresa !== 'undefined' && idEmpresa !== 'null') {
+        select.value = idEmpresa;
+      }
+    } catch(e) {}
+  }
+
+  if(modalAdminInstance) modalAdminInstance.show();
+}
+
 async function guardarAdmin() {
+  const id = document.getElementById('adminId').value;
+  const isEdit = id !== '';
+  
   const data = {
     idEmpresa: document.getElementById('adminEmpresa')?.value,
     nombre: document.getElementById('adminNombre')?.value || 'Dueño',
@@ -280,23 +349,29 @@ async function guardarAdmin() {
     contrasena: document.getElementById('adminPass')?.value
   };
 
-  if(!data.idEmpresa || !data.usuario || !data.contrasena) {
+  // Si no es edición, la contraseña es obligatoria.
+  if(!isEdit && (!data.idEmpresa || !data.usuario || !data.contrasena)) {
     Swal.fire({icon: 'warning', title: 'Atención', text: 'Empresa, usuario y contraseña son obligatorios.', background: '#1e1e1e', color: '#ffffff'});
     return;
   }
 
   try {
-    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores', {
-      method: 'POST',
+    // Al igual que en empresas, tu compañero configurará la URL de PUT aquí.
+    const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method: method,
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     });
+    
     if(res.ok) {
       if(modalAdminInstance) modalAdminInstance.hide();
-      Swal.fire({icon: 'success', title: 'Éxito', text: 'Dueño registrado correctamente.', background: '#1e1e1e', color: '#ffffff'});
+      Swal.fire({icon: 'success', title: 'Éxito', text: isEdit ? 'Dueño actualizado.' : 'Dueño registrado correctamente.', background: '#1e1e1e', color: '#ffffff'});
       cargarModulo('administradores');
     } else {
-      Swal.fire({icon: 'error', title: 'Error', text: 'Ese nombre de usuario ya está en uso.', background: '#1e1e1e', color: '#ffffff'});
+      Swal.fire({icon: 'error', title: 'Error', text: 'Verifique los datos o el usuario ya existe.', background: '#1e1e1e', color: '#ffffff'});
     }
   } catch(e) { console.error(e); }
 }
