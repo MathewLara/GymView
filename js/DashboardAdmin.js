@@ -143,9 +143,9 @@ async function cargarModulo(modulo, elementoHTML) {
       console.error("Error cargando dashboard:", error);
     }
 
-  // ==========================================
-  // MÓDULO: USUARIOS (CRUD)
-  // ==========================================
+    // ==========================================
+    // MÓDULO: USUARIOS (CRUD)
+    // ==========================================
   } else if (['clientes', 'entrenadores', 'recepcionistas', 'administradores'].includes(modulo)) {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
@@ -229,9 +229,9 @@ async function cargarModulo(modulo, elementoHTML) {
       contenedorDinamico.innerHTML = '<h5 class="text-danger mt-4 text-center">Error al cargar la base de datos.</h5>';
     }
 
-  // ==========================================
-  // MÓDULO: PAGOS
-  // ==========================================
+    // ==========================================
+    // MÓDULO: PAGOS
+    // ==========================================
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando base de datos financiera...</p></div>';
@@ -320,9 +320,9 @@ async function cargarModulo(modulo, elementoHTML) {
       contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de conexión con el módulo financiero.</div>';
     }
 
-  // ==========================================
-  // MÓDULO: PEDIDOS DE TIENDA
-  // ==========================================
+    // ==========================================
+    // MÓDULO: PEDIDOS DE TIENDA
+    // ==========================================
   } else if (modulo === 'pedidos') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
@@ -357,7 +357,7 @@ async function cargarModulo(modulo, elementoHTML) {
               <td class="text-white small">${p.fechaEmision}</td>
               <td class="text-success fw-bold">$${parseFloat(p.totalPagado).toFixed(2)}</td>
               <td>${badgeEstado}</td>
-              <td>${botonesFila}</td> 
+              <td>${botonesFila}</td>
             </tr>
           `;
         }).join('');
@@ -396,9 +396,9 @@ async function cargarModulo(modulo, elementoHTML) {
       console.error(error);
     }
 
-  // ==========================================
-  // MÓDULO: REPORTES GERENCIALES
-  // ==========================================
+    // ==========================================
+    // MÓDULO: REPORTES GERENCIALES
+    // ==========================================
   } else if (modulo === 'reportes') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Generando análisis gerencial...</p></div>';
@@ -527,58 +527,65 @@ async function cargarModulo(modulo, elementoHTML) {
       contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center border-danger bg-dark text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error al generar reportes gráficos. Verifica la conexión a la base de datos.</div>';
     }
 
-  // ==========================================
-  // MÓDULO: PLANES Y MEMBRESÍAS
-  // ==========================================
+    // ==========================================
+    // MÓDULO: PLANES Y MEMBRESÍAS
+    // ==========================================
   } else if (modulo === 'planes') {
     vistaResumen.style.display = 'none';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando planes del gimnasio...</p></div>';
 
-    // Datos visuales de prueba basados en tu imagen
-    const planesMock = [
-      { id: 1, nombre: 'Plan Smart', precio: '25.00', descripcion: 'Acceso básico a máquinas.', id_empresa: 1, activo: true },
-      { id: 2, nombre: 'Plan Black', precio: '45.00', descripcion: 'Acceso total + Invitado + Spa.', id_empresa: 1, activo: true }
-    ];
+    try {
+      const idEmpresa = obtenerIdEmpresa();
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/planes?idEmpresa=${idEmpresa}`);
+      if(res.ok) {
+        const planes = await res.json();
 
-    let filas = planesMock.map(p => `
-      <tr>
-        <td class="text-light fw-bold">#${p.id}</td>
-        <td class="fw-bold text-warning"><i class="bi bi-star-fill me-2"></i>${p.nombre}</td>
-        <td class="text-success fw-bold">$${p.precio}</td>
-        <td class="text-white small">${p.descripcion}</td>
-        <td>${p.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
-        <td>
-          <button class="btn btn-sm btn-outline-warning me-1" onclick="abrirModalPlan(${p.id}, '${p.nombre}', '${p.precio}', '${p.descripcion}', ${p.id_empresa})"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm ${p.activo ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoPlan(${p.id})">
-            <i class="bi ${p.activo ? 'bi-trash' : 'bi-check-circle'}"></i>
-          </button>
-        </td>
-      </tr>
-    `).join('');
+        let filas = planes.map(p => `
+          <tr>
+            <td class="text-light fw-bold">#${p.id}</td>
+            <td class="fw-bold text-warning"><i class="bi bi-star-fill me-2"></i>${p.nombre}</td>
+            <td class="text-success fw-bold">$${parseFloat(p.precio).toFixed(2)}</td>
+            <td class="text-white small">${p.descripcion}</td>
+            <td>${p.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-warning me-1" onclick="abrirModalPlan(${p.id}, '${p.nombre}', '${p.precio}', '${p.descripcion}', ${idEmpresa})"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm ${p.activo ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoPlan(${p.id}, ${!p.activo})">
+                <i class="bi ${p.activo ? 'bi-trash' : 'bi-check-circle'}"></i>
+              </button>
+            </td>
+          </tr>
+        `).join('');
 
-    contenedorDinamico.innerHTML = `
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
-        <h4 class="text-white m-0">Gestión de Planes y Membresías</h4>
-        <div class="d-flex gap-2 w-100" style="max-width: 450px;">
-          <div class="input-group">
-            <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Buscar plan...">
+        if (filas === '') filas = `<tr><td colspan="6" class="text-center py-4 text-white">Aún no has creado ningún plan de membresía.</td></tr>`;
+
+        contenedorDinamico.innerHTML = `
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+            <h4 class="text-white m-0">Gestión de Planes y Membresías</h4>
+            <div class="d-flex gap-2 w-100" style="max-width: 450px;">
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Buscar plan..." onkeyup="filtrarTablaGenerica('tabla-planes', this.value, [1, 3])">
+              </div>
+              <button class="btn btn-warning fw-bold text-dark text-nowrap" onclick="abrirModalPlan()"><i class="bi bi-plus-lg"></i> Nuevo Plan</button>
+            </div>
           </div>
-          <button class="btn btn-warning fw-bold text-dark text-nowrap" onclick="abrirModalPlan()"><i class="bi bi-plus-lg"></i> Nuevo Plan</button>
-        </div>
-      </div>
-      <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
-        <div class="table-responsive">
-          <table class="table table-dark table-hover mb-0 align-middle">
-            <thead class="text-white border-secondary" style="--primary-color: #ffc107;">
-              <tr>
-                <th>ID</th><th>NOMBRE DEL PLAN</th><th>PRECIO</th><th>DESCRIPCIÓN</th><th>ESTADO</th><th>ACCIONES</th>
-              </tr>
-            </thead>
-            <tbody>${filas}</tbody>
-          </table>
-        </div>
-      </div>
-    `;
+          <div class="card bg-dark border-secondary shadow-sm" style="border-radius: 10px; overflow: hidden;">
+            <div class="table-responsive">
+              <table id="tabla-planes" class="table table-dark table-hover mb-0 align-middle">
+                <thead class="text-white border-secondary" style="--primary-color: #ffc107;">
+                  <tr>
+                    <th>ID</th><th>NOMBRE DEL PLAN</th><th>PRECIO</th><th>DESCRIPCIÓN</th><th>ESTADO</th><th>ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+    } catch(e) {
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger mt-4 text-center">Error al cargar la base de datos de planes.</div>';
+    }
 
   } else {
     vistaResumen.style.display = 'none';
@@ -629,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const modalEl = document.getElementById('modalUsuario');
   if(modalEl) { modalUsuarioInstance = new bootstrap.Modal(modalEl); }
-  
+
   // Inicializar modal de planes
   const mPlan = document.getElementById('modalPlan');
   if(mPlan) { modalPlanInstance = new bootstrap.Modal(mPlan); }
@@ -1027,39 +1034,58 @@ function filtrarTablaGenerica(idTabla, textoBusqueda, indicesColumnas) {
 // ==========================================
 function abrirModalPlan(id = null, nombre = '', precio = '', descripcion = '', id_empresa = '') {
   document.getElementById('formPlan').reset();
-  
+
   if(id) {
     document.getElementById('modalTituloPlan').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Plan #${id}`;
     document.getElementById('planId').value = id;
     document.getElementById('planNombre').value = nombre;
     document.getElementById('planPrecio').value = precio;
-    document.getElementById('planDescripcion').value = descripcion;
-    document.getElementById('planEmpresa').value = id_empresa;
+    document.getElementById('planDescripcion').value = descripcion !== 'undefined' && descripcion !== 'null' ? descripcion : '';
+    const elEmp = document.getElementById('planEmpresa');
+    if(elEmp) elEmp.value = id_empresa;
   } else {
     document.getElementById('modalTituloPlan').innerHTML = `<i class="bi bi-tag-fill me-2"></i>Nuevo Plan`;
     document.getElementById('planId').value = '';
   }
-  
+
   if(modalPlanInstance) modalPlanInstance.show();
 }
 
-function guardarPlan() {
-  Swal.fire({ 
-    icon: 'success', 
-    title: 'Éxito', 
-    text: 'Plan guardado correctamente.', 
-    confirmButtonColor: '#ffc107', 
-    background: '#1e1e1e', 
-    color: '#ffffff' 
-  });
-  if(modalPlanInstance) modalPlanInstance.hide();
+async function guardarPlan() {
+  const id = document.getElementById('planId').value;
+  const isEdit = id !== '';
+
+  const data = {
+    nombre: document.getElementById('planNombre').value,
+    precio: document.getElementById('planPrecio').value,
+    descripcion: document.getElementById('planDescripcion').value,
+    idEmpresa: obtenerIdEmpresa()
+  };
+
+  if(!data.nombre || !data.precio) {
+    Swal.fire({icon: 'warning', title: 'Atención', text: 'Nombre y precio son obligatorios', background: '#1e1e1e', color: '#ffffff'});
+    return;
+  }
+
+  const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/planes/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/planes';
+  const method = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    if(res.ok) {
+      if(modalPlanInstance) modalPlanInstance.hide();
+      Swal.fire({ icon: 'success', title: 'Éxito', text: 'Plan guardado correctamente.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+      cargarModulo('planes');
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el plan.', background: '#1e1e1e', color: '#ffffff' });
+    }
+  } catch(e) { console.error(e); }
 }
 
-function cambiarEstadoPlan(id) {
-  // Simulador de desactivación
-  Swal.fire({
+async function cambiarEstadoPlan(id, nuevoEstado) {
+  const res = await Swal.fire({
     title: '¿Cambiar estado del plan?',
-    text: "Los clientes actuales no se verán afectados, pero no se podrá vender más.",
+    text: "Los clientes actuales mantendrán este plan, pero ya no podrás venderlo en Recepción.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ffc107',
@@ -1069,4 +1095,11 @@ function cambiarEstadoPlan(id) {
     background: '#1e1e1e',
     color: '#ffffff'
   });
+
+  if (res.isConfirmed) {
+    try {
+      const resp = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/planes/${id}/estado?activo=${nuevoEstado}`, {method: 'PUT'});
+      if(resp.ok) cargarModulo('planes');
+    } catch(e) { console.error(e); }
+  }
 }
