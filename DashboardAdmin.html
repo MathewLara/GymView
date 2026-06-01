@@ -45,6 +45,9 @@
         <a class="nav-link" href="#" onclick="cargarModuloResponsive('pagos', this)">
           <i class="bi bi-currency-dollar"></i> Pagos
         </a>
+        <a class="nav-link" href="#" onclick="cargarModuloResponsive('planes', this)">
+          <i class="bi bi-tags-fill"></i> Planes
+        </a>
         <a class="nav-link" href="#" onclick="cargarModuloResponsive('pedidos', this)">
           <i class="bi bi-cart-check-fill"></i> Pedidos Tienda
         </a>
@@ -278,6 +281,53 @@
     </div>
   </div>
 </div>
+<div class="modal fade" id="modalPlan" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border-warning shadow-lg">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning fw-bold" id="modalTituloPlan"><i class="bi bi-tag-fill me-2"></i>Nuevo Plan</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formPlan">
+          <input type="hidden" id="planId">
+          
+          <div class="mb-3">
+            <label class="form-label text-white">Empresa (Gimnasio) <span class="text-danger">*</span></label>
+            <select class="form-select bg-black text-white border-secondary" id="planEmpresa" required>
+              <option value="" disabled selected>Cargando empresas...</option>
+              <option value="1">Iron Fitness Gym</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-white">Nombre del Plan <span class="text-danger">*</span></label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="planNombre" maxlength="50" required placeholder="Ej: Plan Smart">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label text-white">Precio ($) <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text bg-secondary border-secondary text-white">$</span>
+              <input type="number" step="0.01" class="form-control bg-black text-white border-secondary" id="planPrecio" required placeholder="0.00">
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label class="form-label text-white">Descripción detallada</label>
+            <textarea class="form-control bg-black text-white border-secondary" id="planDescripcion" rows="3" placeholder="Escribe los beneficios de este plan..."></textarea>
+          </div>
+          
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold text-dark" onclick="guardarPlan()"><i class="bi bi-save"></i> Guardar Plan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
