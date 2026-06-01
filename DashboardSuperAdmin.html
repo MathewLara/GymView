@@ -156,10 +156,12 @@
         <h5 class="modal-title text-warning fw-bold" id="modalTituloAdmin"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Administrador</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      
       <div class="modal-body">
         <form id="formAdmin">
           <input type="hidden" id="adminId">
           <div class="row g-3">
+            
             <div class="col-12">
               <label class="form-label text-white fw-bold">Asignar a Empresa (Gimnasio) <span class="text-danger">*</span></label>
               <select class="form-select bg-black text-warning border-secondary fw-bold" id="adminEmpresa" required>
@@ -167,23 +169,28 @@
                 <option value="2">Titanium Gym</option>
               </select>
             </div>
+            
             <div class="col-md-6">
               <label class="form-label text-white">Nombre(s) <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-black text-white border-secondary" id="adminNombre" required>
             </div>
+            
             <div class="col-md-6">
               <label class="form-label text-white">Apellido(s) <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-black text-white border-secondary" id="adminApellido" required>
             </div>
+            
             <div class="col-md-6">
               <label class="form-label text-white">Nombre de Usuario (Para Login) <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-black text-white border-secondary" id="adminUsername" required>
             </div>
+            
             <div class="col-md-6">
               <label class="form-label text-white">Rol Asignado</label>
               <input type="text" class="form-control bg-secondary text-white border-secondary" value="Administrador" readonly>
             </div>
-              <div class="col-12 mt-4">
+            
+            <div class="col-12 mt-4">
               <label class="form-label text-white">Contraseña de Acceso <small id="passHintAdmin" class="text-warning fw-bold ms-2"></small></label>
               <div class="input-group">
                 <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-key"></i></span>
@@ -194,16 +201,16 @@
                 </button>
               </div>
             </div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer border-secondary">
+            
+          </div> </form>
+      </div> <div class="modal-footer border-secondary">
         <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-warning fw-bold text-dark" onclick="guardarAdmin()"><i class="bi bi-save"></i> Guardar Admin</button>
       </div>
+      
     </div>
   </div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

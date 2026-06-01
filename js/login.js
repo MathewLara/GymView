@@ -48,8 +48,7 @@ const API_URL = `${BASE_URL}/Gimnasio/api/auth/login`;
 
 const loginForm = document.getElementById('loginForm');
 const statusMessage = document.getElementById('statusMessage');
-const btnSubmit = loginForm.querySelector('button');
-
+const btnSubmit = loginForm.querySelector('button[type="submit"]');
 const inputs = {
   usuario: document.getElementById('username'),
   contrasena: document.getElementById('password')
