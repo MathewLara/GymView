@@ -1059,7 +1059,7 @@ async function guardarPlan() {
     nombre: document.getElementById('planNombre').value,
     precio: document.getElementById('planPrecio').value,
     descripcion: document.getElementById('planDescripcion').value,
-    idEmpresa: obtenerIdEmpresa()
+    idEmpresa: String(obtenerIdEmpresa()) // <--- AÑADE String() AQUÍ
   };
 
   if(!data.nombre || !data.precio) {
