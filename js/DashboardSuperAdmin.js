@@ -64,19 +64,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ponemos el nombre del Super Admin en la cabecera
   const usuario = JSON.parse(sesionSegura);
-  const userEl = document.getElementById('header-user');
-  if(userEl) userEl.innerText = usuario.nombre || 'Dios';
+  const userEl = document.querySelector('.header-bar .text-white.fw-bold');
+  if(userEl) userEl.innerText = usuario.nombre || 'Super Administrador';
 
   // Cargamos la pantalla inicial
   cargarModulo('resumen');
 });
 
 // ==========================================
-// NAVEGACIÓN Y CARGA DESDE JAVA (BACKEND)
+// NAVEGACIÓN Y MENÚS
 // ==========================================
 function toggleMenu() {
-  document.getElementById('sidebarAdmin').classList.toggle('mostrar');
-  document.querySelector('.overlay').classList.toggle('mostrar');
+  const sidebar = document.getElementById('sidebarAdmin');
+  const overlay = document.querySelector('.overlay');
+  if (sidebar) sidebar.classList.toggle('mostrar');
+  if (overlay) overlay.classList.toggle('mostrar');
+}
+
+// ESTA ES LA FUNCIÓN QUE FALTABA Y POR LA CUAL NO TE DEJABA HACER CLIC
+function cargarModuloResponsive(modulo, elemento) {
+  cargarModulo(modulo, elemento);
+  if (window.innerWidth <= 767) {
+    const sidebar = document.getElementById('sidebarAdmin');
+    const overlay = document.querySelector('.overlay');
+    if (sidebar) sidebar.classList.remove('mostrar');
+    if (overlay) overlay.classList.remove('mostrar');
+  }
 }
 
 async function cargarModulo(modulo, elementoHTML) {
@@ -108,15 +121,11 @@ async function cargarModulo(modulo, elementoHTML) {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/dashboard');
       if(res.ok) {
         const data = await res.json();
-        // Inyectamos la telemetría en las tarjetas
         const elEmp = document.getElementById('kpi-empresas');
         if(elEmp) elEmp.innerText = data.totalEmpresas || 0;
 
-        const elUsr = document.getElementById('kpi-usuarios');
+        const elUsr = document.getElementById('kpi-admins');
         if(elUsr) elUsr.innerText = data.totalUsuarios || 0;
-
-        const elIng = document.getElementById('kpi-ingresos');
-        if(elIng) elIng.innerText = '$ ' + parseFloat(data.totalIngresos || 0).toFixed(2);
       }
     } catch(e) { console.log("Error cargando dashboard:", e); }
 
@@ -202,8 +211,6 @@ async function cargarModulo(modulo, elementoHTML) {
       }
     } catch(e) { console.error(e); }
   }
-
-  if (window.innerWidth <= 767) toggleMenu();
 }
 
 // ==========================================
@@ -217,11 +224,10 @@ function abrirModalNuevaEmpresa() {
 
 async function guardarEmpresa() {
   const data = {
-    // Usamos ?.value para evitar errores si el HTML se llama diferente
     nombre: document.getElementById('empresaNombre')?.value || 'Nueva Empresa',
     ruc: document.getElementById('empresaRuc')?.value || '00000000',
     telefono: document.getElementById('empresaTelefono')?.value || 'N/A',
-    direccion: 'N/A'
+    direccion: document.getElementById('empresaDireccion')?.value || 'N/A'
   };
 
   try {
@@ -250,7 +256,6 @@ async function abrirModalNuevoAdmin() {
   const f = document.getElementById('formAdmin');
   if(f) f.reset();
 
-  // Cargamos dinámicamente las empresas en el Select del HTML
   const select = document.getElementById('adminEmpresa');
   if(select) {
     select.innerHTML = '<option value="" disabled selected>Buscando gimnasios...</option>';
@@ -269,9 +274,9 @@ async function guardarAdmin() {
     idEmpresa: document.getElementById('adminEmpresa')?.value,
     nombre: document.getElementById('adminNombre')?.value || 'Dueño',
     apellido: document.getElementById('adminApellido')?.value || 'Local',
-    email: document.getElementById('adminEmail')?.value || 'admin@gym.com',
-    telefono: document.getElementById('adminTelefono')?.value || '0000',
-    usuario: document.getElementById('adminUsuario')?.value,
+    email: 'admin@gym.com',
+    telefono: '0000',
+    usuario: document.getElementById('adminUsername')?.value,
     contrasena: document.getElementById('adminPass')?.value
   };
 
