@@ -1,13 +1,18 @@
 let modalEmpresaInstance;
 let modalAdminInstance;
-
+// ==========================================
+// ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
+// ==========================================
+if (!localStorage.getItem('usuarioLogueado')) {
+  window.location.replace('index.html');
+}
 document.addEventListener('DOMContentLoaded', () => {
   cargarModulo('resumen');
-  
+
   // Inicializar modales
   const mEmpresa = document.getElementById('modalEmpresa');
   if(mEmpresa) modalEmpresaInstance = new bootstrap.Modal(mEmpresa);
-  
+
   const mAdmin = document.getElementById('modalAdmin');
   if(mAdmin) modalAdminInstance = new bootstrap.Modal(mAdmin);
 });
@@ -44,14 +49,14 @@ function cargarModulo(modulo, elementoHTML) {
   if (modulo === 'resumen') {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
-    
+
     // Simulación de datos para KPIs
     document.getElementById('kpi-empresas').innerText = '12';
     document.getElementById('kpi-admins').innerText = '24';
 
   } else if (modulo === 'empresas') {
     vistaResumen.style.display = 'none';
-    
+
     // Simulación de la tabla de empresas (Datos mock basados en tu imagen)
     const empresasMock = [
       { id: 1, nombre: 'Iron Fitness Gym', ruc: '999999999001', telefono: '0987654321', direccion: 'Av. Principal', fecha: '2026-05-20', activo: true },

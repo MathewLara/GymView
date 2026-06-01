@@ -1,4 +1,10 @@
 // ==========================================
+// ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
+// ==========================================
+if (!localStorage.getItem('usuarioLogueado')) {
+  window.location.replace('index.html');
+}
+// ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
 const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
