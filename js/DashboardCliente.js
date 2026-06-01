@@ -1,10 +1,12 @@
 // ==========================================
 // ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
 // ==========================================
-if (!localStorage.getItem('usuarioLogueado')) {
+const sesionSegura = localStorage.getItem('usuarioLogueado');
+if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined') {
   window.location.replace('index.html');
+  // Detenemos el código inmediatamente para que no intente cargar nada más y cancele el redirect
+  throw new Error("Bloqueo activado: El usuario no tiene sesión. Deteniendo la página.");
 }
-
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
