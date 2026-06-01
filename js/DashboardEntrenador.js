@@ -65,7 +65,7 @@ let modalEjercicioInstance = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
-const modEj = document.getElementById('modalEjercicio');
+  const modEj = document.getElementById('modalEjercicio');
   if(modEj) modalEjercicioInstance = new bootstrap.Modal(modEj);
 
   console.log("Dashboard Entrenador cargado.");
@@ -549,6 +549,7 @@ function filtrarLista(idLista, textoBusqueda) {
     item.style.display = titulo.includes(texto) ? 'flex' : 'none';
   });
 }
+
 // ==========================================
 // MÓDULO DE GESTIÓN DE EJERCICIOS (NUEVO)
 // ==========================================
@@ -694,82 +695,6 @@ function cambiarEstadoEjercicio(id, nuevoEstado) {
       } catch (error) {
         Swal.fire({ icon: 'error', title: 'Error de red', text: 'Error al conectar con el servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
       }
-    }
-  });
-}
-
-function renderizarEjercicios() {
-  const tbody = document.getElementById('tabla-ejercicios');
-  if (!tbody) return;
-
-  if (ejerciciosMock.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No hay ejercicios registrados.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = ejerciciosMock.map(ej => `
-    <tr>
-      <td class="text-white fw-bold">${ej.nombre}</td>
-      <td class="text-info">${ej.grupo}</td>
-      <td><span class="badge ${ej.activo ? 'bg-success' : 'bg-danger'}">${ej.activo ? 'Activo' : 'Inactivo'}</span></td>
-      <td>
-        <button class="btn btn-sm btn-outline-info me-1" onclick="abrirModalEjercicio(${ej.id}, '${ej.nombre}', '${ej.grupo}')" title="Editar"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm ${ej.activo ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoEjercicio(${ej.id}, ${!ej.activo})" title="${ej.activo ? 'Desactivar' : 'Activar'}">
-          <i class="bi ${ej.activo ? 'bi-x-circle' : 'bi-check-circle'}"></i>
-        </button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function abrirModalEjercicio(id = null, nombre = '', grupo = '') {
-  document.getElementById('formEjercicio').reset();
-
-  if (id) {
-    document.getElementById('modalEjercicioTitulo').textContent = `Editar Ejercicio #${id}`;
-    document.getElementById('hdnIdEjercicio').value = id;
-    document.getElementById('txtNombreEjercicio').value = nombre;
-    document.getElementById('selGrupoMuscular').value = grupo;
-  } else {
-    document.getElementById('modalEjercicioTitulo').textContent = "Nuevo Ejercicio";
-    document.getElementById('hdnIdEjercicio').value = "";
-  }
-
-  if (modalEjercicioInstance) modalEjercicioInstance.show();
-}
-
-function guardarEjercicio() {
-  const nombre = document.getElementById('txtNombreEjercicio').value;
-  const grupo = document.getElementById('selGrupoMuscular').value;
-
-  if (!nombre || !grupo) {
-    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completa todos los campos obligatorios.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
-    return;
-  }
-
-  // Simulación Visual de Guardado. Aquí el backend conectará su FETCH
-  Swal.fire({ icon: 'success', title: '¡Guardado!', text: 'El ejercicio ha sido guardado exitosamente en la base de datos.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
-  if (modalEjercicioInstance) modalEjercicioInstance.hide();
-}
-
-function cambiarEstadoEjercicio(id, nuevoEstado) {
-  const accion = nuevoEstado ? 'activar' : 'desactivar';
-
-  Swal.fire({
-    icon: 'warning',
-    title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} ejercicio?`,
-    text: nuevoEstado ? 'Este ejercicio volverá a estar disponible para armar rutinas.' : 'Este ejercicio ya no se podrá seleccionar para nuevas rutinas.',
-    showCancelButton: true,
-    confirmButtonText: `Sí, ${accion}`,
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: nuevoEstado ? '#198754' : '#dc3545',
-    cancelButtonColor: '#6c757d',
-    background: '#1e1e1e',
-    color: '#ffffff'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      Swal.fire({ icon: 'success', title: 'Estado actualizado', background: '#1e1e1e', color: '#ffffff', timer: 1500, showConfirmButton: false });
-
     }
   });
 }
