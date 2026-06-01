@@ -27,11 +27,11 @@
     </button>
   </div>
 
-  <div class="nav-container flex-grow-1 overflow-auto">
+<div class="nav-container flex-grow-1 overflow-auto">
     <a class="nav-link active" onclick="ver('tablero', this)"><i class="bi bi-speedometer2 me-3"></i> Mi Tablero</a>
     <a class="nav-link" onclick="ver('clientes', this)"><i class="bi bi-people-fill me-3"></i> Mis Alumnos</a>
     <a class="nav-link" onclick="ver('rutinas', this)"><i class="bi bi-collection-play-fill me-3"></i> Biblioteca</a>
-    <a class="nav-link" onclick="ver('agenda', this)"><i class="bi bi-calendar3 me-3"></i> Agenda</a>
+    <a class="nav-link" onclick="ver('ejercicios', this)"><i class="bi bi-activity me-3"></i> Ejercicios</a> <a class="nav-link" onclick="ver('agenda', this)"><i class="bi bi-calendar3 me-3"></i> Agenda</a>
   </div>
 
   <div class="mt-auto p-3">
@@ -116,6 +116,35 @@
 
       </div>
       <div class="list-group" id="lista-rutinas-full"></div>
+    </div>
+  </div>
+
+<div id="vista-ejercicios" class="vista">
+      <div class="card-panel">
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+        <h5 class="mb-0 text-warning"><i class="bi bi-activity me-2"></i> Base de Ejercicios</h5>
+        <div class="d-flex gap-2 w-100 justify-content-sm-end" style="max-width: 450px;">
+          <div class="input-group">
+            <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control bg-black text-white border-secondary" placeholder="Buscar ejercicio..." onkeyup="filtrarTablaGenerica('tabla-ejercicios-main', this.value, [0, 1])">
+          </div>
+          <button class="btn btn-warning fw-bold text-nowrap" onclick="abrirModalEjercicio()"><i class="bi bi-plus-lg"></i> Agregar</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table id="tabla-ejercicios-main" class="table table-dark table-hover mb-0 align-middle" style="min-width: 500px;">
+          <thead class="text-white border-secondary">
+          <tr>
+            <th>EJERCICIO</th>
+            <th>GRUPO MUSCULAR</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+          </thead>
+          <tbody id="tabla-ejercicios">
+            </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -207,6 +236,43 @@
       <div class="modal-footer border-secondary">
         <button type="button" class="btn btn-secondary w-100 w-sm-auto mb-2 mb-sm-0" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-warning fw-bold w-100 w-sm-auto" onclick="guardarRutina()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEjercicio" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border-secondary text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-warning" id="modalEjercicioTitulo">Nuevo Ejercicio</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEjercicio">
+          <input type="hidden" id="hdnIdEjercicio">
+          <div class="mb-3">
+            <label class="text-light mb-1">Nombre del Ejercicio <span class="text-danger">*</span></label>
+            <input type="text" class="form-control bg-black text-white border-secondary" id="txtNombreEjercicio" required placeholder="Ej: Press de Banca">
+          </div>
+          <div class="mb-3">
+            <label class="text-light mb-1">Grupo Muscular <span class="text-danger">*</span></label>
+            <select class="form-select bg-black text-white border-secondary" id="selGrupoMuscular" required>
+              <option value="" disabled selected>Seleccione el grupo muscular...</option>
+              <option value="Pecho">Pecho</option>
+              <option value="Espalda">Espalda</option>
+              <option value="Piernas">Piernas</option>
+              <option value="Brazos">Brazos</option>
+              <option value="Hombros">Hombros</option>
+              <option value="Core">Core (Abdomen)</option>
+              <option value="Cardio">Cardio</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary w-100 w-sm-auto mb-2 mb-sm-0" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold w-100 w-sm-auto" onclick="guardarEjercicio()">Guardar Ejercicio</button>
       </div>
     </div>
   </div>
