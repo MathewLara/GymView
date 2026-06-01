@@ -55,14 +55,13 @@ let membresiaActiva = true;
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard del Cliente inicializado.");
 
-  const sesion = localStorage.getItem('usuarioLogueado');
-
-  // EXTRAEMOS LA EMPRESA
-  const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+  // 1. OBTENER USUARIO REAL Y EMPRESA (Corregido)
+  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado'));
+  const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
 
   const headerUser = document.getElementById('header-user');
   const lblId = document.getElementById('lbl-id');
-  if(headerUser) headerUser.textContent = usuario.usuario || "Socio";
+  if(headerUser) headerUser.textContent = usuario.usuario || usuario.nombre || "Socio";
   if(lblId) lblId.textContent = usuario.idUsuario || usuario.id || "0";
 
   const idUsar = usuario.idUsuario || usuario.id || 1;
