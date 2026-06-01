@@ -1,56 +1,12 @@
 // ==========================================
-// ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
+// ESCUDO DE SEGURIDAD Y CONFIGURACIÓN INICIAL
 // ==========================================
 const sesionSegura = localStorage.getItem('usuarioLogueado');
 if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || sesionSegura.trim() === '') {
   window.location.replace('index.html');
-  throw new Error("Bloqueo activado: El usuario no tiene sesión. Deteniendo la página.");
+  throw new Error("Bloqueo activado.");
 }
 
-// ==========================================
-// CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
-// ==========================================
-const TIEMPO_EXPIRACION = 30 * 60 * 1000;
-
-function verificarInactividad() {
-  const loginTime = localStorage.getItem('loginTime');
-  if (loginTime) {
-    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
-    if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      localStorage.removeItem('usuarioLogueado');
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('loginTime');
-
-      Swal.fire({
-        icon: 'warning',
-        title: 'Sesión Expirada',
-        text: 'Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.',
-        confirmButtonColor: '#ffc107',
-        background: '#1e1e1e',
-        color: '#ffffff'
-      }).then(() => {
-        window.location.replace('index.html');
-      });
-    }
-  }
-}
-
-function reiniciarTemporizador() {
-  if (localStorage.getItem('usuarioLogueado')) {
-    localStorage.setItem('loginTime', Date.now().toString());
-  }
-}
-
-window.addEventListener('mousemove', reiniciarTemporizador);
-window.addEventListener('click', reiniciarTemporizador);
-window.addEventListener('keydown', reiniciarTemporizador);
-window.addEventListener('scroll', reiniciarTemporizador);
-setInterval(verificarInactividad, 60000);
-verificarInactividad();
-
-// ==========================================
-// VARIABLES GLOBALES Y MODALES
-// ==========================================
 let modalEmpresaInstance;
 let modalAdminInstance;
 
@@ -68,9 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarModulo('resumen');
 });
 
-// ==========================================
-// NAVEGACIÓN Y MENÚS
-// ==========================================
 function toggleMenu() {
   const sidebar = document.getElementById('sidebarAdmin');
   const overlay = document.querySelector('.overlay');
@@ -88,6 +41,9 @@ function cargarModuloResponsive(modulo, elemento) {
   }
 }
 
+// ==========================================
+// CARGA DE MÓDULOS Y TABLAS
+// ==========================================
 async function cargarModulo(modulo, elementoHTML) {
   const tituloMap = {
     'resumen': 'Panel de Control Global',
@@ -106,32 +62,23 @@ async function cargarModulo(modulo, elementoHTML) {
   const vistaResumen = document.getElementById('vista-resumen');
   const contenedorDinamico = document.getElementById('vista-dinamica-contenedor');
 
-  // ----------------------------------------------------
-  // MÓDULO 1: DASHBOARD
-  // ----------------------------------------------------
   if (modulo === 'resumen') {
     if(vistaResumen) vistaResumen.style.display = 'block';
     if(contenedorDinamico) contenedorDinamico.innerHTML = '';
-
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/dashboard');
       if(res.ok) {
         const data = await res.json();
         const elEmp = document.getElementById('kpi-empresas');
         if(elEmp) elEmp.innerText = data.totalEmpresas || 0;
-
         const elUsr = document.getElementById('kpi-admins');
         if(elUsr) elUsr.innerText = data.totalUsuarios || 0;
       }
-    } catch(e) { console.log("Error cargando dashboard:", e); }
+    } catch(e) {}
 
-  // ----------------------------------------------------
-  // MÓDULO 2: EMPRESAS
-  // ----------------------------------------------------
   } else if (modulo === 'empresas') {
     if(vistaResumen) vistaResumen.style.display = 'none';
     if(contenedorDinamico) contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-info"></div><p class="text-white mt-2">Cargando empresas...</p></div>';
-
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas');
       if(res.ok) {
@@ -144,9 +91,7 @@ async function cargarModulo(modulo, elementoHTML) {
             <td class="text-warning">${e.total_clientes}</td>
             <td><span class="badge ${e.estado ? 'bg-success' : 'bg-danger'}">${e.estado ? 'Activa' : 'Suspendida'}</span></td>
             <td>
-              <button class="btn btn-sm btn-outline-info me-1" onclick="abrirModalEditarEmpresa(${e.id}, '${e.nombre}', '${e.ruc}', '${e.telefono || ''}', '${e.direccion || ''}')">
-                <i class="bi bi-pencil"></i>
-              </button>
+              <button class="btn btn-sm btn-outline-info me-2" onclick="abrirModalEditarEmpresa(${e.id}, '${e.nombre}', '${e.ruc}', '${e.telefono || ''}', '${e.direccion || ''}')"><i class="bi bi-pencil"></i> Editar</button>
               <button class="btn btn-sm ${e.estado ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoEmpresa(${e.id}, ${!e.estado})">
                 <i class="bi ${e.estado ? 'bi-x-circle' : 'bi-check-circle'}"></i> ${e.estado ? 'Suspender' : 'Activar'}
               </button>
@@ -167,15 +112,11 @@ async function cargarModulo(modulo, elementoHTML) {
           </div>
         `;
       }
-    } catch(e) { console.error(e); }
+    } catch(e) {}
 
-  // ----------------------------------------------------
-  // MÓDULO 3: ADMINISTRADORES
-  // ----------------------------------------------------
   } else if (modulo === 'administradores') {
     if(vistaResumen) vistaResumen.style.display = 'none';
-    if(contenedorDinamico) contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando administradores...</p></div>';
-
+    if(contenedorDinamico) contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando dueños...</p></div>';
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores');
       if(res.ok) {
@@ -188,9 +129,7 @@ async function cargarModulo(modulo, elementoHTML) {
             <td class="text-info">${a.empresa}</td>
             <td><span class="badge ${a.estado ? 'bg-success' : 'bg-danger'}">${a.estado ? 'Activo' : 'Suspendido'}</span></td>
             <td>
-              <button class="btn btn-sm btn-outline-warning me-1" onclick="abrirModalEditarAdmin(${a.id}, '${a.usuario}', '${a.nombre}', '${a.apellido}', '${a.id_empresa || ''}')">
-                <i class="bi bi-pencil"></i>
-              </button>
+              <button class="btn btn-sm btn-outline-warning me-2" onclick="abrirModalEditarAdmin(${a.id}, '${a.usuario}', '${a.nombre}', '${a.apellido}', '${a.id_empresa || ''}')"><i class="bi bi-pencil"></i> Editar</button>
               <button class="btn btn-sm ${a.estado ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoAdmin(${a.id}, ${!a.estado})">
                 <i class="bi ${a.estado ? 'bi-person-x' : 'bi-person-check'}"></i> ${a.estado ? 'Suspender' : 'Reactivar'}
               </button>
@@ -211,40 +150,37 @@ async function cargarModulo(modulo, elementoHTML) {
           </div>
         `;
       }
-    } catch(e) { console.error(e); }
+    } catch(e) {}
   }
 }
 
 // ==========================================
-// FUNCIONES CRUD DE EMPRESAS
+// FUNCIONES CRUD DE EMPRESAS (CREAR Y EDITAR)
 // ==========================================
 function abrirModalNuevaEmpresa() {
   const f = document.getElementById('formEmpresa');
   if(f) f.reset();
-  
   document.getElementById('empresaId').value = '';
-  document.getElementById('modalTituloEmpresa').innerHTML = '<i class="bi bi-building-add me-2"></i>Nueva Empresa (Gimnasio)';
-  
+  document.getElementById('modalTituloEmpresa').innerHTML = `<i class="bi bi-building-add me-2"></i>Nuevo Gimnasio`;
   if(modalEmpresaInstance) modalEmpresaInstance.show();
 }
 
 function abrirModalEditarEmpresa(id, nombre, ruc, telefono, direccion) {
   const f = document.getElementById('formEmpresa');
   if(f) f.reset();
-  
+
   document.getElementById('empresaId').value = id;
   document.getElementById('empresaNombre').value = nombre;
   document.getElementById('empresaRuc').value = ruc;
-  document.getElementById('empresaTelefono').value = telefono !== 'undefined' && telefono !== 'null' ? telefono : '';
-  document.getElementById('empresaDireccion').value = direccion !== 'undefined' && direccion !== 'null' ? direccion : '';
-  
-  document.getElementById('modalTituloEmpresa').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Empresa #${id}`;
-  
+  document.getElementById('empresaTelefono').value = telefono !== 'undefined' ? telefono : '';
+  document.getElementById('empresaDireccion').value = direccion !== 'undefined' ? direccion : '';
+
+  document.getElementById('modalTituloEmpresa').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Gimnasio #${id}`;
   if(modalEmpresaInstance) modalEmpresaInstance.show();
 }
 
 async function guardarEmpresa() {
-  const id = document.getElementById('empresaId').value; // Tu compañero validará esto para saber si es PUT o POST
+  const id = document.getElementById('empresaId').value;
   const isEdit = id !== '';
 
   const data = {
@@ -254,23 +190,17 @@ async function guardarEmpresa() {
     direccion: document.getElementById('empresaDireccion')?.value || 'N/A'
   };
 
-  try {
-    // Si tu compañero ya hizo el backend de editar, él cambiará la URL aquí para que apunte al PUT si isEdit es true.
-    const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas';
-    const method = isEdit ? 'PUT' : 'POST';
+  const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas';
+  const method = isEdit ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
-      method: method,
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    });
-    
+  try {
+    const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
     if(res.ok) {
       if(modalEmpresaInstance) modalEmpresaInstance.hide();
-      Swal.fire({icon: 'success', title: 'Éxito', text: isEdit ? 'Gimnasio actualizado.' : 'Gimnasio creado correctamente.', background: '#1e1e1e', color: '#ffffff'});
+      Swal.fire({icon: 'success', title: 'Éxito', text: isEdit ? 'Gimnasio actualizado correctamente.' : 'Gimnasio creado correctamente.', background: '#1e1e1e', color: '#ffffff'});
       cargarModulo('empresas');
     }
-  } catch(e) { console.error(e); }
+  } catch(e) {}
 }
 
 async function cambiarEstadoEmpresa(id, nuevoEstado) {
@@ -279,14 +209,14 @@ async function cambiarEstadoEmpresa(id, nuevoEstado) {
 }
 
 // ==========================================
-// FUNCIONES CRUD DE ADMINISTRADORES
+// FUNCIONES CRUD DE ADMINISTRADORES (CORRECCIÓN DE ERROR)
 // ==========================================
 async function abrirModalNuevoAdmin() {
   const f = document.getElementById('formAdmin');
   if(f) f.reset();
-  
   document.getElementById('adminId').value = '';
   document.getElementById('modalTituloAdmin').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Nuevo Administrador';
+
   const passHint = document.getElementById('passHintAdmin');
   if(passHint) passHint.innerText = '(Obligatoria)';
 
@@ -306,12 +236,12 @@ async function abrirModalNuevoAdmin() {
 async function abrirModalEditarAdmin(id, usuario, nombre, apellido, idEmpresa) {
   const f = document.getElementById('formAdmin');
   if(f) f.reset();
-  
+
   document.getElementById('adminId').value = id;
   document.getElementById('adminNombre').value = nombre;
   document.getElementById('adminApellido').value = apellido;
   document.getElementById('adminUsername').value = usuario;
-  
+
   document.getElementById('modalTituloAdmin').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Administrador #${id}`;
   const passHint = document.getElementById('passHintAdmin');
   if(passHint) passHint.innerText = '(Dejar en blanco para no cambiar)';
@@ -322,50 +252,46 @@ async function abrirModalEditarAdmin(id, usuario, nombre, apellido, idEmpresa) {
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas');
       const empresas = await res.json();
+      // CARGAMOS TODAS LAS EMPRESAS (incluso inactivas) para no perder el rastro al editar
       select.innerHTML = '<option value="" disabled>Seleccione el Gimnasio...</option>' +
-        empresas.filter(e => e.estado).map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
-      
-      // Si la API nos devolvió el ID de la empresa, lo seleccionamos
+        empresas.map(e => `<option value="${e.id}">${e.nombre} ${!e.estado ? '(Inactiva)' : ''}</option>`).join('');
+
       if(idEmpresa && idEmpresa !== 'undefined' && idEmpresa !== 'null') {
         select.value = idEmpresa;
       }
     } catch(e) {}
   }
-
   if(modalAdminInstance) modalAdminInstance.show();
 }
 
 async function guardarAdmin() {
   const id = document.getElementById('adminId').value;
   const isEdit = id !== '';
-  
+
   const data = {
     idEmpresa: document.getElementById('adminEmpresa')?.value,
-    nombre: document.getElementById('adminNombre')?.value || 'Dueño',
-    apellido: document.getElementById('adminApellido')?.value || 'Local',
-    email: 'admin@gym.com',
-    telefono: '0000',
+    nombre: document.getElementById('adminNombre')?.value,
+    apellido: document.getElementById('adminApellido')?.value,
     usuario: document.getElementById('adminUsername')?.value,
     contrasena: document.getElementById('adminPass')?.value
   };
 
-  // Si no es edición, la contraseña es obligatoria.
-  if(!isEdit && (!data.idEmpresa || !data.usuario || !data.contrasena)) {
-    Swal.fire({icon: 'warning', title: 'Atención', text: 'Empresa, usuario y contraseña son obligatorios.', background: '#1e1e1e', color: '#ffffff'});
+  // CORRECCIÓN: Validación blindada para evitar enviar IDs de empresa en blanco
+  if (!data.idEmpresa || data.idEmpresa === "") {
+    Swal.fire({icon: 'warning', title: 'Atención', text: 'Debe seleccionar un gimnasio válido de la lista.', background: '#1e1e1e', color: '#ffffff'});
     return;
   }
 
-  try {
-    // Al igual que en empresas, tu compañero configurará la URL de PUT aquí.
-    const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores';
-    const method = isEdit ? 'PUT' : 'POST';
+  if (!data.usuario || (!isEdit && !data.contrasena)) {
+    Swal.fire({icon: 'warning', title: 'Atención', text: 'El nombre de usuario y la contraseña son obligatorios.', background: '#1e1e1e', color: '#ffffff'});
+    return;
+  }
 
-    const res = await fetch(url, {
-      method: method,
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    });
-    
+  const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores';
+  const method = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
     if(res.ok) {
       if(modalAdminInstance) modalAdminInstance.hide();
       Swal.fire({icon: 'success', title: 'Éxito', text: isEdit ? 'Dueño actualizado.' : 'Dueño registrado correctamente.', background: '#1e1e1e', color: '#ffffff'});
@@ -398,7 +324,6 @@ if (toggleSuperAdminPass && superAdminPassInput && toggleSuperAdminIcon) {
   toggleSuperAdminPass.addEventListener('click', function () {
     const isPassword = superAdminPassInput.getAttribute('type') === 'password';
     superAdminPassInput.setAttribute('type', isPassword ? 'text' : 'password');
-
     if (isPassword) {
       toggleSuperAdminIcon.classList.remove('bi-eye-slash-fill');
       toggleSuperAdminIcon.classList.add('bi-eye-fill', 'text-warning');
