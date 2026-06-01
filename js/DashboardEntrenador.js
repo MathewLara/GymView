@@ -60,7 +60,7 @@ verificarInactividad();
 // ==========================================
 let idEntrenador = 1; // Valor por defecto restaurado (Modo desarrollo / Fallback)
 let idEmpresaLogueada = 1;
-let modalEjercicioInstance = null; 
+let modalEjercicioInstance = null;
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -563,13 +563,135 @@ ver = function(vista, btn) {
   }
 }
 
-// Datos de prueba basados en tu tabla (MOCK)
-let ejerciciosMock = [
-  { id: 1, nombre: 'Press de Banca Plano', grupo: 'Pecho', activo: true },
-  { id: 2, nombre: 'Sentadilla Libre', grupo: 'Piernas', activo: true },
-  { id: 3, nombre: 'Peso Muerto', grupo: 'Espalda', activo: true },
-  { id: 4, nombre: 'Curl de Bíceps', grupo: 'Brazos', activo: false }
-];
+// ==========================================
+// MÓDULO DE GESTIÓN DE EJERCICIOS (CONECTADO AL BACKEND)
+// ==========================================
+
+async function renderizarEjercicios() {
+  const tbody = document.getElementById('tabla-ejercicios');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando ejercicios...</p></td></tr>`;
+
+  try {
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/ejercicios`);
+    if (res.ok) {
+      const ejercicios = await res.json();
+
+      if (ejercicios.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No hay ejercicios registrados.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = ejercicios.map(ej => `
+        <tr>
+          <td class="text-white fw-bold">${ej.nombre}</td>
+          <td class="text-info">${ej.grupo}</td>
+          <td><span class="badge ${ej.activo ? 'bg-success' : 'bg-danger'}">${ej.activo ? 'Activo' : 'Inactivo'}</span></td>
+          <td>
+            <button class="btn btn-sm btn-outline-info me-1" onclick="abrirModalEjercicio(${ej.id}, '${ej.nombre}', '${ej.grupo}')" title="Editar"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm ${ej.activo ? 'btn-outline-danger' : 'btn-outline-success'}" onclick="cambiarEstadoEjercicio(${ej.id}, ${!ej.activo})" title="${ej.activo ? 'Desactivar' : 'Activar'}">
+              <i class="bi ${ej.activo ? 'bi-x-circle' : 'bi-check-circle'}"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (error) {
+    console.error(error);
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Error al conectar con la base de datos.</td></tr>`;
+  }
+}
+
+function abrirModalEjercicio(id = null, nombre = '', grupo = '') {
+  document.getElementById('formEjercicio').reset();
+
+  if (id) {
+    document.getElementById('modalEjercicioTitulo').textContent = `Editar Ejercicio #${id}`;
+    document.getElementById('hdnIdEjercicio').value = id;
+    document.getElementById('txtNombreEjercicio').value = nombre;
+    document.getElementById('selGrupoMuscular').value = grupo;
+  } else {
+    document.getElementById('modalEjercicioTitulo').textContent = "Nuevo Ejercicio";
+    document.getElementById('hdnIdEjercicio').value = "";
+  }
+
+  if (modalEjercicioInstance) modalEjercicioInstance.show();
+}
+
+async function guardarEjercicio() {
+  const id = document.getElementById('hdnIdEjercicio').value;
+  const isEdit = id !== "";
+
+  const nombre = document.getElementById('txtNombreEjercicio').value;
+  const grupo = document.getElementById('selGrupoMuscular').value;
+
+  if (!nombre || !grupo) {
+    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completa todos los campos obligatorios.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+    return;
+  }
+
+  const payload = {
+    nombre: nombre,
+    grupo: grupo
+  };
+
+  const url = isEdit
+    ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/ejercicios/${id}`
+    : `https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/ejercicios`;
+
+  const metodo = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const res = await fetch(url, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      Swal.fire({ icon: 'success', title: '¡Guardado!', text: 'El ejercicio ha sido guardado exitosamente.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+      if (modalEjercicioInstance) modalEjercicioInstance.hide();
+      renderizarEjercicios(); // Recargar la tabla automáticamente
+    } else {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar en la base de datos.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+    }
+  } catch (error) {
+    console.error(error);
+    Swal.fire({ icon: 'error', title: 'Error de red', text: 'No pudimos conectar con el servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+  }
+}
+
+function cambiarEstadoEjercicio(id, nuevoEstado) {
+  const accion = nuevoEstado ? 'activar' : 'desactivar';
+
+  Swal.fire({
+    icon: 'warning',
+    title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} ejercicio?`,
+    text: nuevoEstado ? 'Este ejercicio volverá a estar disponible para armar rutinas.' : 'Este ejercicio ya no se podrá seleccionar para nuevas rutinas.',
+    showCancelButton: true,
+    confirmButtonText: `Sí, ${accion}`,
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: nuevoEstado ? '#198754' : '#dc3545',
+    cancelButtonColor: '#6c757d',
+    background: '#1e1e1e',
+    color: '#ffffff'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/ejercicios/${id}/estado?activo=${nuevoEstado}`, { method: 'PUT' });
+        if (res.ok) {
+          Swal.fire({ icon: 'success', title: 'Estado actualizado', background: '#1e1e1e', color: '#ffffff', timer: 1500, showConfirmButton: false });
+          renderizarEjercicios(); // Recargar la tabla
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo actualizar el estado.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+        }
+      } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Error de red', text: 'Error al conectar con el servidor.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
+      }
+    }
+  });
+}
 
 function renderizarEjercicios() {
   const tbody = document.getElementById('tabla-ejercicios');
@@ -597,7 +719,7 @@ function renderizarEjercicios() {
 
 function abrirModalEjercicio(id = null, nombre = '', grupo = '') {
   document.getElementById('formEjercicio').reset();
-  
+
   if (id) {
     document.getElementById('modalEjercicioTitulo').textContent = `Editar Ejercicio #${id}`;
     document.getElementById('hdnIdEjercicio').value = id;
@@ -607,7 +729,7 @@ function abrirModalEjercicio(id = null, nombre = '', grupo = '') {
     document.getElementById('modalEjercicioTitulo').textContent = "Nuevo Ejercicio";
     document.getElementById('hdnIdEjercicio').value = "";
   }
-  
+
   if (modalEjercicioInstance) modalEjercicioInstance.show();
 }
 
@@ -627,7 +749,7 @@ function guardarEjercicio() {
 
 function cambiarEstadoEjercicio(id, nuevoEstado) {
   const accion = nuevoEstado ? 'activar' : 'desactivar';
-  
+
   Swal.fire({
     icon: 'warning',
     title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} ejercicio?`,
