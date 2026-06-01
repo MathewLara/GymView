@@ -48,6 +48,32 @@ const errors = {
 // FUNCIONES DE UTILIDAD PARA ERRORES
 // ==========================================
 
+// ==========================================
+// MOSTRAR / OCULTAR CONTRASEÑA
+// ==========================================
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('password');
+const toggleIcon = document.getElementById('toggleIcon');
+
+if (togglePassword && passwordInput && toggleIcon) {
+  togglePassword.addEventListener('click', function () {
+    // Alternar el atributo 'type' entre 'password' y 'text'
+    const isPassword = passwordInput.getAttribute('type') === 'password';
+    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    // Alternar el icono visualmente (ojo tachado / ojo normal)
+    if (isPassword) {
+      toggleIcon.classList.remove('bi-eye-slash-fill');
+      toggleIcon.classList.add('bi-eye-fill');
+      toggleIcon.classList.replace('text-secondary', 'text-warning'); // Se vuelve amarillo al verse
+    } else {
+      toggleIcon.classList.remove('bi-eye-fill');
+      toggleIcon.classList.add('bi-eye-slash-fill');
+      toggleIcon.classList.replace('text-warning', 'text-secondary'); // Vuelve al gris oscuro
+    }
+  });
+}
+
 // Limpia todos los mensajes y bordes rojos previos
 function clearAllErrors() {
   msgBox.style.display = 'none';
@@ -73,6 +99,7 @@ function showInputError(key, msg) {
     errors[key].textContent = msg;
   }
 }
+
 
 // ==========================================
 // PASO 1: REGISTRO (Envío de formulario)

@@ -32,11 +32,16 @@
         </div>
       </div>
 
-      <div class="mb-4">
+        <div class="mb-4">
         <label for="password" class="form-label">Contraseña</label>
         <div class="input-group has-validation">
           <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-lock-fill"></i></span>
           <input type="password" class="form-control" id="password" placeholder="Ingresa tu contraseña">
+          
+          <button class="btn btn-outline-secondary bg-dark border-secondary text-secondary" type="button" id="togglePassword">
+            <i class="bi bi-eye-slash-fill" id="toggleIcon"></i>
+          </button>
+          
           <div id="passwordError" class="invalid-feedback"></div>
         </div>
       </div>

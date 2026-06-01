@@ -87,6 +87,29 @@ function clearErrors() {
 }
 
 // ==========================================
+// MOSTRAR / OCULTAR CONTRASEÑA
+// ==========================================
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('password');
+const toggleIcon = document.getElementById('toggleIcon');
+
+togglePassword.addEventListener('click', function () {
+  // Alternar el atributo 'type' entre 'password' y 'text'
+  const isPassword = passwordInput.getAttribute('type') === 'password';
+  passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+  // Alternar el icono visualmente (ojo tachado / ojo normal)
+  if (isPassword) {
+    toggleIcon.classList.remove('bi-eye-slash-fill');
+    toggleIcon.classList.add('bi-eye-fill');
+    toggleIcon.classList.replace('text-secondary', 'text-warning'); // Opcional: darle color al activarlo
+  } else {
+    toggleIcon.classList.remove('bi-eye-fill');
+    toggleIcon.classList.add('bi-eye-slash-fill');
+    toggleIcon.classList.replace('text-warning', 'text-secondary'); // Vuelve al color original
+  }
+});
+// ==========================================
 // LÓGICA DE INICIO DE SESIÓN
 // ==========================================
 loginForm.addEventListener('submit', async function(e) {

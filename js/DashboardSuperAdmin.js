@@ -201,3 +201,25 @@ function cambiarEstado(id, tipo) {
 function cerrarSesion() {
   Swal.fire({ title: 'Cerrando sesión...', icon: 'info', timer: 1000, showConfirmButton: false, background: '#1e1e1e', color: '#ffffff' });
 }
+// ==========================================
+// MOSTRAR / OCULTAR CONTRASEÑA (MODAL SUPER ADMIN)
+// ==========================================
+const toggleSuperAdminPass = document.getElementById('toggleSuperAdminPass');
+const superAdminPassInput = document.getElementById('adminPass');
+const toggleSuperAdminIcon = document.getElementById('toggleSuperAdminIcon');
+
+if (toggleSuperAdminPass && superAdminPassInput && toggleSuperAdminIcon) {
+  toggleSuperAdminPass.addEventListener('click', function () {
+    const isPassword = superAdminPassInput.getAttribute('type') === 'password';
+    superAdminPassInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    if (isPassword) {
+      toggleSuperAdminIcon.classList.remove('bi-eye-slash-fill');
+      toggleSuperAdminIcon.classList.add('bi-eye-fill');
+      toggleSuperAdminIcon.classList.add('text-warning'); // Se resalta en amarillo al ver
+    } else {
+      toggleSuperAdminIcon.classList.remove('bi-eye-fill', 'text-warning');
+      toggleSuperAdminIcon.classList.add('bi-eye-slash-fill'); // Vuelve a su color normal
+    }
+  });
+}
