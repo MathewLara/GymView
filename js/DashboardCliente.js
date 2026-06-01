@@ -2,11 +2,11 @@
 // ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
 // ==========================================
 const sesionSegura = localStorage.getItem('usuarioLogueado');
-if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined') {
+if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || sesionSegura.trim() === '') {
   window.location.replace('index.html');
-  // Detenemos el código inmediatamente para que no intente cargar nada más y cancele el redirect
   throw new Error("Bloqueo activado: El usuario no tiene sesión. Deteniendo la página.");
 }
+
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
@@ -59,8 +59,9 @@ let membresiaActiva = true;
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard del Cliente inicializado.");
 
-  // 1. OBTENER USUARIO REAL Y EMPRESA (Corregido)
-  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado'));
+  // 1. OBTENER USUARIO REAL Y EMPRESA (Protegido 100% contra colapsos)
+  const usuarioRaw = localStorage.getItem('usuarioLogueado');
+  const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
   const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
 
   const headerUser = document.getElementById('header-user');
@@ -336,9 +337,9 @@ async function cancelarSuscripcion() {
   });
   if (!isConfirmed) return;
 
-  // CORRECCIÓN: Extracción correcta del usuario y la empresa
-  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado'));
-  const idUsar = usuario.idUsuario || usuario.id;
+  const usuarioRaw = localStorage.getItem('usuarioLogueado');
+  const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
+  const idUsar = usuario.idUsuario || usuario.id || 1;
   const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
   const btn = document.getElementById('btnCancelarSuscripcion');
 
@@ -420,8 +421,8 @@ function toggleEjercicio(index, idUsuario) {
 }
 
 async function finalizarRutina() {
-  // CORRECCIÓN: Extracción correcta del usuario y la empresa
-  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado'));
+  const usuarioRaw = localStorage.getItem('usuarioLogueado');
+  const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
   const idUsar = usuario.idUsuario || usuario.id || 1;
   const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
 
