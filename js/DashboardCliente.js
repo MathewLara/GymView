@@ -4,6 +4,7 @@
 if (!localStorage.getItem('usuarioLogueado')) {
   window.location.replace('index.html');
 }
+
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
@@ -47,6 +48,7 @@ window.addEventListener('scroll', reiniciarTemporizador);
 // Revisamos cada 6 segundos
 setInterval(verificarInactividad, 6000);
 verificarInactividad();
+
 // ==========================================
 // 1. INICIALIZACIÓN Y VARIABLES GLOBALES
 // ==========================================
@@ -77,14 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 // 2. CARGA DE DATOS DESDE EL BACKEND
 // ==========================================
-// SE AÑADIÓ idEmpresa
 async function cargarDatos(id, idEmpresa) {
   try {
-    // INYECTAMOS LA EMPRESA EN LA URL
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${id}/dashboard?idEmpresa=${idEmpresa}`);
 
     if(res.ok) {
       const data = await res.json();
+
+      // Seguro anti-colapsos por si el backend devuelve vacío
+      if (!data || !data.nombreCompleto) {
+        console.error("El servidor no devolvió datos del cliente.");
+        return;
+      }
 
       document.getElementById('p-nombre').textContent = data.nombreCompleto;
       document.getElementById('p-email').textContent = data.email;
@@ -95,10 +101,8 @@ async function cargarDatos(id, idEmpresa) {
       document.getElementById('m-precio').textContent = data.precioPlan ? "$" + data.precioPlan : "$0.00";
       document.getElementById('m-fecha').textContent = data.fechaVencimiento || "N/A";
 
-
       const badge = document.getElementById('m-estado');
       badge.textContent = data.estadoMembresia || "Inactivo";
-
 
       const btnCancelar = document.getElementById('btnCancelarSuscripcion');
       if (data.cancelado) {
@@ -122,8 +126,6 @@ async function cargarDatos(id, idEmpresa) {
 
         membresiaActiva = false;
         mostrarAlertaBloqueo();
-
-        // REDIRECCIÓN AUTOMÁTICA A MEMBRESÍA
         ver('membresia', document.querySelector('a[onclick*="membresia"]'));
 
       } else {
@@ -205,7 +207,7 @@ async function cargarDatos(id, idEmpresa) {
 }
 
 // ==========================================
-// 3. FUNCIÓN DE BLOQUEO VISUAL Y EVENTOS MODERNOS
+// 3. FUNCIÓN DE BLOQUEO VISUAL
 // ==========================================
 function mostrarAlertaBloqueo() {
   if (document.getElementById('alerta-bloqueo')) return;
@@ -294,7 +296,7 @@ window.toggleMenu = function() {
 };
 
 // ==========================================
-// 5. ACCIONES DE SESIÓN Y CANCELACIÓN
+// 6. ACCIONES DE SESIÓN Y CANCELACIÓN
 // ==========================================
 function salir() {
   Swal.fire({
@@ -332,12 +334,10 @@ async function cancelarSuscripcion() {
   });
   if (!isConfirmed) return;
 
-  const sesion = localStorage.getItem('usuarioLogueado');
-  const usuario = sesion ? JSON.parse(sesion) : null;
-  if(!usuario) return;
-
+  // CORRECCIÓN: Extracción correcta del usuario y la empresa
+  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado'));
   const idUsar = usuario.idUsuario || usuario.id;
-  const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1; // EXTRAEMOS LA EMPRESA
+  const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
   const btn = document.getElementById('btnCancelarSuscripcion');
 
   try {
@@ -346,7 +346,6 @@ async function cancelarSuscripcion() {
       btn.disabled = true;
     }
 
-    // INYECTAMOS LA EMPRESA EN LA URL
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/cancelar?idEmpresa=${idEmpresaLogueada}`, {
       method: 'PUT'
     });
@@ -395,10 +394,10 @@ async function cancelarSuscripcion() {
     }
   }
 }
-// ==========================================
-// 6. CONTROL DE RUTINAS Y EJERCICIOS
-// ==========================================
 
+// ==========================================
+// 7. CONTROL DE RUTINAS Y EJERCICIOS
+// ==========================================
 function toggleEjercicio(index, idUsuario) {
   const hoy = new Date().toISOString().split('T')[0];
   const keyStorage = `rutina_${idUsuario}_${hoy}`;
@@ -419,10 +418,10 @@ function toggleEjercicio(index, idUsuario) {
 }
 
 async function finalizarRutina() {
-  const sesion = localStorage.getItem('usuarioLogueado');
-  const usuario = sesion ? JSON.parse(sesion) : { idUsuario: 1 };
+  // CORRECCIÓN: Extracción correcta del usuario y la empresa
+  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado'));
   const idUsar = usuario.idUsuario || usuario.id || 1;
-  const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1; // EXTRAEMOS LA EMPRESA
+  const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
 
   const btn = document.getElementById('btnFinalizar');
   if(btn) {
@@ -431,7 +430,6 @@ async function finalizarRutina() {
   }
 
   try {
-    // INYECTAMOS LA EMPRESA EN LA URL
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/${idUsar}/completar?idEmpresa=${idEmpresaLogueada}`, {
       method: 'POST'
     });
