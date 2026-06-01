@@ -7,7 +7,6 @@
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
   <link rel="stylesheet" href="css/checkout.css">
 </head>
 <body>
@@ -25,15 +24,8 @@
       <div class="summary-content flex-grow-1">
         <p class="text-muted-light mb-1">Suscríbete a <span id="resumen-nombre-plan-sup">--</span></p>
 
-        <h1 class="price-display mb-5 text-white"><span id="resumen-precio-principal">--</span> <span class="fs-5 text-muted-light">por mes</span></h1>
+        <h1 class="price-display mb-5 text-white price-main">--</h1>
 
-        <div class="d-flex justify-content-between mb-2">
-          <div>
-            <h6 class="text-white mb-0 fw-bold" id="resumen-nombre-plan">Calculando plan...</h6>
-            <small class="text-muted-light" id="resumen-desc-plan">Esperando datos del servidor.</small>
-          </div>
-          <span class="text-white fw-bold" id="resumen-precio-item">--</span>
-        </div>
         <div class="mb-4">
           <small class="text-muted-light">Facturación mensual</small>
         </div>
@@ -75,175 +67,59 @@
 
     <div class="col-lg-7 payment-panel d-flex justify-content-center align-items-start">
       <div class="payment-form-container w-100">
+        
+        <button class="btn btn-warning w-100 fw-bold mb-4 py-3" type="button" onclick="toggleQR()">
+          <i class="bi bi-qr-code-scan me-2"></i> Pagar con Deuna! / Banco Pichincha
+        </button>
 
-        <div class="mb-4">
-          <button type="button" class="btn btn-express w-100 text-dark fw-bold" id="btnPichincha" style="background-color: #ffc107;" data-bs-toggle="collapse" data-bs-target="#imagen-pichincha-container" aria-expanded="false" aria-controls="imagen-pichincha-container">
-            <i class="bi bi-bank2"></i> Pagar por Banco Pichincha
-          </button>
+        <div id="qr-container" class="text-center mb-4" style="display: none; transition: all 0.3s ease;">
+          <p class="text-white-50 small mb-2">Escanea el código para transferir a la cuenta de <strong>IRON FIRST</strong>:</p>
+          <img src="img/deuna-qr.jpeg" alt="QR Deuna" class="img-fluid rounded border border-warning p-2 shadow bg-white" style="max-width: 250px;">
+        </div>
 
-          <div class="collapse mt-3" id="imagen-pichincha-container">
-            <div class="placeholder-imagen-banco text-center p-4">
-              <i class="bi bi-image fs-1 text-warning mb-2"></i>
-              <p class="text-white-50 small mb-0">La imagen con los datos de la cuenta y código QR para el depósito se cargará aquí.</p>
-            </div>
+        <div class="separator mb-4">O INGRESA LOS DATOS DEL DEPÓSITO</div>
+
+        <form id="pagoTransferenciaForm" novalidate>
+          <h6 class="text-white mb-4 fw-bold">Información del Comprobante</h6>
+          
+          <div class="mb-3">
+            <label class="form-label text-white-50 small">Fecha del Depósito / Transferencia</label>
+            <input type="date" class="form-control custom-input p-2" id="fechaDeposito" required>
           </div>
-        </div>
-
-        <div class="separator mb-4">
-          <span>O PAGO CON TARJETA</span>
-        </div>
-
-        <form id="checkoutForm">
-          <h5 class="text-white mb-3 fw-bold fs-6">Información de contacto</h5>
+          
+          <div class="mb-3">
+            <label class="form-label text-white-50 small">Número de Comprobante / Documento</label>
+            <input type="text" class="form-control custom-input p-2" id="numeroComprobante" placeholder="Ej: 00123456789" required>
+          </div>
+          
           <div class="mb-4">
-            <input type="email" class="form-control custom-input" placeholder="Correo electrónico" required>
+            <label class="form-label text-white-50 small">Motivo</label>
+            <input type="text" class="form-control custom-input p-2" id="motivoPago" placeholder="Ej: Pago mensualidad Plan Black" required>
           </div>
 
-          <div class="d-flex justify-content-between align-items-end mb-3">
-            <h5 class="text-white mb-0 fw-bold fs-6">Detalles de la tarjeta</h5>
-            <div class="card-icons text-muted-light fs-5">
-              <i class="bi bi-cc-visa"></i>
-              <i class="bi bi-cc-mastercard"></i>
-              <i class="bi bi-cc-amex"></i>
-            </div>
+          <div class="mb-5">
+            <label class="form-label text-white-50 small">Adjuntar captura del comprobante</label>
+            <input class="form-control custom-input bg-dark" type="file" id="imagenComprobante" accept="image/png, image/jpeg, image/jpg, application/pdf" required>
           </div>
 
-          <div class="payment-details-direct mb-4">
-            <div class="mb-2">
-              <input type="text" class="form-control custom-input" placeholder="Número de tarjeta" required>
-            </div>
-            <div class="row g-2">
-              <div class="col-6">
-                <input type="text" class="form-control custom-input" placeholder="MM / AA" required>
-              </div>
-              <div class="col-6">
-                <input type="text" class="form-control custom-input" placeholder="CVC" required>
-              </div>
-            </div>
-            <div class="mt-2">
-              <input type="text" class="form-control custom-input" placeholder="Nombre en la tarjeta" required>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-pay w-100 mb-3" id="btnSubmit">
-            Suscribirse
+          <button type="submit" class="btn btn-warning w-100 fw-bold py-3 text-dark btn-pay" id="btnSubmit">
+            Confirmar Pago Registrado
           </button>
 
-          <p class="text-center text-muted-light small px-3">
-            Al suscribirte, autorizas a Iron Fitness a cobrarte según las condiciones establecidas hasta que canceles.
+          <p class="text-center text-muted small mt-3">
+            Al confirmar, el administrador validará tu comprobante en el sistema para activar tu membresía.
           </p>
-
         </form>
+
       </div>
     </div>
 
-  </div>
-</div>
-
-<div class="modal fade" id="modalFacturacion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-white border-warning shadow-lg">
-      <div class="modal-header border-secondary bg-black">
-        <h5 class="modal-title fw-bold text-warning"><i class="bi bi-receipt"></i> Datos de Facturación</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-
-      <div class="modal-body p-4">
-        <p class="text-white-50 small mb-4">Por favor, ingresa los datos para emitir tu comprobante de pago.</p>
-
-        <form id="formDatosFactura">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label text-white-50 small mb-1">Nombre(s)</label>
-              <input type="text" class="form-control custom-input" id="factNombre" placeholder="Ej. Juan" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label text-white-50 small mb-1">Apellido(s)</label>
-              <input type="text" class="form-control custom-input" id="factApellido" placeholder="Ej. Pérez" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label text-white-50 small mb-1">Cédula o RUC</label>
-              <input type="text" class="form-control custom-input" id="factCedula" placeholder="Ingresa tu identificación" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label text-white-50 small mb-1">Dirección de Domicilio</label>
-              <input type="text" class="form-control custom-input" id="factDireccion" placeholder="Calle principal y secundaria" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label text-white-50 small mb-1">Teléfono</label>
-              <input type="tel" class="form-control custom-input" id="factTelefono" placeholder="Ej. 0987654321" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label text-white-50 small mb-1">Correo Electrónico</label>
-              <input type="email" class="form-control custom-input" id="factCorreo" placeholder="correo@ejemplo.com" required>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <div class="modal-footer border-secondary bg-black d-flex flex-column flex-sm-row justify-content-between gap-2">
-        <button type="button" class="btn btn-outline-light w-100 w-sm-auto" onclick="generarConsumidorFinal()">
-          Consumidor Final
-        </button>
-        <button type="button" class="btn btn-warning fw-bold w-100 w-sm-auto" onclick="procesarFacturaPersonalizada()">
-          <i class="bi bi-check-circle"></i> Procesar Factura
-        </button>
-      </div>
-    </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/checkout.js"></script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const checkoutForm = document.getElementById('checkoutForm');
-    const modalFacturacion = new bootstrap.Modal(document.getElementById('modalFacturacion'));
-
-    // Interceptamos el envío del formulario de la tarjeta
-    checkoutForm.addEventListener('submit', function(event) {
-      event.preventDefault(); // Evitamos que la página se recargue
-
-      // Si todo el formulario de tarjeta es válido, mostramos el modal de facturación
-      if (checkoutForm.checkValidity()) {
-        modalFacturacion.show();
-      }
-    });
-  });
-
-  // Función si el usuario elige "Consumidor Final"
-  function generarConsumidorFinal() {
-    // Aquí puedes enlazar con tu código de js/checkout.js para finalizar el pago
-    alert("Procesando pago como Consumidor Final (9999999999999)... \n\n¡Suscripción exitosa!");
-
-    // Ocultar modal y redirigir
-    const modalFacturacion = bootstrap.Modal.getInstance(document.getElementById('modalFacturacion'));
-    modalFacturacion.hide();
-    // window.location.href = "DashboardCliente.html"; // Descomenta para redirigir al dashboard
-  }
-
-  // Función si el usuario llena sus datos y presiona "Procesar Factura"
-  function procesarFacturaPersonalizada() {
-    const formFactura = document.getElementById('formDatosFactura');
-
-    // Validar que los campos de la factura estén llenos
-    if (!formFactura.checkValidity()) {
-      formFactura.reportValidity(); // Muestra las alertas rojas nativas del navegador
-      return;
-    }
-
-    const cedula = document.getElementById('factCedula').value;
-    const nombre = document.getElementById('factNombre').value;
-
-    alert(`Procesando pago con factura a nombre de: ${nombre} (C.I/RUC: ${cedula})... \n\n¡Suscripción exitosa!`);
-
-    // Ocultar modal y redirigir
-    const modalFacturacion = bootstrap.Modal.getInstance(document.getElementById('modalFacturacion'));
-    modalFacturacion.hide();
-    // window.location.href = "DashboardCliente.html"; // Descomenta para redirigir al dashboard
-  }
-</script>
 
 </body>
 </html>
