@@ -1,4 +1,10 @@
 // ==========================================
+// ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
+// ==========================================
+if (!localStorage.getItem('usuarioLogueado')) {
+  window.location.replace('index.html');
+}
+// ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
 const TIEMPO_EXPIRACION = 30 * 60 * 1000;
@@ -50,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard del Cliente inicializado.");
 
   const sesion = localStorage.getItem('usuarioLogueado');
-  const usuario = sesion ? JSON.parse(sesion) : { usuario: 'Socio', idUsuario: 1 };
 
   // EXTRAEMOS LA EMPRESA
   const idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;

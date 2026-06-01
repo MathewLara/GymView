@@ -1,7 +1,12 @@
 let escanerCamara = null;
 let modalUsuarioInstance;
 let tomSelectSocioRecep = null; // Variable para la barra de búsqueda del modal de pagos
-
+// ==========================================
+// ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
+// ==========================================
+if (!localStorage.getItem('usuarioLogueado')) {
+  window.location.replace('index.html');
+}
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
