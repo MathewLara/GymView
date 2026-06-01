@@ -85,23 +85,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 5. PROCESAR PAGO REAL Y RENOVAR MEMBRESÍA
+  // 5. PROCESAR PAGO (TRANSFERENCIA) Y RENOVAR MEMBRESÍA
   // ==========================================
-  const checkoutForm = document.getElementById('checkoutForm');
+  const formPago = document.getElementById('pagoTransferenciaForm');
   const btnSubmit = document.getElementById('btnSubmit');
 
-  if (checkoutForm) {
-    checkoutForm.addEventListener('submit', async (e) => {
+  if (formPago) {
+    formPago.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       btnSubmit.disabled = true;
-      btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Autorizando pago...';
+      btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando comprobante...';
 
       // Validamos la sesión
       let usuarioTexto = sessionStorage.getItem('usuarioLogueado') || localStorage.getItem('usuarioLogueado');
 
       if (!usuarioTexto) {
-        alert("¡Alto ahí! Para comprar o renovar un plan, primero debes iniciar sesión con tu cuenta.");
+        alert("¡Alto ahí! Para registrar un pago, primero debes iniciar sesión.");
         window.location.href = 'login.html';
         return;
       }
@@ -109,13 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let usuarioActivo = JSON.parse(usuarioTexto);
       let idUsuario = usuarioActivo.idUsuario || usuarioActivo.id;
 
-      if (!idUsuario) {
-        alert("Tu sesión es inválida o expiró. Por favor, inicia sesión nuevamente.");
-        window.location.href = 'login.html';
-        return;
-      }
-
-      // IMPORTANTE: Leemos qué plan está seleccionado EXACTAMENTE en este momento
+      // Leemos qué plan está seleccionado
       const selector = document.getElementById('selectorPlan');
       const idPlanFinal = selector ? parseInt(selector.value) : planInicialId;
       const planFinal = planes[idPlanFinal];
@@ -124,10 +118,15 @@ document.addEventListener('DOMContentLoaded', () => {
         idUsuario: idUsuario,
         idMembresia: planFinal.id,
         monto: planFinal.precio,
-        dias: planFinal.dias
+        dias: planFinal.dias,
+        // Agregamos los nuevos datos del formulario
+        fecha: document.getElementById('fechaDeposito').value,
+        comprobante: document.getElementById('numeroComprobante').value,
+        motivo: document.getElementById('motivoPago').value
       };
 
       try {
+        // AQUÍ TU COMPAÑERO DEBE PONER LA RUTA CORRECTA PARA GUARDAR EL COMPROBANTE
         const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/membresia', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -135,24 +134,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (res.ok) {
-          btnSubmit.classList.remove('btn-pay', 'btn-warning');
+          btnSubmit.classList.remove('btn-warning');
           btnSubmit.classList.add('btn-success');
-          btnSubmit.innerHTML = '<i class="bi bi-check-circle-fill"></i> ¡Pago Aprobado!';
+          btnSubmit.innerHTML = '<i class="bi bi-check-circle-fill"></i> ¡Comprobante Enviado!';
 
-          setTimeout(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Pago Registrado',
+            text: 'Hemos recibido tu notificación de pago. Tu plan será activado una vez que recepción valide el comprobante.',
+            confirmButtonColor: '#ffc107',
+            background: '#1e1e1e',
+            color: '#ffffff'
+          }).then(() => {
             window.location.href = 'DashboardCliente.html';
-          }, 1500);
+          });
         } else {
           const errorData = await res.json();
-          alert("Rechazado por Base de Datos:\n\n" + errorData.mensaje);
+          alert("Rechazado:\n\n" + (errorData.mensaje || 'Error desconocido'));
           btnSubmit.disabled = false;
-          btnSubmit.innerHTML = 'Suscribirse';
+          btnSubmit.innerHTML = 'Confirmar Pago Registrado';
         }
       } catch (error) {
-        alert("Error de conexión con el banco de pruebas.");
+        console.error(error);
+        alert("Error de red. Verifica tu conexión.");
         btnSubmit.disabled = false;
-        btnSubmit.innerHTML = 'Suscribirse';
+        btnSubmit.innerHTML = 'Confirmar Pago Registrado';
       }
     });
   }
 });
+
+// Mostrar/Ocultar el código QR de Deuna!
+function toggleQR() {
+  const qrContainer = document.getElementById('qr-container');
+  if (qrContainer.style.display === 'none' || qrContainer.style.display === '') {
+    qrContainer.style.display = 'block';
+  } else {
+    qrContainer.style.display = 'none';
+  }
+}
