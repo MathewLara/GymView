@@ -326,7 +326,7 @@ function eliminarAlumno(idCliente) {
 }
 
 // ==========================================
-// 2. LÓGICA DE BIBLIOTECA DE RUTINAS
+// 2. LÓGICA DE BIBLIOTECA DE RUTINAS (MODIFICADA)
 // ==========================================
 function renderizarRutinas() {
   if(!globalData) return;
@@ -357,10 +357,48 @@ function renderizarRutinas() {
       `).join('');
 }
 
+// Función NUEVA: Descarga los ejercicios de la BDD y dibuja los checkboxes
+async function cargarEjerciciosModal(idsSeleccionados = []) {
+  const contenedor = document.getElementById('contenedor-ejercicios-rutina');
+  if(!contenedor) return;
+
+  contenedor.innerHTML = '<div class="text-center text-light"><div class="spinner-border spinner-border-sm text-warning"></div> Cargando ejercicios...</div>';
+
+  try {
+    const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/ejercicios`);
+    if (res.ok) {
+      const ejercicios = await res.json();
+      // Filtramos para que solo salgan los ejercicios que están "Activos" en la BDD
+      const activos = ejercicios.filter(e => e.activo);
+
+      if (activos.length === 0) {
+        contenedor.innerHTML = '<div class="text-muted small">No hay ejercicios activos disponibles. Ve a la pestaña Ejercicios y crea algunos.</div>';
+        return;
+      }
+
+      // Pintamos los checkboxes reales
+      contenedor.innerHTML = activos.map(ej => `
+              <div class="form-check mb-2">
+                  <input class="form-check-input chk-ejercicio" type="checkbox" value="${ej.id}" id="ej_${ej.id}" ${idsSeleccionados.includes(ej.id) ? 'checked' : ''}>
+                  <label class="form-check-label text-light" for="ej_${ej.id}">${ej.nombre} <small class="text-warning">(${ej.grupo})</small></label>
+              </div>
+          `).join('');
+    } else {
+      contenedor.innerHTML = '<div class="text-danger small">Error al cargar ejercicios de la BDD</div>';
+    }
+  } catch (error) {
+    contenedor.innerHTML = '<div class="text-danger small">Error de red al conectar con el servidor</div>';
+  }
+}
+
 function abrirModalCrear() {
   document.getElementById('modalTitulo').textContent = "Nueva Rutina";
   document.getElementById('hdnIdRutina').value = "";
   document.getElementById('formRutina').reset();
+
+  // Llamamos a la función para cargar los checkboxes desde la BDD vacíos
+  cargarEjerciciosModal([]);
+
   new bootstrap.Modal(document.getElementById('modalRutina')).show();
 }
 
@@ -372,10 +410,8 @@ function prepararEdicionRutina(idRutina) {
   document.getElementById('hdnIdRutina').value = idRutina;
   document.getElementById('txtNombreRutina').value = rutina.nombre;
 
-  // Marcar los ejercicios seleccionados
-  [1,2,3,4].forEach(id => {
-    document.getElementById('ej'+id).checked = (rutina.idsEjercicios || []).includes(id);
-  });
+  // Cargamos los ejercicios desde la BDD pasándole los IDs que ya estaban seleccionados
+  cargarEjerciciosModal(rutina.idsEjercicios || []);
 
   new bootstrap.Modal(document.getElementById('modalRutina')).show();
 }
@@ -387,10 +423,12 @@ async function guardarRutina() {
     nombreRutina: document.getElementById('txtNombreRutina').value,
     idsEjercicios: []
   };
-  if(document.getElementById('ej1').checked) payload.idsEjercicios.push(1);
-  if(document.getElementById('ej2').checked) payload.idsEjercicios.push(2);
-  if(document.getElementById('ej3').checked) payload.idsEjercicios.push(3);
-  if(document.getElementById('ej4').checked) payload.idsEjercicios.push(4);
+
+  // Buscamos dinámicamente qué checkboxes están marcados
+  const checkboxes = document.querySelectorAll('.chk-ejercicio:checked');
+  checkboxes.forEach(chk => {
+    payload.idsEjercicios.push(parseInt(chk.value));
+  });
 
   if(!payload.nombreRutina || payload.idsEjercicios.length === 0) {
     Swal.fire({ icon: 'warning', title: 'Datos incompletos', text: 'Completa el nombre y selecciona al menos un ejercicio.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' });
