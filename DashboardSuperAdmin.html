@@ -183,12 +183,17 @@
               <label class="form-label text-white">Rol Asignado</label>
               <input type="text" class="form-control bg-secondary text-white border-secondary" value="Administrador" readonly>
             </div>
-            <div class="col-12 mt-4">
+              <div class="col-12 mt-4">
               <label class="form-label text-white">Contraseña de Acceso <small id="passHintAdmin" class="text-warning fw-bold ms-2"></small></label>
               <div class="input-group">
                 <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-key"></i></span>
                 <input type="password" class="form-control bg-black text-white border-secondary" id="adminPass" placeholder="Ingrese contraseña segura">
+                
+                <button class="btn btn-outline-secondary bg-secondary border-secondary text-white" type="button" id="toggleSuperAdminPass">
+                  <i class="bi bi-eye-slash-fill" id="toggleSuperAdminIcon"></i>
+                </button>
               </div>
+            </div>
             </div>
           </div>
         </form>

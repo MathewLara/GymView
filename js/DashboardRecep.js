@@ -1,3 +1,26 @@
+// ==========================================
+// MOSTRAR / OCULTAR CONTRASEÑA (MODAL RECEPCIÓN)
+// ==========================================
+const toggleRecepPass = document.getElementById('toggleRecepPass');
+const recepPassInput = document.getElementById('userPass');
+const toggleRecepIcon = document.getElementById('toggleRecepIcon');
+
+if (toggleRecepPass && recepPassInput && toggleRecepIcon) {
+  toggleRecepPass.addEventListener('click', function () {
+    const isPassword = recepPassInput.getAttribute('type') === 'password';
+    recepPassInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    if (isPassword) {
+      toggleRecepIcon.classList.remove('bi-eye-slash-fill');
+      toggleRecepIcon.classList.add('bi-eye-fill');
+      toggleRecepIcon.classList.add('text-warning'); // Se resalta en amarillo al ver
+    } else {
+      toggleRecepIcon.classList.remove('bi-eye-fill', 'text-warning');
+      toggleRecepIcon.classList.add('bi-eye-slash-fill'); // Vuelve a su color normal
+    }
+  });
+}
+
 let escanerCamara = null;
 let modalUsuarioInstance;
 let tomSelectSocioRecep = null; // Variable para la barra de búsqueda del modal de pagos

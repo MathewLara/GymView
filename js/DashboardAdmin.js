@@ -537,6 +537,29 @@ async function cargarModulo(modulo, elementoHTML) {
 }
 
 // ==========================================
+// MOSTRAR / OCULTAR CONTRASEÑA (MODAL USUARIOS)
+// ==========================================
+const toggleAdminPass = document.getElementById('toggleAdminPass');
+const adminPassInput = document.getElementById('userPass');
+const toggleAdminIcon = document.getElementById('toggleAdminIcon');
+
+if (toggleAdminPass && adminPassInput && toggleAdminIcon) {
+  toggleAdminPass.addEventListener('click', function () {
+    const isPassword = adminPassInput.getAttribute('type') === 'password';
+    adminPassInput.setAttribute('type', isPassword ? 'text' : 'password');
+
+    if (isPassword) {
+      toggleAdminIcon.classList.remove('bi-eye-slash-fill');
+      toggleAdminIcon.classList.add('bi-eye-fill');
+      toggleAdminIcon.classList.add('text-warning'); // Se resalta en amarillo al ver
+    } else {
+      toggleAdminIcon.classList.remove('bi-eye-fill', 'text-warning');
+      toggleAdminIcon.classList.add('bi-eye-slash-fill'); // Vuelve a su color normal
+    }
+  });
+}
+
+// ==========================================
 // INICIALIZACIÓN Y VARIABLES GLOBALES
 // ==========================================
 let modalUsuarioInstance;
