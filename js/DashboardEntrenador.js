@@ -571,15 +571,17 @@ async function renderizarEjercicios() {
   const tbody = document.getElementById('tabla-ejercicios');
   if (!tbody) return;
 
+  // Mostramos el spinner mientras carga
   tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando ejercicios...</p></td></tr>`;
 
   try {
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/entrenadores/ejercicios`);
+
     if (res.ok) {
       const ejercicios = await res.json();
 
       if (ejercicios.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No hay ejercicios registrados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No hay ejercicios registrados en la base de datos.</td></tr>`;
         return;
       }
 
@@ -596,10 +598,13 @@ async function renderizarEjercicios() {
           </td>
         </tr>
       `).join('');
+    } else {
+      // AQUÍ ESTÁ LA MAGIA: Si Render no encuentra el código Java, mostrará esto en lugar de girar infinito.
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Error del Servidor (Código ${res.status}). Java aún no está listo en Render.</td></tr>`;
     }
   } catch (error) {
     console.error(error);
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Error al conectar con la base de datos.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger"><i class="bi bi-wifi-off"></i> Error de red. Tu navegador bloqueó la conexión o Render está caído.</td></tr>`;
   }
 }
 
@@ -764,7 +769,7 @@ function cambiarEstadoEjercicio(id, nuevoEstado) {
   }).then((result) => {
     if (result.isConfirmed) {
       Swal.fire({ icon: 'success', title: 'Estado actualizado', background: '#1e1e1e', color: '#ffffff', timer: 1500, showConfirmButton: false });
-      // Aquí el backend hará el fetch de actualización (PUT)
+
     }
   });
 }
