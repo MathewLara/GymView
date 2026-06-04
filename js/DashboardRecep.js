@@ -157,7 +157,7 @@ async function cargarModulo(modulo, elementoHTML) {
   if (modulo === 'resumen') {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
-    // Lógica de carga del resumen omitida por brevedad (ya la tenías bien)
+
     try {
       const idEmpresa = localStorage.getItem('id_empresa') || 1;
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/dashboard?idEmpresa=${idEmpresa}`);
@@ -167,13 +167,12 @@ async function cargarModulo(modulo, elementoHTML) {
         const kpiAforo = document.getElementById('kpi-aforo');
         if(kpiCaja) kpiCaja.innerText = '$' + parseFloat(data.kpis.cajaHoy || 0).toFixed(2);
         if(kpiAforo) kpiAforo.innerText = data.kpis.aforoHoy || 0;
-        // Inyección de actividad reciente...
       }
     } catch(e) {}
 
-  // ------------------------------------------
-  // MÓDULO: ACCESO
-  // ------------------------------------------
+    // ------------------------------------------
+    // MÓDULO: ACCESO
+    // ------------------------------------------
   } else if (modulo === 'acceso') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = `
@@ -196,24 +195,24 @@ async function cargarModulo(modulo, elementoHTML) {
     `;
     iniciarEscanerQR();
 
-  // ------------------------------------------
-  // MÓDULO: CLIENTES Y ENTRENADORES
-  // ------------------------------------------
-  } else if (['clientes', 'entrenadores'].includes(modulo)) {
+    // ------------------------------------------
+    // MÓDULO: CLIENTES Y ENTRENADORES
+    // ------------------------------------------
+  } else if (modulo === 'clientes' || modulo === 'entrenadores') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div></div>';
-    // Lógica omitida para mantener el enfoque, aquí va tu fetch de usuarios normal...
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
-  // ------------------------------------------
-  // MÓDULO: PAGOS Y TRANSFERENCIAS (CORREGIDO)
-  // ------------------------------------------
+    // Aquí puedes pegar después tu fetch original de clientes si lo tenías
+
+    // ------------------------------------------
+    // MÓDULO: PAGOS Y TRANSFERENCIAS (CONECTADO A BDD)
+    // ------------------------------------------
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando pagos...</p></div>';
 
     try {
       const idEmpresa = localStorage.getItem('id_empresa') || 1;
-      // Llamada real a tu backend para traer la lista de VentaPendienteDTO o PagoMembresiaDTO
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos-pendientes?idEmpresa=${idEmpresa}`);
 
       let filas = '';
@@ -225,13 +224,11 @@ async function cargarModulo(modulo, elementoHTML) {
           filas = '<tr><td colspan="7" class="text-center text-muted py-4">No hay comprobantes pendientes por revisar.</td></tr>';
         } else {
           filas = pagos.map(p => {
-            // Ajusta las propiedades 'p.estado', 'p.socio' etc. según como las devuelva tu DTO en Java
             let badgeEstado = '';
             let botonesAccion = '';
 
             if (p.estado === 'PENDIENTE') {
               badgeEstado = '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> Pendiente</span>';
-              // FÍJATE AQUÍ: pasamos el id_pago y el id_membresia a la función
               botonesAccion = `
                   <button class="btn btn-sm btn-success me-1 shadow-sm" onclick="cambiarEstadoPago(${p.id_pago}, 'APROBADO', ${p.id_membresia})" title="Aceptar Pago"><i class="bi bi-check-lg fw-bold"></i></button>
                   <button class="btn btn-sm btn-danger shadow-sm" onclick="cambiarEstadoPago(${p.id_pago}, 'RECHAZADO', ${p.id_membresia})" title="Rechazar Pago"><i class="bi bi-x-lg fw-bold"></i></button>
@@ -263,14 +260,20 @@ async function cargarModulo(modulo, elementoHTML) {
         }
       }
 
-      // Dibujamos la tabla
       contenedorDinamico.innerHTML = `
         <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
           <div class="card-body p-4">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
               <div>
                 <h4 class="text-white m-0 fw-bold"><i class="bi bi-cash-coin text-warning"></i> Validación de Transferencias</h4>
-                <p class="text-muted small m-0">Revisa los comprobantes subidos por los clientes para activar su plan.</p>
+                <p class="text-muted small m-0">Revisa los comprobantes para auditar el historial o activar planes.</p>
+              </div>
+              <div class="d-flex gap-2 align-items-center flex-wrap">
+                <div class="input-group" style="width: 250px;">
+                  <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
+                  <input type="text" id="buscador-pagos-recep" class="form-control bg-black text-white border-secondary" placeholder="Buscar socio..." onkeyup="filtrarPagosRecep()">
+                </div>
+                <button class="btn btn-outline-info fw-bold text-nowrap" onclick="exportarPagosRecepCSV()"><i class="bi bi-file-earmark-excel"></i> Exportar</button>
               </div>
             </div>
             <div class="table-responsive">
@@ -288,21 +291,22 @@ async function cargarModulo(modulo, elementoHTML) {
         </div>
       `;
     } catch (error) {
-      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error al cargar los pagos pendientes.</div>';
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error al cargar los pagos.</div>';
     }
 
-  // ------------------------------------------
-  // MÓDULO: PEDIDOS DE TIENDA
-  // ------------------------------------------
+    // ------------------------------------------
+    // MÓDULO: PEDIDOS DE TIENDA
+    // ------------------------------------------
   } else if (modulo === 'pedidos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div></div>';
-    // Lógica omitida para enfocarnos en los pagos...
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando módulo de pedidos...</p></div>';
+
   }
-}
+
+
 
 // ==========================================
-// FUNCIONES VISUALES PARA COMPROBANTES (NUEVO)
+// FUNCIONES VISUALES PARA COMPROBANTES Y PAGOS
 // ==========================================
 
 function abrirModalComprobante(numero, fecha, motivo, imgSrc) {
@@ -321,7 +325,6 @@ function abrirModalComprobante(numero, fecha, motivo, imgSrc) {
   if(modalComprobanteInstance) modalComprobanteInstance.show();
 }
 
-// Fí
 async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
   const isAceptar = nuevoEstado === 'APROBADO';
 
@@ -338,16 +341,14 @@ async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
     color: '#ffffff'
   }).then(async (result) => {
     if (result.isConfirmed) {
-
       try {
-        // Enviar la petición al backend
         const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/verificar-pago`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             pagoId: idPago,
             estado: nuevoEstado,
-            membresiaId: idMembresia // Tu backend necesita saber qué membresía actualizar
+            membresiaId: idMembresia
           })
         });
 
@@ -358,8 +359,6 @@ async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
             text: `El pago ha sido ${nuevoEstado.toLowerCase()}.`,
             background: '#1e1e1e', color: '#ffffff', confirmButtonColor: '#ffc107'
           });
-
-          // Recargamos el módulo para que desaparezca de la lista
           cargarModulo('pagos');
         } else {
           throw new Error("Error procesando pago");
@@ -399,3 +398,4 @@ function exportarPagosRecepCSV() {
 // ==========================================
 function iniciarEscanerQR() { console.log("Cámara iniciada"); }
 function registrarIngresoManual() { console.log("Ingreso manual"); }
+}
