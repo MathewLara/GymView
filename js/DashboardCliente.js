@@ -160,7 +160,7 @@ async function cargarDatos(id, idEmpresa) {
       // LÓGICA DE RUTINAS Y EJERCICIOS
       // ==========================================
       const divRutina = document.getElementById('rutina-container');
-      
+
       if(data.nombreRutina) {
         // --- LIMPIEZA DE DATOS (Filtro para evitar textos duplicados del backend) ---
         let nombreRutinaLimpio = data.nombreRutina;
@@ -212,7 +212,7 @@ async function cargarDatos(id, idEmpresa) {
               </div>
               <span class="badge bg-warning text-dark px-3 py-2 rounded-pill d-none d-sm-block">${data.ejercicios.length} Ejercicios</span>
             </div>
-            
+
             <div class="ejercicios-lista mb-4">
               ${lista}
             </div>
@@ -237,7 +237,7 @@ async function cargarDatos(id, idEmpresa) {
             chk.parentElement.parentElement.classList.add('ejercicio-completado');
           });
         }
-        
+
       } else if (divRutina) {
         divRutina.innerHTML = `
           <div class="card-panel text-center py-5 shadow-sm">
@@ -526,6 +526,72 @@ async function finalizarRutina() {
     if(btn) {
       btn.innerHTML = '<i class="bi bi-check-lg"></i> TERMINAR ENTRENAMIENTO';
       btn.disabled = false;
+    }
+  }
+  // ==========================================
+// 8. ENVÍO DE COMPROBANTE DE PAGO
+// ==========================================
+  async function enviarComprobantePago(event) {
+    event.preventDefault(); // Evita que se recargue la página
+
+    const btnSubmit = document.getElementById('btnSubirComprobante'); // Asegúrate de tener un botón con este ID
+    const fileInput = document.getElementById('inputFotoComprobante'); // El ID del input type="file"
+    const file = fileInput.files[0];
+
+    if (!file) {
+      Swal.fire({ icon: 'warning', title: 'Falta imagen', text: 'Por favor, selecciona la foto de tu transferencia.', background: '#1e1e1e', color: '#ffffff' });
+      return;
+    }
+
+    // Obtenemos los datos del usuario logueado
+    const usuarioRaw = localStorage.getItem('usuarioLogueado');
+    const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
+    const idCliente = usuario.idUsuario || usuario.id || 1;
+    const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
+
+    // Aquí debes capturar el ID de la membresía que el cliente quiere pagar.
+    // Puede estar en un input oculto o seleccionable.
+    const idMembresia = document.getElementById('idMembresiaSeleccionada').value;
+    const montoPagado = document.getElementById('montoPagar').value;
+
+    const formData = new FormData();
+    formData.append('comprobante', file);
+    formData.append('id_cliente', idCliente);
+    formData.append('id_membresia', idMembresia);
+    formData.append('monto_pagado', montoPagado);
+    formData.append('id_empresa', idEmpresaLogueada);
+
+    try {
+      if(btnSubmit) {
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Enviando...';
+        btnSubmit.disabled = true;
+      }
+
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/cliente/pago-membresia`, {
+        method: 'POST',
+        body: formData // Al usar FormData, fetch configura el Content-Type automáticamente (multipart/form-data)
+      });
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Comprobante Enviado!',
+          text: 'Recepción validará tu pago pronto. Tu cuenta se activará automáticamente al ser aprobado.',
+          confirmButtonColor: '#ffc107',
+          background: '#1e1e1e', color: '#ffffff'
+        });
+        // Limpiar formulario o redirigir
+        document.getElementById('formComprobante').reset();
+      } else {
+        throw new Error("Error en el servidor");
+      }
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo enviar el comprobante.', background: '#1e1e1e', color: '#ffffff' });
+    } finally {
+      if(btnSubmit) {
+        btnSubmit.innerHTML = 'Subir Comprobante';
+        btnSubmit.disabled = false;
+      }
     }
   }
 }

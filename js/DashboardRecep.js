@@ -52,7 +52,7 @@ let tomSelectSocioRecep = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard de Recepción inicializado.");
-  
+
   const mUsuario = document.getElementById('modalUsuario');
   if(mUsuario) modalUsuarioInstance = new bootstrap.Modal(mUsuario);
 
@@ -203,92 +203,93 @@ async function cargarModulo(modulo, elementoHTML) {
     vistaResumen.style.display = 'none';
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div></div>';
     // Lógica omitida para mantener el enfoque, aquí va tu fetch de usuarios normal...
-    
+
   // ------------------------------------------
   // MÓDULO: PAGOS Y TRANSFERENCIAS (CORREGIDO)
   // ------------------------------------------
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
-    
-    // Datos de prueba (MOCK) para que veas el diseño. Tu compañero conectará esto al backend después.
-    const transferenciasMock = [
-      { id: 1042, socio: 'Micaela', plan: 'Plan VIP Mensual', monto: '50.00', fecha: '2026-06-01', comprobante: '123456789', motivo: 'Pago Junio VIP', estado: 'Pendiente', img: 'img/deuna-qr.png' },
-      { id: 1043, socio: 'Alan1', plan: 'Plan Mensual Estándar', monto: '30.00', fecha: '2026-06-02', comprobante: '987654321', motivo: 'Suscripción Normal', estado: 'Aceptado', img: 'img/deuna-qr.png' },
-      { id: 1044, socio: 'Elvis1', plan: 'Plan VIP Mensual', monto: '50.00', fecha: '2026-06-03', comprobante: '000111222', motivo: 'Pago atrasado', estado: 'Rechazado', img: 'img/deuna-qr.png' }
-    ];
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando pagos...</p></div>';
 
-    let filas = transferenciasMock.map(p => {
-      let badgeEstado = '';
-      let botonesAccion = '';
-      
-      // Control visual del estado
-      if (p.estado === 'Pendiente') {
-        badgeEstado = '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> Pendiente</span>';
-        botonesAccion = `
-          <button class="btn btn-sm btn-success me-1 shadow-sm" onclick="cambiarEstadoPago(${p.id}, 'Aceptado')" title="Aceptar Pago"><i class="bi bi-check-lg fw-bold"></i></button>
-          <button class="btn btn-sm btn-danger shadow-sm" onclick="cambiarEstadoPago(${p.id}, 'Rechazado')" title="Rechazar Pago"><i class="bi bi-x-lg fw-bold"></i></button>
-        `;
-      } else if (p.estado === 'Aceptado') {
-        badgeEstado = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Aceptado</span>';
-        botonesAccion = `<span class="text-muted small"><i class="bi bi-check2-all"></i> Validado</span>`;
-      } else {
-        badgeEstado = '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> Rechazado</span>';
-        botonesAccion = `<span class="text-muted small"><i class="bi bi-check2-all"></i> Validado</span>`;
+    try {
+      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      // Llamada real a tu backend para traer la lista de VentaPendienteDTO o PagoMembresiaDTO
+      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos-pendientes?idEmpresa=${idEmpresa}`);
+
+      let filas = '';
+
+      if (res.ok) {
+        const pagos = await res.json();
+
+        if(pagos.length === 0) {
+          filas = '<tr><td colspan="7" class="text-center text-muted py-4">No hay comprobantes pendientes por revisar.</td></tr>';
+        } else {
+          filas = pagos.map(p => {
+            // Ajusta las propiedades 'p.estado', 'p.socio' etc. según como las devuelva tu DTO en Java
+            let badgeEstado = '';
+            let botonesAccion = '';
+
+            if (p.estado === 'PENDIENTE') {
+              badgeEstado = '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> Pendiente</span>';
+              // FÍJATE AQUÍ: pasamos el id_pago y el id_membresia a la función
+              botonesAccion = `
+                  <button class="btn btn-sm btn-success me-1 shadow-sm" onclick="cambiarEstadoPago(${p.id_pago}, 'APROBADO', ${p.id_membresia})" title="Aceptar Pago"><i class="bi bi-check-lg fw-bold"></i></button>
+                  <button class="btn btn-sm btn-danger shadow-sm" onclick="cambiarEstadoPago(${p.id_pago}, 'RECHAZADO', ${p.id_membresia})" title="Rechazar Pago"><i class="bi bi-x-lg fw-bold"></i></button>
+                `;
+            } else if (p.estado === 'APROBADO') {
+              badgeEstado = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Aceptado</span>';
+              botonesAccion = `<span class="text-muted small"><i class="bi bi-check2-all"></i> Validado</span>`;
+            } else {
+              badgeEstado = '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> Rechazado</span>';
+              botonesAccion = `<span class="text-muted small"><i class="bi bi-check2-all"></i> Validado</span>`;
+            }
+
+            return `
+                <tr class="fila-pago-recep" data-socio="${p.nombre_cliente}" data-monto="${p.monto_pagado}">
+                  <td class="text-light fw-bold">#REC-${p.id_pago}</td>
+                  <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.nombre_cliente}</td>
+                  <td class="text-warning">Membresía #${p.id_membresia}</td>
+                  <td class="text-success fw-bold">+$${p.monto_pagado}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-info fw-bold" onclick="abrirModalComprobante('${p.id_pago}', '${p.fecha_pago}', 'Renovación', '${p.referencia_comprobante}')">
+                      <i class="bi bi-eye"></i> Comprobante
+                    </button>
+                  </td>
+                  <td>${badgeEstado}</td>
+                  <td>${botonesAccion}</td>
+                </tr>
+              `;
+          }).join('');
+        }
       }
 
-      return `
-        <tr class="fila-pago-recep" data-socio="${p.socio}" data-monto="${p.monto}">
-          <td class="text-light fw-bold">#REC-${p.id}</td>
-          <td class="text-white"><i class="bi bi-person-circle text-secondary me-2"></i>${p.socio}</td>
-          <td class="text-warning">${p.plan}</td>
-          <td class="text-success fw-bold">+$${p.monto}</td>
-          <td>
-            <button class="btn btn-sm btn-outline-info fw-bold" onclick="abrirModalComprobante('${p.comprobante}', '${p.fecha}', '${p.motivo}', '${p.img}')">
-              <i class="bi bi-eye"></i> Comprobante
-            </button>
-          </td>
-          <td>${badgeEstado}</td>
-          <td>${botonesAccion}</td>
-        </tr>
-      `;
-    }).join('');
-
-    contenedorDinamico.innerHTML = `
-      <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-            <div>
-              <h4 class="text-white m-0 fw-bold"><i class="bi bi-cash-coin text-warning"></i> Validación de Transferencias</h4>
-              <p class="text-muted small m-0">Revisa los comprobantes subidos por los clientes para activar su plan.</p>
-            </div>
-            <div class="d-flex gap-2 align-items-center flex-wrap">
-              <div class="input-group" style="width: 250px;">
-                <span class="input-group-text bg-black border-secondary text-warning"><i class="bi bi-search"></i></span>
-                <input type="text" id="buscador-pagos-recep" class="form-control bg-black text-white border-secondary" placeholder="Buscar socio..." onkeyup="filtrarPagosRecep()">
+      // Dibujamos la tabla
+      contenedorDinamico.innerHTML = `
+        <div class="card bg-dark border-secondary shadow-lg mb-4" style="border-radius: 15px;">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+              <div>
+                <h4 class="text-white m-0 fw-bold"><i class="bi bi-cash-coin text-warning"></i> Validación de Transferencias</h4>
+                <p class="text-muted small m-0">Revisa los comprobantes subidos por los clientes para activar su plan.</p>
               </div>
-              <button class="btn btn-outline-info fw-bold text-nowrap" onclick="exportarPagosRecepCSV()"><i class="bi bi-file-earmark-excel"></i> Exportar</button>
             </div>
-          </div>
-
-          <div class="table-responsive">
-            <table id="tabla-pagos-recep" class="table table-dark table-hover align-middle mb-0">
-              <thead class="bg-black text-warning">
-                <tr>
-                  <th class="py-3">N° RECIBO</th>
-                  <th class="py-3">SOCIO</th>
-                  <th class="py-3">PLAN</th>
-                  <th class="py-3">IMPORTE</th>
-                  <th class="py-3">DETALLES</th>
-                  <th class="py-3">ESTADO</th>
-                  <th class="py-3">ACCIÓN</th>
-                </tr>
-              </thead>
-              <tbody>${filas}</tbody>
-            </table>
+            <div class="table-responsive">
+              <table id="tabla-pagos-recep" class="table table-dark table-hover align-middle mb-0">
+                <thead class="bg-black text-warning">
+                  <tr>
+                    <th class="py-3">N° RECIBO</th><th class="py-3">SOCIO</th><th class="py-3">PLAN</th>
+                    <th class="py-3">IMPORTE</th><th class="py-3">DETALLES</th><th class="py-3">ESTADO</th><th class="py-3">ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    } catch (error) {
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error al cargar los pagos pendientes.</div>';
+    }
 
   // ------------------------------------------
   // MÓDULO: PEDIDOS DE TIENDA
@@ -308,7 +309,7 @@ function abrirModalComprobante(numero, fecha, motivo, imgSrc) {
   document.getElementById('detalleNumero').value = numero;
   document.getElementById('detalleFecha').value = fecha;
   document.getElementById('detalleMotivo').value = motivo;
-  
+
   const imgEl = document.getElementById('detalleImagen');
   if (imgSrc && imgSrc !== 'undefined' && imgSrc !== 'null') {
     imgEl.src = imgSrc;
@@ -320,9 +321,10 @@ function abrirModalComprobante(numero, fecha, motivo, imgSrc) {
   if(modalComprobanteInstance) modalComprobanteInstance.show();
 }
 
-function cambiarEstadoPago(idPago, nuevoEstado) {
-  const isAceptar = nuevoEstado === 'Aceptado';
-  
+// Fíjate que añadí idMembresia como parámetro
+async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
+  const isAceptar = nuevoEstado === 'APROBADO';
+
   Swal.fire({
     title: `¿${nuevoEstado} este pago?`,
     text: isAceptar ? 'El plan del cliente se activará inmediatamente en el sistema.' : 'El pago será marcado como inválido y el cliente seguirá bloqueado.',
@@ -334,17 +336,37 @@ function cambiarEstadoPago(idPago, nuevoEstado) {
     cancelButtonText: 'Cancelar',
     background: '#1e1e1e',
     color: '#ffffff'
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Estado Actualizado',
-        text: `El pago ha sido ${nuevoEstado.toLowerCase()}.`,
-        background: '#1e1e1e',
-        color: '#ffffff',
-        confirmButtonColor: '#ffc107'
-      });
-      // Tu compañero hará el fetch(PUT) aquí y luego llamará a cargarModulo('pagos')
+
+      try {
+        // Enviar la petición al backend
+        const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/verificar-pago`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pagoId: idPago,
+            estado: nuevoEstado,
+            membresiaId: idMembresia // Tu backend necesita saber qué membresía actualizar
+          })
+        });
+
+        if (res.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Estado Actualizado',
+            text: `El pago ha sido ${nuevoEstado.toLowerCase()}.`,
+            background: '#1e1e1e', color: '#ffffff', confirmButtonColor: '#ffc107'
+          });
+
+          // Recargamos el módulo para que desaparezca de la lista
+          cargarModulo('pagos');
+        } else {
+          throw new Error("Error procesando pago");
+        }
+      } catch(e) {
+        Swal.fire({icon: 'error', title: 'Error', text: 'No se pudo actualizar el pago.', background: '#1e1e1e', color: '#ffffff'});
+      }
     }
   });
 }
