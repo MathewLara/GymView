@@ -531,6 +531,9 @@ async function finalizarRutina() {
   // ==========================================
 // 8. ENVÍO DE COMPROBANTE DE PAGO
 // ==========================================
+  // ==========================================
+// ENVÍO DE COMPROBANTE DE PAGO (ADAPTADO A BASE64 JSON)
+// ==========================================
   async function enviarComprobantePago(event) {
     event.preventDefault(); // Evita que se recargue la página
 
@@ -549,45 +552,77 @@ async function finalizarRutina() {
     const idCliente = usuario.idUsuario || usuario.id || 1;
     const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
 
-    // Aquí debes capturar el ID de la membresía que el cliente quiere pagar.
-    // Puede estar en un input oculto o seleccionable.
-    const idMembresia = document.getElementById('idMembresiaSeleccionada').value;
-    const montoPagado = document.getElementById('montoPagar').value;
-
-    const formData = new FormData();
-    formData.append('comprobante', file);
-    formData.append('id_cliente', idCliente);
-    formData.append('id_membresia', idMembresia);
-    formData.append('monto_pagado', montoPagado);
-    formData.append('id_empresa', idEmpresaLogueada);
+    // Aquí capturas el ID de la membresía y el monto
+    const idMembresia = document.getElementById('idMembresiaSeleccionada') ? document.getElementById('idMembresiaSeleccionada').value : 2;
+    const montoPagado = document.getElementById('montoPagar') ? document.getElementById('montoPagar').value : 30.00;
 
     try {
+      // Bloqueamos el botón mientras procesa
       if(btnSubmit) {
         btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Enviando...';
         btnSubmit.disabled = true;
       }
 
-      const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/cliente/pago-membresia`, {
-        method: 'POST',
-        body: formData // Al usar FormData, fetch configura el Content-Type automáticamente (multipart/form-data)
-      });
+      // --- AQUÍ ESTÁ LA ADAPTACIÓN: CONVERTIR FOTO A TEXTO (BASE64) ---
+      const reader = new FileReader();
 
-      if (res.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: '¡Comprobante Enviado!',
-          text: 'Recepción validará tu pago pronto. Tu cuenta se activará automáticamente al ser aprobado.',
-          confirmButtonColor: '#ffc107',
-          background: '#1e1e1e', color: '#ffffff'
-        });
-        // Limpiar formulario o redirigir
-        document.getElementById('formComprobante').reset();
-      } else {
-        throw new Error("Error en el servidor");
-      }
+      // Esta función se ejecuta en cuanto la imagen termina de leerse
+      reader.onloadend = async function() {
+        const base64String = reader.result; // Esta es la imagen convertida a texto
+
+        // Armamos el paquete de datos en formato JSON en lugar de FormData
+        const payload = {
+          id_cliente: idCliente,
+          id_membresia: idMembresia,
+          monto_pagado: montoPagado,
+          id_empresa: idEmpresaLogueada,
+          comprobante: base64String // Enviamos el texto gigante de la imagen
+        };
+
+        try {
+          // Hacemos la petición al backend enviando JSON
+          const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/pago-membresia`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json' // Clave: Le decimos a Java que es un JSON
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: '¡Comprobante Enviado!',
+              text: 'Recepción validará tu pago pronto. Tu cuenta se activará automáticamente al ser aprobado.',
+              confirmButtonColor: '#ffc107',
+              background: '#1e1e1e', color: '#ffffff'
+            });
+
+            // Limpiar formulario si existe
+            const form = document.getElementById('formComprobante');
+            if(form) form.reset();
+
+          } else {
+            throw new Error("Error en el servidor al guardar el pago");
+          }
+        } catch (error) {
+          console.error("Error en fetch:", error);
+          Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo enviar el comprobante. Intenta de nuevo.', background: '#1e1e1e', color: '#ffffff' });
+        } finally {
+          // Restauramos el botón sin importar si hubo error o éxito
+          if(btnSubmit) {
+            btnSubmit.innerHTML = 'Subir Comprobante';
+            btnSubmit.disabled = false;
+          }
+        }
+      };
+
+      // Iniciamos la lectura de la imagen (esto dispara la función reader.onloadend de arriba)
+      reader.readAsDataURL(file);
+
     } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo enviar el comprobante.', background: '#1e1e1e', color: '#ffffff' });
-    } finally {
+      console.error("Error procesando imagen:", error);
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un error al procesar la imagen.', background: '#1e1e1e', color: '#ffffff' });
       if(btnSubmit) {
         btnSubmit.innerHTML = 'Subir Comprobante';
         btnSubmit.disabled = false;
