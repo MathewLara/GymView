@@ -251,7 +251,7 @@ async function cargarModulo(modulo, elementoHTML) {
                   <td class="text-warning">Membresía #${p.id_membresia}</td>
                   <td class="text-success fw-bold">+$${p.monto_pagado}</td>
                   <td>
-                    <button class="btn btn-sm btn-outline-info fw-bold" onclick="abrirModalComprobante('${p.id_pago}', '${p.fecha_pago}', 'Renovación', '${p.referencia_comprobante}')">
+                    <button class="btn btn-sm btn-outline-info fw-bold" onclick="abrirModalComprobante('${p.numero_referencia}', '${p.fecha_pago}', '${p.motivo}', '${p.foto_comprobante}')">
                       <i class="bi bi-eye"></i> Comprobante
                     </button>
                   </td>

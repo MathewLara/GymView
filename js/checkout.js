@@ -127,13 +127,19 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.onloadend = async function() {
         const base64String = reader.result;
 
-        // 4. Armamos el paquete de datos
+        // Capturamos lo que el usuario escribió (si no escribe nada, mandamos un texto por defecto)
+        const numRef = document.getElementById('numeroComprobante') ? document.getElementById('numeroComprobante').value : 'S/N';
+        const motivo = document.getElementById('motivoPago') ? document.getElementById('motivoPago').value : 'Renovación de Plan';
+
+        // 4. Armamos el paquete de datos COMPLETO
         const datosPago = {
           idUsuario: idUsuario,
           idMembresia: planFinal.id,
           monto: planFinal.precio,
           idEmpresa: idEmpresa,
-          comprobante: base64String // Aquí viaja la foto
+          comprobanteFoto: base64String, // La foto va aquí
+          numeroReferencia: numRef,      // El número de transacción va aquí
+          motivo: motivo                 // El motivo va aquí
         };
 
         try {
