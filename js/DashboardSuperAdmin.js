@@ -22,7 +22,45 @@ document.addEventListener('DOMContentLoaded', () => {
   if(userEl) userEl.innerText = usuario.nombre || 'Super Administrador';
 
   cargarModulo('resumen');
+
+  // ==========================================
+  // VALIDACIONES DE TECLADO EN TIEMPO REAL
+  // ==========================================
+  const inputsNumericos = ['empresaRuc', 'empresaTelefono'];
+  inputsNumericos.forEach(id => {
+    const input = document.getElementById(id);
+    if(input) {
+      input.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, ''); 
+      });
+    }
+  });
+
+  const inputsLetras = ['adminNombre', 'adminApellido'];
+  inputsLetras.forEach(id => {
+    const input = document.getElementById(id);
+    if(input) {
+      input.addEventListener('input', function() {
+        this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); 
+      });
+    }
+  });
+
+  const inputUser = document.getElementById('adminUsername');
+  if(inputUser) {
+    inputUser.addEventListener('input', function() {
+      this.value = this.value.replace(/[^a-zA-Z0-9_.]/g, ''); 
+    });
+  }
 });
+
+// Limpiar alertas rojas/amarillas al abrir modal
+function limpiarErrores(formId) {
+  const form = document.getElementById(formId);
+  if(form) {
+    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+  }
+}
 
 function toggleMenu() {
   const sidebar = document.getElementById('sidebarAdmin');
@@ -160,6 +198,8 @@ async function cargarModulo(modulo, elementoHTML) {
 function abrirModalNuevaEmpresa() {
   const f = document.getElementById('formEmpresa');
   if(f) f.reset();
+  limpiarErrores('formEmpresa');
+  
   document.getElementById('empresaId').value = '';
   document.getElementById('modalTituloEmpresa').innerHTML = `<i class="bi bi-building-add me-2"></i>Nuevo Gimnasio`;
   if(modalEmpresaInstance) modalEmpresaInstance.show();
@@ -168,6 +208,7 @@ function abrirModalNuevaEmpresa() {
 function abrirModalEditarEmpresa(id, nombre, ruc, telefono, direccion) {
   const f = document.getElementById('formEmpresa');
   if(f) f.reset();
+  limpiarErrores('formEmpresa');
 
   document.getElementById('empresaId').value = id;
   document.getElementById('empresaNombre').value = nombre;
@@ -180,14 +221,25 @@ function abrirModalEditarEmpresa(id, nombre, ruc, telefono, direccion) {
 }
 
 async function guardarEmpresa() {
+  const form = document.getElementById('formEmpresa');
+  limpiarErrores('formEmpresa');
+
+  if (!form.checkValidity()) {
+    Array.from(form.elements).forEach(input => {
+      if (!input.validity.valid) input.classList.add('is-invalid');
+    });
+    Swal.fire({icon: 'warning', title: 'Campos incompletos', text: 'Revisa los campos marcados en amarillo.', background: '#1e1e1e', color: '#ffffff'});
+    return;
+  }
+
   const id = document.getElementById('empresaId').value;
   const isEdit = id !== '';
 
   const data = {
-    nombre: document.getElementById('empresaNombre')?.value || 'Nueva Empresa',
-    ruc: document.getElementById('empresaRuc')?.value || '00000000',
-    telefono: document.getElementById('empresaTelefono')?.value || 'N/A',
-    direccion: document.getElementById('empresaDireccion')?.value || 'N/A'
+    nombre: document.getElementById('empresaNombre').value.trim(),
+    ruc: document.getElementById('empresaRuc').value.trim(),
+    telefono: document.getElementById('empresaTelefono').value.trim(),
+    direccion: document.getElementById('empresaDireccion').value.trim() || 'N/A'
   };
 
   const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas';
@@ -209,11 +261,13 @@ async function cambiarEstadoEmpresa(id, nuevoEstado) {
 }
 
 // ==========================================
-// FUNCIONES CRUD DE ADMINISTRADORES (CORRECCIÓN DE ERROR)
+// FUNCIONES CRUD DE ADMINISTRADORES
 // ==========================================
 async function abrirModalNuevoAdmin() {
   const f = document.getElementById('formAdmin');
   if(f) f.reset();
+  limpiarErrores('formAdmin');
+  
   document.getElementById('adminId').value = '';
   document.getElementById('modalTituloAdmin').innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Nuevo Administrador';
 
@@ -236,6 +290,7 @@ async function abrirModalNuevoAdmin() {
 async function abrirModalEditarAdmin(id, usuario, nombre, apellido, idEmpresa) {
   const f = document.getElementById('formAdmin');
   if(f) f.reset();
+  limpiarErrores('formAdmin');
 
   document.getElementById('adminId').value = id;
   document.getElementById('adminNombre').value = nombre;
@@ -252,7 +307,6 @@ async function abrirModalEditarAdmin(id, usuario, nombre, apellido, idEmpresa) {
     try {
       const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/empresas');
       const empresas = await res.json();
-      // CARGAMOS TODAS LAS EMPRESAS (incluso inactivas) para no perder el rastro al editar
       select.innerHTML = '<option value="" disabled>Seleccione el Gimnasio...</option>' +
         empresas.map(e => `<option value="${e.id}">${e.nombre} ${!e.estado ? '(Inactiva)' : ''}</option>`).join('');
 
@@ -265,27 +319,38 @@ async function abrirModalEditarAdmin(id, usuario, nombre, apellido, idEmpresa) {
 }
 
 async function guardarAdmin() {
+  const form = document.getElementById('formAdmin');
+  limpiarErrores('formAdmin');
+
   const id = document.getElementById('adminId').value;
   const isEdit = id !== '';
+  const passInput = document.getElementById('adminPass');
+
+  // Manejo del campo de contraseña (obligatoria en Nuevo, opcional en Editar)
+  if (isEdit && passInput.value.trim() === '') {
+    passInput.removeAttribute('required');
+  } else {
+    passInput.setAttribute('required', 'true');
+  }
+
+  // Validación nativa de Bootstrap
+  if (!form.checkValidity() || (passInput.hasAttribute('required') && passInput.value.length < 5)) {
+    Array.from(form.elements).forEach(input => {
+      if (!input.validity.valid || (input.id === 'adminPass' && input.hasAttribute('required') && input.value.length < 5)) {
+        input.classList.add('is-invalid');
+      }
+    });
+    Swal.fire({icon: 'warning', title: 'Datos inválidos', text: 'Revisa los campos marcados. La contraseña debe tener al menos 5 caracteres.', background: '#1e1e1e', color: '#ffffff'});
+    return;
+  }
 
   const data = {
-    idEmpresa: document.getElementById('adminEmpresa')?.value,
-    nombre: document.getElementById('adminNombre')?.value,
-    apellido: document.getElementById('adminApellido')?.value,
-    usuario: document.getElementById('adminUsername')?.value,
-    contrasena: document.getElementById('adminPass')?.value
+    idEmpresa: document.getElementById('adminEmpresa').value,
+    nombre: document.getElementById('adminNombre').value.trim(),
+    apellido: document.getElementById('adminApellido').value.trim(),
+    usuario: document.getElementById('adminUsername').value.trim(),
+    contrasena: passInput.value.trim()
   };
-
-  // CORRECCIÓN: Validación blindada para evitar enviar IDs de empresa en blanco
-  if (!data.idEmpresa || data.idEmpresa === "") {
-    Swal.fire({icon: 'warning', title: 'Atención', text: 'Debe seleccionar un gimnasio válido de la lista.', background: '#1e1e1e', color: '#ffffff'});
-    return;
-  }
-
-  if (!data.usuario || (!isEdit && !data.contrasena)) {
-    Swal.fire({icon: 'warning', title: 'Atención', text: 'El nombre de usuario y la contraseña son obligatorios.', background: '#1e1e1e', color: '#ffffff'});
-    return;
-  }
 
   const url = isEdit ? `https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores/${id}` : 'https://gimnasio-f7td.onrender.com/Gimnasio/api/superadmin/administradores';
   const method = isEdit ? 'PUT' : 'POST';

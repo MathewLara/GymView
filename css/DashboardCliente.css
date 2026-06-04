@@ -145,3 +145,7 @@ body {
     padding: 15px;
   }
 }
+.ejercicio-completado {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}

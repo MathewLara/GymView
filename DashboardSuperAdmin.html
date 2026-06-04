@@ -113,22 +113,25 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="formEmpresa">
+        <form id="formEmpresa" novalidate>
           <input type="hidden" id="empresaId">
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label text-white">Nombre de la Empresa <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-black text-white border-secondary" id="empresaNombre" maxlength="150" required>
+              <div class="invalid-feedback text-warning">El nombre es obligatorio.</div>
             </div>
             <div class="col-md-6">
               <label class="form-label text-white">RUC / NIT <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-black text-white border-secondary" id="empresaRuc" maxlength="50" required>
+              <input type="text" class="form-control bg-black text-white border-secondary" id="empresaRuc" maxlength="13" placeholder="13 dígitos numéricos" required>
+              <div class="invalid-feedback text-warning">Ingresa un RUC válido.</div>
             </div>
             <div class="col-md-6">
-              <label class="form-label text-white">Teléfono</label>
-              <div class="input-group">
+              <label class="form-label text-white">Teléfono <span class="text-danger">*</span></label>
+              <div class="input-group has-validation">
                 <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-telephone"></i></span>
-                <input type="text" class="form-control bg-black text-white border-secondary" id="empresaTelefono" maxlength="50">
+                <input type="text" class="form-control bg-black text-white border-secondary" id="empresaTelefono" maxlength="10" placeholder="10 dígitos numéricos" required>
+                <div class="invalid-feedback text-warning">Ingresa un teléfono válido.</div>
               </div>
             </div>
             <div class="col-12">
@@ -156,61 +159,57 @@
         <h5 class="modal-title text-warning fw-bold" id="modalTituloAdmin"><i class="bi bi-person-plus-fill me-2"></i>Nuevo Administrador</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      
       <div class="modal-body">
-        <form id="formAdmin">
+        <form id="formAdmin" novalidate>
           <input type="hidden" id="adminId">
           <div class="row g-3">
-            
             <div class="col-12">
               <label class="form-label text-white fw-bold">Asignar a Empresa (Gimnasio) <span class="text-danger">*</span></label>
               <select class="form-select bg-black text-warning border-secondary fw-bold" id="adminEmpresa" required>
                 <option value="1">Iron Fitness Gym</option>
                 <option value="2">Titanium Gym</option>
               </select>
+              <div class="invalid-feedback text-warning">Selecciona una empresa.</div>
             </div>
-            
             <div class="col-md-6">
               <label class="form-label text-white">Nombre(s) <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-black text-white border-secondary" id="adminNombre" required>
+              <div class="invalid-feedback text-warning">El nombre es obligatorio (solo letras).</div>
             </div>
-            
             <div class="col-md-6">
               <label class="form-label text-white">Apellido(s) <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-black text-white border-secondary" id="adminApellido" required>
+              <div class="invalid-feedback text-warning">El apellido es obligatorio (solo letras).</div>
             </div>
-            
             <div class="col-md-6">
               <label class="form-label text-white">Nombre de Usuario (Para Login) <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-black text-white border-secondary" id="adminUsername" required>
+              <div class="invalid-feedback text-warning">Usuario obligatorio (sin espacios).</div>
             </div>
-            
             <div class="col-md-6">
               <label class="form-label text-white">Rol Asignado</label>
               <input type="text" class="form-control bg-secondary text-white border-secondary" value="Administrador" readonly>
             </div>
-            
             <div class="col-12 mt-4">
               <label class="form-label text-white">Contraseña de Acceso <small id="passHintAdmin" class="text-warning fw-bold ms-2"></small></label>
-              <div class="input-group">
+              <div class="input-group has-validation">
                 <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-key"></i></span>
-                <input type="password" class="form-control bg-black text-white border-secondary" id="adminPass" placeholder="Ingrese contraseña segura">
-                
+                <input type="password" class="form-control bg-black text-white border-secondary" id="adminPass" placeholder="Ingrese contraseña segura (mín. 5 caracteres)" required>
                 <button class="btn btn-outline-secondary bg-secondary border-secondary text-white" type="button" id="toggleSuperAdminPass">
                   <i class="bi bi-eye-slash-fill" id="toggleSuperAdminIcon"></i>
                 </button>
+                <div class="invalid-feedback text-warning">La contraseña debe tener al menos 5 caracteres.</div>
               </div>
             </div>
-            
-          </div> </form>
-      </div> <div class="modal-footer border-secondary">
+          </div> 
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
         <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-warning fw-bold text-dark" onclick="guardarAdmin()"><i class="bi bi-save"></i> Guardar Admin</button>
       </div>
-      
     </div>
   </div>
-</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
