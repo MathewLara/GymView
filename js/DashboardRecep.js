@@ -321,7 +321,7 @@ function abrirModalComprobante(numero, fecha, motivo, imgSrc) {
   if(modalComprobanteInstance) modalComprobanteInstance.show();
 }
 
-// Fíjate que añadí idMembresia como parámetro
+// Fí
 async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
   const isAceptar = nuevoEstado === 'APROBADO';
 
