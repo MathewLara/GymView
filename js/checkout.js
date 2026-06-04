@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // 2. Capturamos la FOTO
-      const fileInput = document.getElementById('fotoComprobante'); // OJO: Tu HTML debe tener un input tipo file con este ID
+      const fileInput = document.getElementById('imagenComprobante'); // OJO: Tu HTML debe tener un input tipo file con este ID
       const file = fileInput ? fileInput.files[0] : null;
 
       if (!file) {
