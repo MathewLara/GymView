@@ -94,72 +94,88 @@ document.addEventListener('DOMContentLoaded', () => {
     formPago.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      btnSubmit.disabled = true;
-      btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando comprobante...';
-
-      // Validamos la sesión
+      // 1. Validamos la sesión
       let usuarioTexto = sessionStorage.getItem('usuarioLogueado') || localStorage.getItem('usuarioLogueado');
-
       if (!usuarioTexto) {
         alert("¡Alto ahí! Para registrar un pago, primero debes iniciar sesión.");
         window.location.href = 'login.html';
         return;
       }
 
+      // 2. Capturamos la FOTO
+      const fileInput = document.getElementById('fotoComprobante'); // OJO: Tu HTML debe tener un input tipo file con este ID
+      const file = fileInput ? fileInput.files[0] : null;
+
+      if (!file) {
+        Swal.fire({ icon: 'warning', title: 'Falta foto', text: 'Por favor, sube la foto del comprobante de transferencia.', background: '#1e1e1e', color: '#ffffff' });
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Subiendo comprobante...';
+
       let usuarioActivo = JSON.parse(usuarioTexto);
       let idUsuario = usuarioActivo.idUsuario || usuarioActivo.id;
+      let idEmpresa = usuarioActivo.idEmpresa || usuarioActivo.id_empresa || 1;
 
-      // Leemos qué plan está seleccionado
       const selector = document.getElementById('selectorPlan');
       const idPlanFinal = selector ? parseInt(selector.value) : planInicialId;
       const planFinal = planes[idPlanFinal];
 
-      const datosPago = {
-        idUsuario: idUsuario,
-        idMembresia: planFinal.id,
-        monto: planFinal.precio,
-        dias: planFinal.dias,
-        // Agregamos los nuevos datos del formulario
-        fecha: document.getElementById('fechaDeposito').value,
-        comprobante: document.getElementById('numeroComprobante').value,
-        motivo: document.getElementById('motivoPago').value
+      // 3. Convertimos la imagen a Texto (Base64)
+      const reader = new FileReader();
+      reader.onloadend = async function() {
+        const base64String = reader.result;
+
+        // 4. Armamos el paquete de datos
+        const datosPago = {
+          idUsuario: idUsuario,
+          idMembresia: planFinal.id,
+          monto: planFinal.precio,
+          idEmpresa: idEmpresa,
+          comprobante: base64String // Aquí viaja la foto
+        };
+
+        try {
+          const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/membresia', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosPago)
+          });
+
+          if (res.ok) {
+            btnSubmit.classList.remove('btn-warning');
+            btnSubmit.classList.add('btn-success');
+            btnSubmit.innerHTML = '<i class="bi bi-check-circle-fill"></i> ¡Comprobante Enviado!';
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Pago Registrado',
+              text: 'Tu comprobante está en revisión. El mes se activará en cuanto Recepción apruebe la foto.',
+              confirmButtonColor: '#ffc107',
+              background: '#1e1e1e', color: '#ffffff'
+            }).then(() => {
+              window.location.href = 'DashboardCliente.html';
+            });
+          } else {
+            const errorData = await res.json();
+            Swal.fire({ icon: 'error', title: 'Rechazado', text: errorData.mensaje || 'Error al guardar.', background: '#1e1e1e', color: '#ffffff' });
+            restaurarBoton();
+          }
+        } catch (error) {
+          console.error(error);
+          Swal.fire({ icon: 'error', title: 'Error de red', text: 'Verifica tu conexión a internet.', background: '#1e1e1e', color: '#ffffff' });
+          restaurarBoton();
+        }
       };
 
-      try {
-        // AQUÍ TU COMPAÑERO DEBE PONER LA RUTA CORRECTA PARA GUARDAR EL COMPROBANTE
-        const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/membresia', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(datosPago)
-        });
-
-        if (res.ok) {
-          btnSubmit.classList.remove('btn-warning');
-          btnSubmit.classList.add('btn-success');
-          btnSubmit.innerHTML = '<i class="bi bi-check-circle-fill"></i> ¡Comprobante Enviado!';
-
-          Swal.fire({
-            icon: 'success',
-            title: 'Pago Registrado',
-            text: 'Hemos recibido tu notificación de pago. Tu plan será activado una vez que recepción valide el comprobante.',
-            confirmButtonColor: '#ffc107',
-            background: '#1e1e1e',
-            color: '#ffffff'
-          }).then(() => {
-            window.location.href = 'DashboardCliente.html';
-          });
-        } else {
-          const errorData = await res.json();
-          alert("Rechazado:\n\n" + (errorData.mensaje || 'Error desconocido'));
-          btnSubmit.disabled = false;
-          btnSubmit.innerHTML = 'Confirmar Pago Registrado';
-        }
-      } catch (error) {
-        console.error(error);
-        alert("Error de red. Verifica tu conexión.");
+      function restaurarBoton() {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = 'Confirmar Pago Registrado';
       }
+
+      // Iniciamos el proceso de lectura de la imagen
+      reader.readAsDataURL(file);
     });
   }
 });
