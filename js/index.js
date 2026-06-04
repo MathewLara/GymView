@@ -48,9 +48,8 @@ function irAZonaSocios() {
   }
 }
 // ==========================================
-// RENDERIZADO DINÁMICO DE PLANES
+// RENDERIZADO DINÁMICO DE PLANES (CONECTADO A BDD)
 // ==========================================
-
 document.addEventListener('DOMContentLoaded', () => {
   cargarPlanesDesdeBDD();
 });
@@ -60,31 +59,29 @@ async function cargarPlanesDesdeBDD() {
   if (!contenedor) return;
 
   try {
-    // NOTA PARA EL BACKEND: Cambiar esta URL por el endpoint real que trae los planes activos
-    // const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/planes/activos');
-    // const planes = await res.json();
+    // 1. LLAMADA REAL A TU BACKEND EN JAVA
+    const res = await fetch('https://gimnasio-f7td.onrender.com/Gimnasio/api/admin/planes-activos');
 
-    // DATO FALSO (MOCK) PARA PRUEBAS VISUALES (Borrar cuando se conecte el backend)
-    const planes = [
-      { id: 1, nombre: 'Plan Smart', precio: 24.99, descripcion: 'Acceso ilimitado, Área de pesas, Vestidores y duchas.', recomendado: false },
-      { id: 2, nombre: 'Plan Black', precio: 34.99, descripcion: 'Todo el Plan Smart, Entrenador Personalizado, Acceso a todas las sedes.', recomendado: true }
-    ];
+    if (!res.ok) throw new Error("Error en el servidor");
+
+    const planes = await res.json();
 
     if (planes.length === 0) {
-      contenedor.innerHTML = '<div class="col-12 text-center text-white"><p>No hay planes disponibles por el momento.</p></div>';
+      contenedor.innerHTML = '<div class="col-12 text-center text-white"><p>No hay planes disponibles por el momento. ¡Vuelve pronto!</p></div>';
       return;
     }
 
-    // Dibujamos las tarjetas manteniendo tu estética original
+    // 2. DIBUJAMOS LAS TARJETAS DINÁMICAMENTE CON LOS DATOS DE LA BDD
     let tarjetasHTML = planes.map((plan, index) => {
-      
-      // Convertimos la descripción de texto plano a una lista con vistos buenos (checks)
-      const listaBeneficios = plan.descripcion.split(',').map(item => 
+
+      // Convertimos la descripción de la BDD a una lista con vistos buenos (separando por comas o puntos)
+      let beneficiosTexto = plan.descripcion ? plan.descripcion : "Acceso a máquinas,Zona de pesas libres";
+      const listaBeneficios = beneficiosTexto.split(/[,.]/).filter(i => i.trim() !== '').map(item =>
         `<li class="mb-3 text-dark text-start"><i class="bi bi-check-circle-fill text-success me-2"></i> ${item.trim()}</li>`
       ).join('');
 
-      // Si el plan es el "recomendado" (o el más caro/popular), aplicamos tu diseño amarillo
-      if (plan.recomendado || index === 1) {
+      // Si el plan es el "recomendado" (podemos asumir que es el segundo plan, o el que se llame VIP/Black)
+      if (index === 1 || plan.nombre.toLowerCase().includes('vip') || plan.nombre.toLowerCase().includes('black')) {
         return `
           <div class="col-md-5 col-lg-4 mb-4">
             <div class="card h-100 border-0 border-warning border-3 d-flex flex-column shadow-lg position-relative transform-scale">
@@ -105,8 +102,8 @@ async function cargarPlanesDesdeBDD() {
             </div>
           </div>
         `;
-      } 
-      // Diseño para planes estándar (blanco)
+      }
+      // Diseño para planes estándar (blancos)
       else {
         return `
           <div class="col-md-5 col-lg-4 mb-4">
@@ -132,6 +129,6 @@ async function cargarPlanesDesdeBDD() {
 
   } catch (error) {
     console.error("Error cargando los planes:", error);
-    contenedor.innerHTML = '<div class="col-12 text-center text-danger"><p><i class="bi bi-exclamation-triangle"></i> Error al conectar con el servidor.</p></div>';
+    contenedor.innerHTML = '<div class="col-12 text-center text-danger"><p><i class="bi bi-exclamation-triangle"></i> Error al conectar con el servidor para cargar planes.</p></div>';
   }
 }
