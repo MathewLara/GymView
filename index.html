@@ -132,46 +132,14 @@
       <h2 class="fw-bold text-white">Elige tu Plan</h2>
       <p class="text-white-50">Sin contratos forzosos. Entrena a tu ritmo.</p>
     </div>
-    <div class="row justify-content-center">
-      <div class="col-md-5 col-lg-4 mb-4">
-        <div class="card h-100 border-0 d-flex flex-column shadow-lg">
-          <div class="card-header bg-white text-center py-4 d-flex flex-column justify-content-center" style="min-height: 104px;">
-            <h4 class="fw-bold mb-2 text-dark">PLAN SMART</h4>
-            <div><span class="badge bg-secondary">Semicompleto</span></div>
-          </div>
-          <div class="card-body text-center py-5 d-flex flex-column">
-            <h2 class="display-4 fw-bold text-dark">$24.99<span class="fs-6 text-muted">/mes</span></h2>
-            <ul class="list-unstyled mt-4 mb-5 text-start mx-auto" style="max-width: 200px;">
-              <li class="mb-3 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i> Acceso ilimitado</li>
-              <li class="mb-3 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i> Área de pesas</li>
-              <li class="mb-3 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i> Vestidores y duchas</li>
-            </ul>
-            <a href="checkout.html?id=1&nombre=Plan%20Smart&precio=24.99&dias=30" class="btn btn-dark w-100 rounded-pill mt-auto fw-bold py-3">Seleccionar Plan</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-5 col-lg-4 mb-4">
-        <div class="card h-100 border-0 border-warning border-3 d-flex flex-column shadow-lg position-relative transform-scale">
-          <div class="position-absolute top-0 start-50 translate-middle badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill" style="z-index: 10;">
-            <i class="bi bi-star-fill"></i> Recomendado
-          </div>
-          <div class="card-header bg-warning text-center py-4 d-flex flex-column justify-content-center pt-5" style="min-height: 104px;">
-            <h4 class="fw-bold text-dark mb-2">PLAN BLACK</h4>
-            <div><span class="badge bg-dark">Más Popular</span></div>
-          </div>
-          <div class="card-body text-center py-5 d-flex flex-column">
-            <h2 class="display-4 fw-bold text-dark">$34.99<span class="fs-6 text-muted">/mes</span></h2>
-            <ul class="list-unstyled mt-4 mb-5 text-start mx-auto" style="max-width: 200px;">
-              <li class="mb-3 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i> Todo el Plan Smart</li>
-              <li class="mb-3 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i> Entrenador Personalizado</li>
-              <li class="mb-3 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i> Acceso a todas las sedes</li>
-              <li class="mb-3 text-dark"><i class="bi bi-check-circle-fill text-success me-2"></i> Camiseta de regalo</li>
-            </ul>
-            <a href="checkout.html?id=2&nombre=Plan%20Black&precio=34.99&dias=30" class="btn btn-dark w-100 rounded-pill mt-auto fw-bold py-3">Seleccionar Plan</a>
-          </div>
-        </div>
+    
+    <div class="row justify-content-center" id="contenedor-planes">
+      <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status"></div>
+        <p class="text-white mt-3">Cargando planes disponibles...</p>
       </div>
     </div>
+    
   </div>
 </section>
 

@@ -28,7 +28,8 @@ function verificarInactividad() {
         confirmButtonText: 'Entendido',
         confirmButtonColor: '#ffc107',
         background: '#1e1e1e',
-        color: '#ffffff'
+        color: '#ffffff',
+        allowOutsideClick: false
       }).then(() => {
         window.location.replace('index.html');
       });
@@ -47,8 +48,8 @@ window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 6 segundos
-setInterval(verificarInactividad, 6000);
+// Revisamos cada 60 segundos (no 6, para no saturar)
+setInterval(verificarInactividad, 60000);
 verificarInactividad();
 
 // ==========================================
@@ -155,53 +156,80 @@ async function cargarDatos(id, idEmpresa) {
           '<tr><td colspan="2" class="text-center text-muted">Sin registros</td></tr>';
       }
 
+      // ==========================================
+      // LÓGICA DE RUTINAS Y EJERCICIOS CORREGIDA
+      // ==========================================
       const divRutina = document.getElementById('rutina-container');
+      
       if(data.nombreRutina) {
         const hoy = new Date().toISOString().split('T')[0];
         const keyStorage = `rutina_${id}_${hoy}`;
         const completados = JSON.parse(localStorage.getItem(keyStorage)) || [];
 
+        // 1. Dibujamos cada ejercicio asegurando el tamaño de letra (fs-6 y style manual)
         const lista = data.ejercicios.map((e, index) => {
           const estaHecho = completados.includes(index);
           return `
-            <div id="card-ej-${index}" class="d-flex justify-content-between p-3 mb-2 bg-black border border-secondary rounded align-items-center ${estaHecho ? 'ejercicio-completado' : ''}">
-                <div>
-                    <h5 class="text-warning mb-0">${e.nombre}</h5>
-                    <small class="text-white-50">${e.seriesReps}</small>
+            <div id="card-ej-${index}" class="d-flex align-items-center justify-content-between p-3 mb-2 bg-black border border-secondary rounded shadow-sm ${estaHecho ? 'ejercicio-completado' : ''}" style="transition: all 0.2s ease;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-dark border border-warning rounded-circle d-flex justify-content-center align-items-center text-warning fw-bold" style="width: 40px; height: 40px; min-width: 40px;">
+                        ${index + 1}
+                    </div>
+                    <div>
+                        <div class="text-white fw-bold fs-6 mb-0" style="line-height: 1.2;">${e.nombre}</div>
+                        <small class="text-warning fw-semibold" style="font-size: 0.8rem;"><i class="bi bi-arrow-repeat"></i> ${e.seriesReps || 'Series y Reps'}</small>
+                    </div>
                 </div>
-                <input type="checkbox"
-                       class="form-check-input bg-dark border-secondary"
-                       style="width:25px;height:25px;cursor:pointer;"
-                       onclick="toggleEjercicio(${index}, ${id})"
-                       ${estaHecho ? 'checked' : ''}>
+                <div class="form-check form-switch m-0 ms-2">
+                    <input class="form-check-input bg-dark border-secondary" type="checkbox" role="switch" style="width: 2.5rem; height: 1.25rem; cursor: pointer;" onclick="toggleEjercicio(${index}, ${id})" ${estaHecho ? 'checked' : ''}>
+                </div>
             </div>`;
         }).join('');
 
+        // 2. Empaquetamos todo controlando el tamaño del título de la rutina
         divRutina.innerHTML = `
-          <div class="card-panel border-start border-4 border-warning mb-3">
-            <h2>${data.nombreRutina}</h2>
-            <p class="text-white-50">Coach: ${data.entrenador||'Staff'}</p>
+          <div class="card-panel shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+              <div>
+                <h5 class="fw-bold text-warning mb-1"><i class="bi bi-lightning-charge-fill me-2"></i>${data.nombreRutina}</h5>
+                <p class="text-white-50 mb-0" style="font-size: 0.85rem;"><i class="bi bi-person-video me-1"></i> Entrenador: ${data.entrenador || 'Staff'}</p>
+              </div>
+              <span class="badge bg-warning text-dark px-3 py-2 rounded-pill d-none d-sm-block">${data.ejercicios.length} Ejercicios</span>
+            </div>
+            
+            <div class="ejercicios-lista mb-4">
+              ${lista}
+            </div>
+
+            <button id="btnFinalizar" class="btn btn-warning w-100 py-3 fw-bold text-dark rounded shadow-sm" onclick="finalizarRutina()">
+                <i class="bi bi-check2-all me-2"></i> TERMINAR ENTRENAMIENTO
+            </button>
           </div>
-          ${lista}
-          <button id="btnFinalizar" class="btn btn-success w-100 mt-4 py-3 rounded-pill fw-bold shadow" onclick="finalizarRutina()">
-              <i class="bi bi-check-lg"></i> TERMINAR ENTRENAMIENTO
-          </button>
         `;
 
+        // 3. Bloqueo visual si ya entrenó
         if (data.rutinaTerminadaHoy) {
           const btn = document.getElementById('btnFinalizar');
           if (btn) {
             btn.disabled = true;
-            btn.textContent = "¡YA ENTRENASTE HOY!";
-            btn.classList.replace('btn-success', 'btn-secondary');
+            btn.innerHTML = "<i class='bi bi-trophy-fill me-2'></i> ¡YA ENTRENASTE HOY!";
+            btn.classList.replace('btn-warning', 'btn-secondary');
+            btn.classList.replace('text-dark', 'text-white');
           }
           document.querySelectorAll('input[type="checkbox"]').forEach(chk => {
             chk.checked = true;
-            chk.parentElement.classList.add('ejercicio-completado');
+            chk.parentElement.parentElement.classList.add('ejercicio-completado');
           });
         }
+        
       } else if (divRutina) {
-        divRutina.innerHTML = `<div class="alert alert-dark text-center">No tienes rutina asignada.</div>`;
+        divRutina.innerHTML = `
+          <div class="card-panel text-center py-5 shadow-sm">
+            <i class="bi bi-clipboard-x text-secondary" style="font-size: 4rem;"></i>
+            <h5 class="text-white mt-3 fw-bold">Sin rutina asignada</h5>
+            <p class="text-muted" style="font-size: 0.9rem;">Habla con tu entrenador para que te asigne tu plan de trabajo.</p>
+          </div>
+        `;
       }
     }
   } catch(e) {
