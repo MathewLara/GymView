@@ -8,7 +8,6 @@ if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || 
 }
 
 const TIEMPO_EXPIRACION = 30 * 60 * 1000;
-
 function verificarInactividad() {
   const loginTime = localStorage.getItem('loginTime');
   if (loginTime) {
@@ -61,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   cargarModulo('resumen');
 
-  // Funcionalidad de ver/ocultar contraseña en el modal de usuario
+  // Funcionalidad de ver/ocultar contraseña
   const toggleRecepPass = document.getElementById('toggleRecepPass');
   const recepPassInput = document.getElementById('userPass');
   const toggleRecepIcon = document.getElementById('toggleRecepIcon');
@@ -157,7 +156,6 @@ async function cargarModulo(modulo, elementoHTML) {
   if (modulo === 'resumen') {
     vistaResumen.style.display = 'block';
     contenedorDinamico.innerHTML = '';
-
     try {
       const idEmpresa = localStorage.getItem('id_empresa') || 1;
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/dashboard?idEmpresa=${idEmpresa}`);
@@ -196,30 +194,36 @@ async function cargarModulo(modulo, elementoHTML) {
     iniciarEscanerQR();
 
     // ------------------------------------------
-    // MÓDULO: CLIENTES Y ENTRENADORES
+    // MÓDULOS: CLIENTES, ENTRENADORES Y PEDIDOS
+    // (Quitamos los spinners infinitos para que sepas que sí cargan)
     // ------------------------------------------
-  } else if (modulo === 'clientes' || modulo === 'entrenadores') {
+  } else if (['clientes', 'entrenadores', 'pedidos'].includes(modulo)) {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
-
-    // Aquí puedes pegar después tu fetch original de clientes si lo tenías
+    let icono = modulo === 'clientes' ? 'bi-people' : (modulo === 'entrenadores' ? 'bi-person-badge' : 'bi-cart');
+    contenedorDinamico.innerHTML = `
+      <div class="card bg-dark border-secondary shadow-lg mt-4" style="border-radius: 15px;">
+        <div class="card-body p-5 text-center">
+          <i class="bi ${icono} text-warning" style="font-size: 3rem;"></i>
+          <h4 class="text-white mt-3 fw-bold">Módulo de ${modulo.charAt(0).toUpperCase() + modulo.slice(1)}</h4>
+          <p class="text-muted">La interfaz de navegación está funcionando correctamente. Aquí irá la lógica de fetch para este módulo.</p>
+        </div>
+      </div>
+    `;
 
     // ------------------------------------------
-    // MÓDULO: PAGOS Y TRANSFERENCIAS (CONECTADO A BDD)
+    // MÓDULO: PAGOS Y TRANSFERENCIAS (CONECTADO AL BACKEND)
     // ------------------------------------------
   } else if (modulo === 'pagos') {
     vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando pagos...</p></div>';
+    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando pagos desde la base de datos...</p></div>';
 
     try {
       const idEmpresa = localStorage.getItem('id_empresa') || 1;
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos-pendientes?idEmpresa=${idEmpresa}`);
-
       let filas = '';
 
       if (res.ok) {
         const pagos = await res.json();
-
         if(pagos.length === 0) {
           filas = '<tr><td colspan="7" class="text-center text-muted py-4">No hay comprobantes pendientes por revisar.</td></tr>';
         } else {
@@ -266,7 +270,7 @@ async function cargarModulo(modulo, elementoHTML) {
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
               <div>
                 <h4 class="text-white m-0 fw-bold"><i class="bi bi-cash-coin text-warning"></i> Validación de Transferencias</h4>
-                <p class="text-muted small m-0">Revisa los comprobantes para auditar el historial o activar planes.</p>
+                <p class="text-muted small m-0">Revisa los comprobantes subidos por los clientes para activar su plan.</p>
               </div>
               <div class="d-flex gap-2 align-items-center flex-wrap">
                 <div class="input-group" style="width: 250px;">
@@ -291,22 +295,13 @@ async function cargarModulo(modulo, elementoHTML) {
         </div>
       `;
     } catch (error) {
-      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error al cargar los pagos.</div>';
+      contenedorDinamico.innerHTML = '<div class="alert alert-danger">Error de red al cargar los pagos.</div>';
     }
-
-    // ------------------------------------------
-    // MÓDULO: PEDIDOS DE TIENDA
-    // ------------------------------------------
-  } else if (modulo === 'pedidos') {
-    vistaResumen.style.display = 'none';
-    contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando módulo de pedidos...</p></div>';
-
   }
-
-
+} // <--- FIN DE LA FUNCION cargarModulo()
 
 // ==========================================
-// FUNCIONES VISUALES PARA COMPROBANTES Y PAGOS
+// FUNCIONES VISUALES PARA COMPROBANTES (ACTUALIZADO)
 // ==========================================
 
 function abrirModalComprobante(numero, fecha, motivo, imgSrc) {
@@ -325,12 +320,15 @@ function abrirModalComprobante(numero, fecha, motivo, imgSrc) {
   if(modalComprobanteInstance) modalComprobanteInstance.show();
 }
 
+// ==========================================
+// FUNCIÓN PARA CAMBIAR ESTADO (CONECTADA AL BACKEND)
+// ==========================================
 async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
   const isAceptar = nuevoEstado === 'APROBADO';
 
   Swal.fire({
     title: `¿${nuevoEstado} este pago?`,
-    text: isAceptar ? 'El plan del cliente se activará inmediatamente en el sistema.' : 'El pago será marcado como inválido y el cliente seguirá bloqueado.',
+    text: isAceptar ? 'El plan del cliente se activará inmediatamente en el sistema.' : 'El pago será marcado como inválido.',
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: isAceptar ? '#198754' : '#dc3545',
@@ -359,12 +357,12 @@ async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
             text: `El pago ha sido ${nuevoEstado.toLowerCase()}.`,
             background: '#1e1e1e', color: '#ffffff', confirmButtonColor: '#ffc107'
           });
-          cargarModulo('pagos');
+          cargarModulo('pagos'); // Recarga la vista automáticamente
         } else {
-          throw new Error("Error procesando pago");
+          throw new Error("Error en servidor");
         }
       } catch(e) {
-        Swal.fire({icon: 'error', title: 'Error', text: 'No se pudo actualizar el pago.', background: '#1e1e1e', color: '#ffffff'});
+        Swal.fire({icon: 'error', title: 'Error', text: 'No se pudo actualizar.', background: '#1e1e1e', color: '#ffffff'});
       }
     }
   });
@@ -398,4 +396,3 @@ function exportarPagosRecepCSV() {
 // ==========================================
 function iniciarEscanerQR() { console.log("Cámara iniciada"); }
 function registrarIngresoManual() { console.log("Ingreso manual"); }
-}
