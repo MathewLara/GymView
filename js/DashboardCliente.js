@@ -48,7 +48,7 @@ window.addEventListener('click', reiniciarTemporizador);
 window.addEventListener('keydown', reiniciarTemporizador);
 window.addEventListener('scroll', reiniciarTemporizador);
 
-// Revisamos cada 60 segundos (no 6, para no saturar)
+// Revisamos cada 60 segundos
 setInterval(verificarInactividad, 60000);
 verificarInactividad();
 
@@ -157,11 +157,27 @@ async function cargarDatos(id, idEmpresa) {
       }
 
       // ==========================================
-      // LÓGICA DE RUTINAS Y EJERCICIOS CORREGIDA
+      // LÓGICA DE RUTINAS Y EJERCICIOS
       // ==========================================
       const divRutina = document.getElementById('rutina-container');
       
       if(data.nombreRutina) {
+        // --- LIMPIEZA DE DATOS (Filtro para evitar textos duplicados del backend) ---
+        let nombreRutinaLimpio = data.nombreRutina;
+        if (typeof nombreRutinaLimpio === 'string') {
+          // Separa por la barra "|", limpia espacios, quita vacíos y deja solo los únicos
+          let partes = nombreRutinaLimpio.split('|').map(s => s.trim()).filter(s => s !== '');
+          nombreRutinaLimpio = [...new Set(partes)].join(' | ');
+        }
+
+        let coachLimpio = data.entrenador || 'Staff';
+        if (typeof coachLimpio === 'string') {
+          // Separa por coma ",", limpia espacios, quita vacíos y deja solo únicos
+          let partesCoach = coachLimpio.split(',').map(s => s.trim()).filter(s => s !== '');
+          coachLimpio = [...new Set(partesCoach)].join(', ');
+        }
+        // -------------------------------------------------------------------------
+
         const hoy = new Date().toISOString().split('T')[0];
         const keyStorage = `rutina_${id}_${hoy}`;
         const completados = JSON.parse(localStorage.getItem(keyStorage)) || [];
@@ -186,13 +202,13 @@ async function cargarDatos(id, idEmpresa) {
             </div>`;
         }).join('');
 
-        // 2. Empaquetamos todo controlando el tamaño del título de la rutina
+        // 2. Empaquetamos todo usando los textos limpios (nombreRutinaLimpio y coachLimpio)
         divRutina.innerHTML = `
           <div class="card-panel shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
               <div>
-                <h5 class="fw-bold text-warning mb-1"><i class="bi bi-lightning-charge-fill me-2"></i>${data.nombreRutina}</h5>
-                <p class="text-white-50 mb-0" style="font-size: 0.85rem;"><i class="bi bi-person-video me-1"></i> Entrenador: ${data.entrenador || 'Staff'}</p>
+                <h5 class="fw-bold text-warning mb-1"><i class="bi bi-lightning-charge-fill me-2"></i>${nombreRutinaLimpio}</h5>
+                <p class="text-white-50 mb-0" style="font-size: 0.85rem;"><i class="bi bi-person-video me-1"></i> Entrenador: ${coachLimpio}</p>
               </div>
               <span class="badge bg-warning text-dark px-3 py-2 rounded-pill d-none d-sm-block">${data.ejercicios.length} Ejercicios</span>
             </div>
