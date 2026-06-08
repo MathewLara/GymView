@@ -247,12 +247,44 @@ async function guardarEmpresa() {
 
   try {
     const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+    
+    // Verificamos si la respuesta del backend fue exitosa
     if(res.ok) {
       if(modalEmpresaInstance) modalEmpresaInstance.hide();
       Swal.fire({icon: 'success', title: 'Éxito', text: isEdit ? 'Gimnasio actualizado correctamente.' : 'Gimnasio creado correctamente.', background: '#1e1e1e', color: '#ffffff'});
       cargarModulo('empresas');
+    } else {
+        // Manejamos los errores que devuelve el backend (RUC duplicado o inválido)
+        const errorData = await res.json();
+        const mensajeError = errorData.mensaje || errorData.message || 'Ocurrió un error al guardar la empresa.';
+
+        // Determinar el tipo de error para mostrar la alerta adecuada
+        if (mensajeError.toLowerCase().includes('duplicado') || mensajeError.toLowerCase().includes('ya existe')) {
+             Swal.fire({
+                 icon: 'error', 
+                 title: 'RUC Duplicado', 
+                 text: 'El RUC ingresado ya está registrado en el sistema.', 
+                 background: '#1e1e1e', 
+                 color: '#ffffff'
+             });
+             document.getElementById('empresaRuc').classList.add('is-invalid');
+        } else if (mensajeError.toLowerCase().includes('inválido') || mensajeError.toLowerCase().includes('incorrecto')) {
+             Swal.fire({
+                 icon: 'error', 
+                 title: 'RUC Inválido', 
+                 text: 'El RUC ingresado no cumple con el formato correcto.', 
+                 background: '#1e1e1e', 
+                 color: '#ffffff'
+             });
+             document.getElementById('empresaRuc').classList.add('is-invalid');
+        } else {
+             Swal.fire({icon: 'error', title: 'Error', text: mensajeError, background: '#1e1e1e', color: '#ffffff'});
+        }
     }
-  } catch(e) {}
+  } catch(e) {
+      console.error(e);
+      Swal.fire({icon: 'error', title: 'Error', text: 'Error de conexión con el servidor.', background: '#1e1e1e', color: '#ffffff'});
+  }
 }
 
 async function cambiarEstadoEmpresa(id, nuevoEstado) {
