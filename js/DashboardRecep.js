@@ -712,7 +712,8 @@ async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
           body: JSON.stringify({
             pagoId: idPago,
             estado: nuevoEstado,
-            membresiaId: idMembresia
+            membresiaId: idMembresia,
+            idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1) // <-- ¡AQUÍ ESTÁ LA SOLUCIÓN!
           })
         });
 
