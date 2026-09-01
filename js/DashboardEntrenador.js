@@ -49,11 +49,13 @@ function verificarInactividad() {
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      // 1. DESTRUIMOS LOS DATOS PRIMERO
+      // 1. DESTRUIMOS LOS DATOS PRIMERO (Antes de mostrar la alerta)
       deleteCookie('usuarioLogueado');
       deleteCookie('tokenGimnasio');
       deleteCookie('loginTime');
+      deleteCookie('id_empresa');
 
+      // 2. MOSTRAMOS LA ALERTA
       Swal.fire({
         icon: 'warning',
         title: 'Sesión Expirada',
@@ -86,6 +88,17 @@ window.addEventListener('scroll', reiniciarTemporizador);
 // Revisamos cada minuto
 setInterval(verificarInactividad, 60000);
 verificarInactividad();
+
+// ==========================================
+// FUNCIÓN UNIFICADA PARA CERRAR SESIÓN
+// ==========================================
+function cerrarSesion() {
+  deleteCookie('tokenGimnasio');
+  deleteCookie('usuarioLogueado');
+  deleteCookie('id_empresa');
+  deleteCookie('loginTime');
+  window.location.replace('index.html');
+}
 
 // ==========================================
 // VARIABLES GLOBALES DINÁMICAS
@@ -139,9 +152,7 @@ function salir() {
     color: '#ffffff'
   }).then((result) => {
     if(result.isConfirmed) {
-      deleteCookie('tokenGimnasio');
-      deleteCookie('usuarioLogueado');
-      window.location.href = 'index.html';
+      cerrarSesion();
     }
   });
 }

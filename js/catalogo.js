@@ -1,4 +1,77 @@
 // ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// ==========================================
+// 0. AUTO-REDIRECCIÓN (EL "ESCUDO" CON TIEMPO)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  const sesion = getCookie('usuarioLogueado');
+  const loginTime = getCookie('loginTime');
+  const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos en milisegundos
+
+  if (sesion && loginTime) {
+    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+
+    // Si pasaron más de 30 minutos, destruimos la sesión corrupta o vieja
+    if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
+      deleteCookie('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('loginTime');
+      deleteCookie('id_empresa');
+    } else {
+      // Si la sesión sigue viva (menos de 30 min), redirigimos a su panel
+      try {
+        const data = JSON.parse(sesion);
+        const rol = data.idRol || data.id_rol;
+
+        switch (rol) {
+          case 1: window.location.href = 'DashboardAdmin.html'; break;
+          case 2: window.location.href = 'DashboardRecep.html'; break;
+          case 3: window.location.href = 'DashboardEntrenador.html'; break;
+          case 4: window.location.href = 'DashboardCliente.html'; break;
+          case 5: window.location.href = 'DashboardProveedor.html'; break;
+          case 6: window.location.href = 'DashboardSuperAdmin.html'; break;
+          default: deleteCookie('usuarioLogueado'); break;
+        }
+      } catch(e) {
+        deleteCookie('usuarioLogueado');
+      }
+    }
+  } else {
+    // Limpieza de seguridad por si falta el tiempo o la sesión
+    deleteCookie('usuarioLogueado');
+    deleteCookie('tokenGimnasio');
+    deleteCookie('loginTime');
+    deleteCookie('id_empresa');
+  }
+});
+
+// ==========================================
 // CONFIGURACIÓN DE RUTAS Y CONSTANTES
 // ==========================================
 const CONFIG = {
@@ -15,7 +88,8 @@ let inventarioGlobal = [];
 // ==========================================
 const carritoController = {
   state: {
-    items: JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || []
+    // Leemos el carrito desde la cookie en lugar de localStorage
+    items: JSON.parse(getCookie(CONFIG.STORAGE_KEY)) || []
   },
 
   agregar: function(idProducto) {
@@ -80,7 +154,8 @@ const carritoController = {
   },
 
   guardar: function() {
-    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(this.state.items));
+    // Guardamos el carrito en una cookie por 24 horas (1440 minutos)
+    setCookie(CONFIG.STORAGE_KEY, JSON.stringify(this.state.items), 1440);
   },
 
   calcularTotal: function() {
@@ -143,7 +218,7 @@ const carritoController = {
       return;
     }
 
-    const usuarioTexto = localStorage.getItem('usuarioLogueado');
+    const usuarioTexto = getCookie('usuarioLogueado');
     if (!usuarioTexto) {
       Swal.fire({ icon: 'info', title: 'Inicia sesión', text: 'Debes iniciar sesión para comprar.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
         .then(() => window.location.href = 'login.html');
@@ -155,7 +230,7 @@ const carritoController = {
 
     if (!idUsuario) {
       Swal.fire({ icon: 'error', title: 'Sesión inválida', text: 'Por favor, inicia sesión nuevamente.', confirmButtonColor: '#ffc107', background: '#1e1e1e', color: '#ffffff' })
-        .then(() => { localStorage.removeItem('usuarioLogueado'); window.location.href = 'login.html'; });
+        .then(() => { deleteCookie('usuarioLogueado'); window.location.href = 'login.html'; });
       return;
     }
 
@@ -212,7 +287,7 @@ const catalogoView = {
     const container = document.getElementById('catalogo-container');
 
     // <-- 1. Rescatamos el ID de la empresa
-    let idEmpresaLogueada = localStorage.getItem('id_empresa');
+    let idEmpresaLogueada = getCookie('id_empresa');
 
     // Por si un visitante entra al catálogo sin iniciar sesión, le mostramos la empresa 1 por defecto (Iron Fitness)
     if (!idEmpresaLogueada) {

@@ -1,3 +1,31 @@
+// ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
   // ==========================================
@@ -21,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   async function cargarPlanesBD() {
     // Rescatamos el ID de la empresa (Arquitectura multi-tenant). Por defecto 1 (Iron Fitness)
-    let idEmpresaLogueada = localStorage.getItem('id_empresa') || sessionStorage.getItem('id_empresa') || 1;
+    let idEmpresaLogueada = getCookie('id_empresa') || 1;
 
     try {
       const response = await fetch(`${CONFIG.API_MEMBRESIAS}?idEmpresa=${idEmpresaLogueada}`);
@@ -145,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
     formPago.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // 1. Validamos la sesión
-      let usuarioTexto = sessionStorage.getItem('usuarioLogueado') || localStorage.getItem('usuarioLogueado');
+      // 1. Validamos la sesión mediante Cookies
+      let usuarioTexto = getCookie('usuarioLogueado');
       if (!usuarioTexto) {
         alert("¡Alto ahí! Para registrar un pago, primero debes iniciar sesión.");
         window.location.href = 'login.html';
@@ -167,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let usuarioActivo = JSON.parse(usuarioTexto);
       let idUsuario = usuarioActivo.idUsuario || usuarioActivo.id;
-      let idEmpresa = usuarioActivo.idEmpresa || usuarioActivo.id_empresa || localStorage.getItem('id_empresa') || 1;
+      let idEmpresa = usuarioActivo.idEmpresa || usuarioActivo.id_empresa || getCookie('id_empresa') || 1;
 
       // Usamos el plan que está seleccionado en el desplegable (que vino de tu base de datos)
       const selector = document.getElementById('selectorPlan');

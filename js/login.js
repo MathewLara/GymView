@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteCookie('usuarioLogueado');
       deleteCookie('tokenGimnasio');
       deleteCookie('loginTime');
+      deleteCookie('id_empresa');
     } else {
       // Si la sesión sigue viva (menos de 30 min), redirigimos a su panel
       try {
@@ -65,6 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Limpieza de seguridad por si falta el tiempo o la sesión
     deleteCookie('usuarioLogueado');
     deleteCookie('tokenGimnasio');
+    deleteCookie('loginTime'); 
+    deleteCookie('id_empresa');
   }
 });
 

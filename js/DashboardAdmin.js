@@ -49,6 +49,7 @@ function verificarInactividad() {
       deleteCookie('usuarioLogueado');
       deleteCookie('tokenGimnasio');
       deleteCookie('loginTime');
+      deleteCookie('id_empresa');
 
       // 2. MOSTRAMOS EL MENSAJE
       Swal.fire({
@@ -86,6 +87,8 @@ verificarInactividad();
 function cerrarSesion() {
   deleteCookie('tokenGimnasio');
   deleteCookie('usuarioLogueado');
+  deleteCookie('id_empresa'); 
+  deleteCookie('loginTime');
   window.location.href = 'index.html';
 }
 
