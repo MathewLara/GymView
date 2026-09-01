@@ -1,7 +1,35 @@
 // ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// ==========================================
 // ESCUDO DE SEGURIDAD Y CONFIGURACIÓN INICIAL
 // ==========================================
-const sesionSegura = localStorage.getItem('usuarioLogueado');
+const sesionSegura = getCookie('usuarioLogueado');
 if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || sesionSegura.trim() === '') {
   window.location.replace('index.html');
   throw new Error("Bloqueo activado.");
@@ -78,6 +106,51 @@ function cargarModuloResponsive(modulo, elemento) {
     if (overlay) overlay.classList.remove('mostrar');
   }
 }
+
+// ==========================================
+// CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
+// ==========================================
+const TIEMPO_EXPIRACION = 30 * 60 * 1000;
+
+function verificarInactividad() {
+  const loginTime = getCookie('loginTime');
+  if (loginTime) {
+    const tiempoTranscurrido = Date.now() - parseInt(loginTime);
+    if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
+      deleteCookie('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('loginTime');
+
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sesión Expirada',
+        text: 'Tu sesión ha expirado por inactividad. Por seguridad, debes iniciar sesión nuevamente.',
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#ffc107',
+        background: '#1e1e1e',
+        color: '#ffffff',
+        allowOutsideClick: false
+      }).then(() => {
+        window.location.replace('index.html');
+      });
+    }
+  }
+}
+
+function reiniciarTemporizador() {
+  if (getCookie('usuarioLogueado')) {
+    setCookie('loginTime', Date.now().toString(), 30);
+  }
+}
+
+window.addEventListener('mousemove', reiniciarTemporizador);
+window.addEventListener('click', reiniciarTemporizador);
+window.addEventListener('keydown', reiniciarTemporizador);
+window.addEventListener('scroll', reiniciarTemporizador);
+
+// Revisamos cada 60 segundos
+setInterval(verificarInactividad, 60000);
+verificarInactividad();
 
 // ==========================================
 // CARGA DE MÓDULOS Y TABLAS
@@ -405,8 +478,8 @@ async function cambiarEstadoAdmin(id, nuevoEstado) {
 }
 
 function cerrarSesion() {
-  localStorage.removeItem('tokenGimnasio');
-  localStorage.removeItem('usuarioLogueado');
+  deleteCookie('tokenGimnasio');
+  deleteCookie('usuarioLogueado');
   window.location.replace('index.html');
 }
 

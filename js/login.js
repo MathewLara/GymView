@@ -1,9 +1,37 @@
 // ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// ==========================================
 // 0. AUTO-REDIRECCIÓN (EL "ESCUDO" CON TIEMPO)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  const sesion = localStorage.getItem('usuarioLogueado');
-  const loginTime = localStorage.getItem('loginTime');
+  const sesion = getCookie('usuarioLogueado');
+  const loginTime = getCookie('loginTime');
   const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos en milisegundos
 
   if (sesion && loginTime) {
@@ -11,9 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Si pasaron más de 30 minutos, destruimos la sesión corrupta o vieja
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      localStorage.removeItem('usuarioLogueado');
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('loginTime');
+      deleteCookie('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('loginTime');
     } else {
       // Si la sesión sigue viva (menos de 30 min), redirigimos a su panel
       try {
@@ -27,16 +55,16 @@ document.addEventListener('DOMContentLoaded', () => {
           case 4: window.location.href = 'DashboardCliente.html'; break;
           case 5: window.location.href = 'DashboardProveedor.html'; break;
           case 6: window.location.href = 'DashboardSuperAdmin.html'; break;
-          default: localStorage.removeItem('usuarioLogueado'); break;
+          default: deleteCookie('usuarioLogueado'); break;
         }
       } catch(e) {
-        localStorage.removeItem('usuarioLogueado');
+        deleteCookie('usuarioLogueado');
       }
     }
   } else {
     // Limpieza de seguridad por si falta el tiempo o la sesión
-    localStorage.removeItem('usuarioLogueado');
-    localStorage.removeItem('tokenGimnasio');
+    deleteCookie('usuarioLogueado');
+    deleteCookie('tokenGimnasio');
   }
 });
 
@@ -135,14 +163,12 @@ loginForm.addEventListener('submit', async function(e) {
 
     if (response.ok) {
       if (data.token) {
-        localStorage.setItem('tokenGimnasio', data.token);
+        setCookie('tokenGimnasio', data.token, 1440); // Guardamos por 24 horas
       }
 
-      localStorage.setItem('usuarioLogueado', JSON.stringify(data));
-
-      localStorage.setItem('id_empresa', data.idEmpresa);
-
-      localStorage.setItem('loginTime', Date.now().toString());
+      setCookie('usuarioLogueado', JSON.stringify(data), 1440);
+      setCookie('id_empresa', data.idEmpresa, 1440);
+      setCookie('loginTime', Date.now().toString(), 1440);
 
       showGlobalStatus('¡Login Correcto! Entrando...', 'success');
 

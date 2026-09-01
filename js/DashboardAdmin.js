@@ -1,7 +1,36 @@
 // ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  // Secure: solo se envía por HTTPS. SameSite=Strict: previene ataques CSRF
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// ==========================================
 // ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
 // ==========================================
-if (!localStorage.getItem('usuarioLogueado')) {
+if (!getCookie('usuarioLogueado')) {
   window.location.replace('index.html');
 }
 
@@ -11,15 +40,15 @@ if (!localStorage.getItem('usuarioLogueado')) {
 const TIEMPO_EXPIRACION = 30 * 60 * 1000; // 30 minutos
 
 function verificarInactividad() {
-  const loginTime = localStorage.getItem('loginTime');
+  const loginTime = getCookie('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
 
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
       // 1. DESTRUIMOS LOS DATOS PRIMERO
-      localStorage.removeItem('usuarioLogueado');
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('loginTime');
+      deleteCookie('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('loginTime');
 
       // 2. MOSTRAMOS EL MENSAJE
       Swal.fire({
@@ -37,8 +66,8 @@ function verificarInactividad() {
 }
 
 function reiniciarTemporizador() {
-  if (localStorage.getItem('usuarioLogueado')) {
-    localStorage.setItem('loginTime', Date.now().toString());
+  if (getCookie('usuarioLogueado')) {
+    setCookie('loginTime', Date.now().toString(), 30);
   }
 }
 
@@ -55,8 +84,8 @@ verificarInactividad();
 // FUNCIÓN PARA CERRAR SESIÓN
 // ==========================================
 function cerrarSesion() {
-  localStorage.removeItem('tokenGimnasio');
-  localStorage.removeItem('usuarioLogueado');
+  deleteCookie('tokenGimnasio');
+  deleteCookie('usuarioLogueado');
   window.location.href = 'index.html';
 }
 
@@ -64,7 +93,8 @@ function cerrarSesion() {
 // OBTENER ID DE EMPRESA (MULTI-TENANT)
 // ==========================================
 function obtenerIdEmpresa() {
-  const usuario = JSON.parse(localStorage.getItem('usuarioLogueado')) || {};
+  const cookieUsuario = getCookie('usuarioLogueado');
+  const usuario = cookieUsuario ? JSON.parse(cookieUsuario) : {};
   return usuario.idEmpresa || usuario.id_empresa || 1;
 }
 
@@ -614,10 +644,10 @@ if (toggleAdminPass && adminPassInput && toggleAdminIcon) {
     if (isPassword) {
       toggleAdminIcon.classList.remove('bi-eye-slash-fill');
       toggleAdminIcon.classList.add('bi-eye-fill');
-      toggleAdminIcon.classList.add('text-warning'); // Se resalta en amarillo al ver
+      toggleAdminIcon.classList.add('text-warning');
     } else {
       toggleAdminIcon.classList.remove('bi-eye-fill', 'text-warning');
-      toggleAdminIcon.classList.add('bi-eye-slash-fill'); // Vuelve a su color normal
+      toggleAdminIcon.classList.add('bi-eye-slash-fill');
     }
   });
 }
@@ -627,7 +657,7 @@ if (toggleAdminPass && adminPassInput && toggleAdminIcon) {
 // ==========================================
 let modalUsuarioInstance;
 let modalPagoInstance;
-let modalPlanInstance; // Agregado para el módulo de planes
+let modalPlanInstance;
 let tomSelectSocio = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -637,7 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalEl = document.getElementById('modalUsuario');
   if(modalEl) { modalUsuarioInstance = new bootstrap.Modal(modalEl); }
 
-  // Inicializar modal de planes
   const mPlan = document.getElementById('modalPlan');
   if(mPlan) { modalPlanInstance = new bootstrap.Modal(mPlan); }
 });
@@ -858,7 +887,8 @@ function filtrarPagosPorCliente() {
 // ==========================================
 function exportarPagosCSV() {
   const filtro = document.getElementById('filtroCliente').value;
-  const admin = JSON.parse(localStorage.getItem('usuarioLogueado'))?.usuario || "Administrador";
+  const cookieUsuario = getCookie('usuarioLogueado');
+  const admin = (cookieUsuario ? JSON.parse(cookieUsuario)?.usuario : undefined) || "Administrador";
   const fechaHoy = new Date().toLocaleString();
 
   let csvRows = [];

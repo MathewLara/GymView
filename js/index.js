@@ -1,11 +1,38 @@
+// ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 /**
  * Lógica para la redirección inteligente desde el Home o Tienda.
  * Actúa como un "portero": Si tienes sesión, te manda a tu panel. Si no, al Login.
  */
-
 function irAZonaSocios() {
-  // Obtenemos los datos desde el localStorage
-  const sesion = localStorage.getItem('usuarioLogueado');
+  // Obtenemos los datos desde las cookies
+  const sesion = getCookie('usuarioLogueado');
 
   if (sesion) {
     try {
@@ -31,22 +58,23 @@ function irAZonaSocios() {
         default:
           console.warn("Rol desconocido:", rolId);
           // Si el rol es desconocido, por seguridad lo mandamos al login
-          localStorage.removeItem('usuarioLogueado');
+          deleteCookie('usuarioLogueado');
           window.location.href = 'login.html';
           break;
       }
 
     } catch (e) {
       // Si el JSON está roto o manipulado, limpiamos y mandamos al login
-      console.error("Error leyendo la sesión en localStorage:", e);
-      localStorage.removeItem('usuarioLogueado');
+      console.error("Error leyendo la sesión en las cookies:", e);
+      deleteCookie('usuarioLogueado');
       window.location.href = 'login.html';
     }
   } else {
-    // Si no existe la variable en localStorage, enviamos al usuario a iniciar sesión
+    // Si no existe la variable en cookies, enviamos al usuario a iniciar sesión
     window.location.href = 'login.html';
   }
 }
+
 // ==========================================
 // RENDERIZADO DINÁMICO DE PLANES (CONECTADO A BDD)
 // ==========================================
