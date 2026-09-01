@@ -75,6 +75,7 @@ function verificarInactividad() {
       deleteCookie('usuarioLogueado');
       deleteCookie('tokenGimnasio');
       deleteCookie('loginTime');
+      deleteCookie('id_empresa'); 
 
       Swal.fire({
         icon: 'warning',
@@ -107,6 +108,8 @@ function salir() {
     if(result.isConfirmed) {
       deleteCookie('tokenGimnasio');
       deleteCookie('usuarioLogueado');
+      deleteCookie('id_empresa');
+      deleteCookie('loginTime');
       window.location.href = 'index.html';
     }
   });
@@ -134,6 +137,8 @@ verificarInactividad();
 function cerrarSesion() {
   deleteCookie('tokenGimnasio');
   deleteCookie('usuarioLogueado');
+  deleteCookie('id_empresa'); 
+  deleteCookie('loginTime');
   window.location.href = 'index.html';
 }
 
