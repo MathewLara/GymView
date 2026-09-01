@@ -1,4 +1,32 @@
 // ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// ==========================================
 // CONFIGURACIÓN DE ENDPOINTS
 // ==========================================
 const BASE_URL = "https://gimnasio-f7td.onrender.com";
@@ -100,7 +128,6 @@ function showInputError(key, msg) {
   }
 }
 
-
 // ==========================================
 // PASO 1: REGISTRO (Envío de formulario)
 // ==========================================
@@ -198,7 +225,10 @@ document.getElementById('verifyForm').addEventListener('submit', async (e) => {
 
     if (response.ok) {
       showGlobalStatus(data.mensaje || "¡Cuenta verificada! Redirigiendo...", "success");
-      if (data.token) localStorage.setItem('tokenGimnasio', data.token);
+      
+      // REEMPLAZO DE LOCALSTORAGE POR COOKIE (24 horas)
+      if (data.token) setCookie('tokenGimnasio', data.token, 1440); 
+      
       setTimeout(() => { window.location.href = 'DashboardCliente.html'; }, 2000);
     } else {
       // Mostrar error de código incorrecto debajo del input del código

@@ -1,10 +1,38 @@
 // ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// ==========================================
 // ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
 // ==========================================
-const sesionSegura = localStorage.getItem('usuarioLogueado');
+const sesionSegura = getCookie('usuarioLogueado');
 if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || sesionSegura.trim() === '') {
   window.location.replace('index.html');
-  throw new Error("Bloqueo activado: El usuario no tiene sesión. Deteniendo la página.");
+  throw new Error("Acceso Denegado.");
 }
 
 // ==========================================
@@ -13,13 +41,13 @@ if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || 
 const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
-  const loginTime = localStorage.getItem('loginTime');
+  const loginTime = getCookie('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      localStorage.removeItem('usuarioLogueado');
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('loginTime');
+      deleteCookie('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('loginTime');
 
       Swal.fire({
         icon: 'warning',
@@ -38,8 +66,8 @@ function verificarInactividad() {
 }
 
 function reiniciarTemporizador() {
-  if (localStorage.getItem('usuarioLogueado')) {
-    localStorage.setItem('loginTime', Date.now().toString());
+  if (getCookie('usuarioLogueado')) {
+    setCookie('loginTime', Date.now().toString(), 30);
   }
 }
 
@@ -53,6 +81,15 @@ setInterval(verificarInactividad, 60000);
 verificarInactividad();
 
 // ==========================================
+// FUNCIÓN PARA CERRAR SESIÓN
+// ==========================================
+function cerrarSesion() {
+  deleteCookie('tokenGimnasio');
+  deleteCookie('usuarioLogueado');
+  window.location.href = 'index.html';
+}
+
+// ==========================================
 // 1. INICIALIZACIÓN Y VARIABLES GLOBALES
 // ==========================================
 let membresiaActiva = true;
@@ -61,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard del Cliente inicializado.");
 
   // 1. OBTENER USUARIO REAL Y EMPRESA (Protegido 100% contra colapsos)
-  const usuarioRaw = localStorage.getItem('usuarioLogueado');
+  const usuarioRaw = getCookie('usuarioLogueado');
   const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
   const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
 
@@ -180,7 +217,7 @@ async function cargarDatos(id, idEmpresa) {
 
         const hoy = new Date().toISOString().split('T')[0];
         const keyStorage = `rutina_${id}_${hoy}`;
-        const completados = JSON.parse(localStorage.getItem(keyStorage)) || [];
+        const completados = JSON.parse(getCookie(keyStorage)) || [];
 
         // 1. Dibujamos cada ejercicio asegurando el tamaño de letra (fs-6 y style manual)
         const lista = data.ejercicios.map((e, index) => {
@@ -359,9 +396,7 @@ function salir() {
     color: '#ffffff'
   }).then((result) => {
     if (result.isConfirmed) {
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('usuarioLogueado');
-      window.location.href = 'index.html';
+      cerrarSesion();
     }
   });
 }
@@ -381,7 +416,7 @@ async function cancelarSuscripcion() {
   });
   if (!isConfirmed) return;
 
-  const usuarioRaw = localStorage.getItem('usuarioLogueado');
+  const usuarioRaw = getCookie('usuarioLogueado');
   const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
   const idUsar = usuario.idUsuario || usuario.id || 1;
   const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
@@ -448,7 +483,7 @@ async function cancelarSuscripcion() {
 function toggleEjercicio(index, idUsuario) {
   const hoy = new Date().toISOString().split('T')[0];
   const keyStorage = `rutina_${idUsuario}_${hoy}`;
-  let completados = JSON.parse(localStorage.getItem(keyStorage)) || [];
+  let completados = JSON.parse(getCookie(keyStorage)) || [];
 
   const indexPos = completados.indexOf(index);
   const card = document.getElementById(`card-ej-${index}`);
@@ -461,11 +496,11 @@ function toggleEjercicio(index, idUsuario) {
     if (card) card.classList.remove('ejercicio-completado');
   }
 
-  localStorage.setItem(keyStorage, JSON.stringify(completados));
+  setCookie(keyStorage, JSON.stringify(completados), 24 * 60); // Caduca en un día
 }
 
 async function finalizarRutina() {
-  const usuarioRaw = localStorage.getItem('usuarioLogueado');
+  const usuarioRaw = getCookie('usuarioLogueado');
   const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
   const idUsar = usuario.idUsuario || usuario.id || 1;
   const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
@@ -528,105 +563,93 @@ async function finalizarRutina() {
       btn.disabled = false;
     }
   }
-  // ==========================================
-// 8. ENVÍO DE COMPROBANTE DE PAGO
-// ==========================================
-  // ==========================================
-// ENVÍO DE COMPROBANTE DE PAGO (ADAPTADO A BASE64 JSON)
-// ==========================================
-  async function enviarComprobantePago(event) {
-    event.preventDefault(); // Evita que se recargue la página
+}
 
-    const btnSubmit = document.getElementById('btnSubirComprobante'); // Asegúrate de tener un botón con este ID
-    const fileInput = document.getElementById('inputFotoComprobante'); // El ID del input type="file"
-    const file = fileInput.files[0];
+// ==========================================
+// 8. ENVÍO DE COMPROBANTE DE PAGO (ADAPTADO A BASE64 JSON)
+// ==========================================
+async function enviarComprobantePago(event) {
+  event.preventDefault();
 
-    if (!file) {
-      Swal.fire({ icon: 'warning', title: 'Falta imagen', text: 'Por favor, selecciona la foto de tu transferencia.', background: '#1e1e1e', color: '#ffffff' });
-      return;
+  const btnSubmit = document.getElementById('btnSubirComprobante');
+  const fileInput = document.getElementById('inputFotoComprobante');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    Swal.fire({ icon: 'warning', title: 'Falta imagen', text: 'Por favor, selecciona la foto de tu transferencia.', background: '#1e1e1e', color: '#ffffff' });
+    return;
+  }
+
+  const usuarioRaw = getCookie('usuarioLogueado');
+  const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
+  const idCliente = usuario.idUsuario || usuario.id || 1;
+  const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
+
+  const idMembresia = document.getElementById('idMembresiaSeleccionada') ? document.getElementById('idMembresiaSeleccionada').value : 2;
+  const montoPagado = document.getElementById('montoPagar') ? document.getElementById('montoPagar').value : 30.00;
+
+  try {
+    if(btnSubmit) {
+      btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Enviando...';
+      btnSubmit.disabled = true;
     }
 
-    // Obtenemos los datos del usuario logueado
-    const usuarioRaw = localStorage.getItem('usuarioLogueado');
-    const usuario = usuarioRaw ? JSON.parse(usuarioRaw) : {};
-    const idCliente = usuario.idUsuario || usuario.id || 1;
-    const idEmpresaLogueada = usuario.idEmpresa || usuario.id_empresa || 1;
+    const reader = new FileReader();
 
-    // Aquí capturas el ID de la membresía y el monto
-    const idMembresia = document.getElementById('idMembresiaSeleccionada') ? document.getElementById('idMembresiaSeleccionada').value : 2;
-    const montoPagado = document.getElementById('montoPagar') ? document.getElementById('montoPagar').value : 30.00;
+    reader.onloadend = async function() {
+      const base64String = reader.result;
 
-    try {
-      // Bloqueamos el botón mientras procesa
-      if(btnSubmit) {
-        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Enviando...';
-        btnSubmit.disabled = true;
-      }
-
-      // --- AQUÍ ESTÁ LA ADAPTACIÓN: CONVERTIR FOTO A TEXTO (BASE64) ---
-      const reader = new FileReader();
-
-      // Esta función se ejecuta en cuanto la imagen termina de leerse
-      reader.onloadend = async function() {
-        const base64String = reader.result; // Esta es la imagen convertida a texto
-
-        // Armamos el paquete de datos en formato JSON en lugar de FormData
-        const payload = {
-          id_cliente: idCliente,
-          id_membresia: idMembresia,
-          monto_pagado: montoPagado,
-          id_empresa: idEmpresaLogueada,
-          comprobante: base64String // Enviamos el texto gigante de la imagen
-        };
-
-        try {
-          // Hacemos la petición al backend enviando JSON
-          const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/pago-membresia`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json' // Clave: Le decimos a Java que es un JSON
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (res.ok) {
-            Swal.fire({
-              icon: 'success',
-              title: '¡Comprobante Enviado!',
-              text: 'Recepción validará tu pago pronto. Tu cuenta se activará automáticamente al ser aprobado.',
-              confirmButtonColor: '#ffc107',
-              background: '#1e1e1e', color: '#ffffff'
-            });
-
-            // Limpiar formulario si existe
-            const form = document.getElementById('formComprobante');
-            if(form) form.reset();
-
-          } else {
-            throw new Error("Error en el servidor al guardar el pago");
-          }
-        } catch (error) {
-          console.error("Error en fetch:", error);
-          Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo enviar el comprobante. Intenta de nuevo.', background: '#1e1e1e', color: '#ffffff' });
-        } finally {
-          // Restauramos el botón sin importar si hubo error o éxito
-          if(btnSubmit) {
-            btnSubmit.innerHTML = 'Subir Comprobante';
-            btnSubmit.disabled = false;
-          }
-        }
+      const payload = {
+        id_cliente: idCliente,
+        id_membresia: idMembresia,
+        monto_pagado: montoPagado,
+        id_empresa: idEmpresaLogueada,
+        comprobante: base64String
       };
 
-      // Iniciamos la lectura de la imagen (esto dispara la función reader.onloadend de arriba)
-      reader.readAsDataURL(file);
+      try {
+        const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/clientes/pago-membresia`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
-    } catch (error) {
-      console.error("Error procesando imagen:", error);
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un error al procesar la imagen.', background: '#1e1e1e', color: '#ffffff' });
-      if(btnSubmit) {
-        btnSubmit.innerHTML = 'Subir Comprobante';
-        btnSubmit.disabled = false;
+        if (res.ok) {
+          Swal.fire({
+            icon: 'success',
+            title: '¡Comprobante Enviado!',
+            text: 'Recepción validará tu pago pronto. Tu cuenta se activará automáticamente al ser aprobado.',
+            confirmButtonColor: '#ffc107',
+            background: '#1e1e1e', color: '#ffffff'
+          });
+
+          const form = document.getElementById('formComprobante');
+          if(form) form.reset();
+
+        } else {
+          throw new Error("Error en el servidor al guardar el pago");
+        }
+      } catch (error) {
+        console.error("Error en fetch:", error);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo enviar el comprobante. Intenta de nuevo.', background: '#1e1e1e', color: '#ffffff' });
+      } finally {
+        if(btnSubmit) {
+          btnSubmit.innerHTML = 'Subir Comprobante';
+          btnSubmit.disabled = false;
+        }
       }
+    };
+
+    reader.readAsDataURL(file);
+
+  } catch (error) {
+    console.error("Error procesando imagen:", error);
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un error al procesar la imagen.', background: '#1e1e1e', color: '#ffffff' });
+    if(btnSubmit) {
+      btnSubmit.innerHTML = 'Subir Comprobante';
+      btnSubmit.disabled = false;
     }
   }
 }

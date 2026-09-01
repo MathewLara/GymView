@@ -1,4 +1,32 @@
 // ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+// ==========================================
 // MOSTRAR / OCULTAR CONTRASEÑA (MODAL RECEPCIÓN)
 // ==========================================
 const toggleRecepPass = document.getElementById('toggleRecepPass');
@@ -28,8 +56,10 @@ let tomSelectSocioRecep = null; // Variable para la barra de búsqueda del modal
 // ==========================================
 // ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
 // ==========================================
-if (!localStorage.getItem('usuarioLogueado')) {
+const sesionSegura = getCookie('usuarioLogueado');
+if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || sesionSegura.trim() === '') {
   window.location.replace('index.html');
+  throw new Error("Bloqueo activado: El usuario no tiene sesión. Deteniendo la página.");
 }
 
 // ==========================================
@@ -38,13 +68,13 @@ if (!localStorage.getItem('usuarioLogueado')) {
 const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
-  const loginTime = localStorage.getItem('loginTime');
+  const loginTime = getCookie('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
-      localStorage.removeItem('usuarioLogueado');
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('loginTime');
+      deleteCookie('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('loginTime');
 
       Swal.fire({
         icon: 'warning',
@@ -75,8 +105,8 @@ function salir() {
     color: '#ffffff'
   }).then((result) => {
     if(result.isConfirmed) {
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('usuarioLogueado');
       window.location.href = 'index.html';
     }
   });
@@ -84,8 +114,8 @@ function salir() {
 
 function reiniciarTemporizador() {
   // Solo si el usuario está logueado actualizamos su hora
-  if (localStorage.getItem('usuarioLogueado')) {
-    localStorage.setItem('loginTime', Date.now().toString());
+  if (getCookie('usuarioLogueado')) {
+    setCookie('loginTime', Date.now().toString(), 30);
   }
 }
 
@@ -102,8 +132,8 @@ verificarInactividad();
 // FUNCIÓN PARA CERRAR SESIÓN
 // ==========================================
 function cerrarSesion() {
-  localStorage.removeItem('tokenGimnasio');
-  localStorage.removeItem('usuarioLogueado');
+  deleteCookie('tokenGimnasio');
+  deleteCookie('usuarioLogueado');
   window.location.href = 'index.html';
 }
 
@@ -145,7 +175,7 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '';
 
     try {
-      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const idEmpresa = getCookie('id_empresa') || 1;
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/dashboard?idEmpresa=${idEmpresa}`);
 
       if(res.ok) {
@@ -212,7 +242,7 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando directorio...</p></div>';
 
     try {
-      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const idEmpresa = getCookie('id_empresa') || 1;
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
@@ -289,7 +319,7 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Cargando historial de caja y transferencias...</p></div>';
 
     try {
-      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const idEmpresa = getCookie('id_empresa') || 1;
       // Usamos el endpoint actualizado de comprobantes
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/pagos-pendientes?idEmpresa=${idEmpresa}`);
 
@@ -396,7 +426,7 @@ async function cargarModulo(modulo, elementoHTML) {
     contenedorDinamico.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-warning"></div><p class="text-white mt-2">Buscando entregas pendientes...</p></div>';
 
     try {
-      const idEmpresa = localStorage.getItem('id_empresa') || 1;
+      const idEmpresa = getCookie('id_empresa') || 1;
       const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/ventas/pendientes?idEmpresa=${idEmpresa}`);
 
       if (res.ok) {
@@ -500,7 +530,7 @@ async function registrarIngresoManual() {
 async function procesarAcceso(valorAEnviar) {
   const alertaDiv = document.getElementById('alertaEscaner');
   try {
-    const idEmpresa = localStorage.getItem('id_empresa') || 1;
+    const idEmpresa = getCookie('id_empresa') || 1;
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/recepcion/acceso?id=${valorAEnviar}&idEmpresa=${idEmpresa}`, { method: 'POST' });
     const data = await res.json();
     if(data.status === 'ok') {
@@ -556,7 +586,7 @@ async function guardarUsuario() {
     contrasena: document.getElementById('userPass').value,
     email: document.getElementById('userEmail').value,
     telefono: document.getElementById('userTelefono').value,
-    idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
+    idEmpresa: parseInt(getCookie('id_empresa') || 1)
   };
 
   if (!isEdit && uData.contrasena.length < 5) {
@@ -601,7 +631,7 @@ async function abrirModalPago() {
   modalPagoInstance.show();
 
   try {
-    const idEmpresa = localStorage.getItem('id_empresa') || 1;
+    const idEmpresa = getCookie('id_empresa') || 1;
     const res = await fetch(`https://gimnasio-f7td.onrender.com/Gimnasio/api/auth/admin/usuarios?idEmpresa=${idEmpresa}`);
 
     if(res.ok) {
@@ -647,7 +677,7 @@ async function procesarPago() {
         idPlan: parseInt(plan),
         monto: montoCalculado,
         metodo: metodo,
-        idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1)
+        idEmpresa: parseInt(getCookie('id_empresa') || 1)
       })
     });
 
@@ -713,7 +743,7 @@ async function cambiarEstadoPago(idPago, nuevoEstado, idMembresia) {
             pagoId: idPago,
             estado: nuevoEstado,
             membresiaId: idMembresia,
-            idEmpresa: parseInt(localStorage.getItem('id_empresa') || 1) // <-- ¡AQUÍ ESTÁ LA SOLUCIÓN!
+            idEmpresa: parseInt(getCookie('id_empresa') || 1) // <-- ¡AQUÍ ESTÁ LA SOLUCIÓN!
           })
         });
 
@@ -831,6 +861,7 @@ async function imprimirFactura(idFactura, cliente, numero, fecha, total) {
       </body>
       </html>
     `;
+
     let ventanaImpresion = window.open('', '_blank', 'width=600,height=600');
     ventanaImpresion.document.write(htmlTicket);
     ventanaImpresion.document.close();
@@ -889,7 +920,8 @@ function filtrarPagosRecep() {
 
 function exportarPagosRecepCSV() {
   const filtro = document.getElementById('filtroClienteRecep').value;
-  const recepcionista = JSON.parse(localStorage.getItem('usuarioLogueado'))?.usuario || "Recepcionista";
+  const cookieUsuario = getCookie('usuarioLogueado');
+  const recepcionista = (cookieUsuario ? JSON.parse(cookieUsuario)?.usuario : undefined) || "Recepcionista";
   const fechaHoy = new Date().toLocaleString();
 
   let csvRows = [];

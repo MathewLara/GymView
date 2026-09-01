@@ -1,26 +1,58 @@
+// ==========================================
+// FUNCIONES AUXILIARES PARA MANEJO DE COOKIES
+// ==========================================
+function setCookie(name, value, minutes) {
+  let expires = "";
+  if (minutes) {
+    const date = new Date();
+    date.setTime(date.getTime() + (minutes * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/; Secure; SameSite=Strict";
+}
+
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 let globalData = null;
 let tomSelectNuevoAlumno = null; // Variable para el buscador mágico de alumnos
 let modalAlumnoInstance = null;
+
 // ==========================================
 // ESCUDO DE SEGURIDAD: BLOQUEO DE URL DIRECTA
 // ==========================================
-if (!localStorage.getItem('usuarioLogueado')) {
+const sesionSegura = getCookie('usuarioLogueado');
+if (!sesionSegura || sesionSegura === 'null' || sesionSegura === 'undefined' || sesionSegura.trim() === '') {
   window.location.replace('index.html');
+  throw new Error("Bloqueo activado: El usuario no tiene sesión. Deteniendo la página.");
 }
+
 // ==========================================
 // CONTROL DE SEGURIDAD BLINDADO: INACTIVIDAD
 // ==========================================
 const TIEMPO_EXPIRACION = 30 * 60 * 1000;
 
 function verificarInactividad() {
-  const loginTime = localStorage.getItem('loginTime');
+  const loginTime = getCookie('loginTime');
   if (loginTime) {
     const tiempoTranscurrido = Date.now() - parseInt(loginTime);
     if (tiempoTranscurrido > TIEMPO_EXPIRACION) {
       // 1. DESTRUIMOS LOS DATOS PRIMERO
-      localStorage.removeItem('usuarioLogueado');
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('loginTime');
+      deleteCookie('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('loginTime');
 
       Swal.fire({
         icon: 'warning',
@@ -40,8 +72,8 @@ function verificarInactividad() {
 
 function reiniciarTemporizador() {
   // Solo si el usuario está logueado actualizamos su hora
-  if (localStorage.getItem('usuarioLogueado')) {
-    localStorage.setItem('loginTime', Date.now().toString());
+  if (getCookie('usuarioLogueado')) {
+    setCookie('loginTime', Date.now().toString(), 30);
   }
 }
 
@@ -62,7 +94,6 @@ let idEntrenador = 1; // Valor por defecto restaurado (Modo desarrollo / Fallbac
 let idEmpresaLogueada = 1;
 let modalEjercicioInstance = null;
 
-
 document.addEventListener('DOMContentLoaded', () => {
 
   const modEj = document.getElementById('modalEjercicio');
@@ -71,13 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log("Dashboard Entrenador cargado.");
 
   // Extraer datos reales de sesión cubriendo todas las variables posibles del Backend
-  const usuarioStr = localStorage.getItem('usuarioLogueado');
+  const usuarioStr = getCookie('usuarioLogueado');
   if (usuarioStr) {
     const usuario = JSON.parse(usuarioStr);
     idEntrenador = usuario.idUsuario || usuario.id_usuario || usuario.id || 1;
   }
 
-  idEmpresaLogueada = localStorage.getItem('id_empresa') || 1;
+  idEmpresaLogueada = getCookie('id_empresa') || 1;
 
   const modAl = document.getElementById('modalAlumno');
   if(modAl) modalAlumnoInstance = new bootstrap.Modal(modAl);
@@ -108,8 +139,8 @@ function salir() {
     color: '#ffffff'
   }).then((result) => {
     if(result.isConfirmed) {
-      localStorage.removeItem('tokenGimnasio');
-      localStorage.removeItem('usuarioLogueado');
+      deleteCookie('tokenGimnasio');
+      deleteCookie('usuarioLogueado');
       window.location.href = 'index.html';
     }
   });
@@ -384,10 +415,11 @@ async function cargarEjerciciosModal(idsSeleccionados = []) {
               </div>
           `).join('');
     } else {
-      contenedor.innerHTML = '<div class="text-danger small">Error al cargar ejercicios de la BDD</div>';
+      // AQUÍ ESTÁ LA MAGIA: Si Render no encuentra el código Java, mostrará esto en lugar de girar infinito.
+      contenedor.innerHTML = `<div class="text-danger small"><i class="bi bi-exclamation-triangle-fill"></i> Error del Servidor (Código ${res.status}). Java aún no está listo en Render.</div>`;
     }
   } catch (error) {
-    contenedor.innerHTML = '<div class="text-danger small">Error de red al conectar con el servidor</div>';
+    contenedor.innerHTML = '<div class="text-danger small"><i class="bi bi-wifi-off"></i> Error de red al conectar con el servidor</div>';
   }
 }
 
